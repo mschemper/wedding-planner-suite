@@ -2,13 +2,14 @@
 
 **Read this first in a new session** (after AGENTS.md). It is the one file that says what is true right now. What isn't done yet is in `docs/BACKLOG.md`, how things got this way is in `docs/HISTORY.md`, and which files a change touches is in `docs/CODEMAP.md`. Update this at the end of any session that changes it.
 
-Last updated: 21 October 2026 (v3 built: venue seasons, review fixes, mobile, platform plan).
+Last updated: 21 October 2026 (v3 part 1 committed; part 2 = Cloudflare build, not started).
 
 ## Version
 
 | | |
 |---|---|
-| Current | **v3** (package.json 3.0.0, tag `v3`) — see CHANGELOG |
+| Released | **v2** (tag `v2`) |
+| In progress | **v3** (package.json 3.0.0, untagged). Part 1 committed (seasons, fixes, mobile). Part 2 = docs/DESIGN-v3.md. Tag only when deployed and verified. |
 | Previous | v1 = single-file HTML Budget Studio in the claude.ai project "Wedding Planner Suite" (with the Reconciled Master .docx and the guest workbook) |
 | Output | `dist\index.html`, built locally; Mark opens it from disk |
 
@@ -56,9 +57,9 @@ Last updated: 21 October 2026 (v3 built: venue seasons, review fixes, mobile, pl
 
 ## Platform
 
-- **Not chosen.** Requirements (Mark, 21 Oct): Angela uses it too; any device; edit data through our own UI (not a sheet); private link OK; free tier, low upkeep.
-- Recommended: Cloudflare Pages + Functions + D1 + Access (docs/PLATFORMS.md). Fallback: our UI saving to a hidden Google Sheet via Apps Script.
-- Waiting on Mark's "go" → v4 in a fresh session.
+- **Chosen (Mark, 21 Oct): Cloudflare Workers + Static Assets + D1 + Access**, free *.workers.dev, on his **existing Cloudflare account**. docs/DESIGN-v3.md.
+- Not deployed. Account name, team domain, free-plan seat count, Worker URL: fill in at the deploy session.
+- Until v3 deploys, `dist/index.html` from disk is the app.
 
 ## Standing preferences (Mark)
 

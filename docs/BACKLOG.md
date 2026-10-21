@@ -18,15 +18,12 @@ Each answer replaces an estimate in `src/data/scenarios.ts` → golden + HISTORY
 
 ## Requested / planned (features)
 
-### P1. Go online, v4 — L (needs Mark's platform "go"; docs/PLATFORMS.md)
-D1 schema mirroring `src/guests/schema.ts`; Pages Functions save API that re-runs `validateGuests`; Cloudflare Access for Mark and Angela; guest editor (was F6) with households, filters from the Filter Guide, add/edit, invite status, partner/parent links, and xlsx export. Shared data first: schema + API + tests before screens.
-
-### P2. Quotes and prices editor, v5 — M (after P1)
-Per-scenario actual quotes override estimates, with variance against the model (was F9). Edit `Params` (src/data/params.ts) from the UI. Hosting polish.
+### P1. v3 part 2 — go online with editors — L (Mark: "go", 21 Oct; one release with part 1)
+Everything in docs/DESIGN-v3.md: Workers + Static Assets, D1, Access, save API, Guests screen (was F6), Quotes & Prices screens (was F9 + params), engine quote overrides, xlsx export, offline build. Build session, then deploy session.
 
 ### F1. Rockwell on the River as scenario 17 — S (needs the tour answers in STATE "Open quotes" #6)
 
-### F7. Family graph — M (needs D1 edges)
+### F7. Family graph — M (after v3; needs partner/parent edges entered in the Guests screen)
 A force-directed view built from `PartnerPersonID`/`ParentPersonIDs`. If the v1 graph code exists, put it in `archive/` and port it.
 
 ### F8. Port missing v1 pieces — size on arrival
@@ -39,8 +36,8 @@ The Park District lists $3,679 for the weekend 11-hour package; the doc itemises
 
 ## Bugs / debt
 
-### B3. Dev server serves data/private (REVIEW-v3 R18) — XS, before P1
-Add `server.fs.deny` for `data/private/**` when going online.
+### B3. Dev server serves data/private (REVIEW-v3 R18) — XS, in P1
+Add `server.fs.deny` for `data/private/**`. The hosted build must not bundle `data/private` (DESIGN-v3 §2).
 
 ### B4. Attendance doesn't count the couple, vendors or a plus-one rate (REVIEW-v3 R15) — S
 Decide with Mark whether to add them.

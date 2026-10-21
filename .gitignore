@@ -14,3 +14,5 @@ archive/
 /data/*
 !/data/fixtures/
 *.rejected.json
+.wrangler/
+.dev.vars

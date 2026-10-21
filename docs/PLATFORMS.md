@@ -1,6 +1,6 @@
 # Platform options — taking the suite off the PC
 
-Written 21 Oct 2026, for Mark's request: Angela uses it too, it opens from any device, data is edited without code, guest list on a private link is fine, and the free tier with low upkeep is preferred. **Nothing is decided yet.** STATE.md "Platform" records the choice once Mark makes it.
+Written 21 Oct 2026, for Mark's request: Angela uses it too, it opens from any device, data is edited without code, guest list on a private link is fine, and the free tier with low upkeep is preferred. **Decided 21 Oct 2026: route A on Cloudflare, using Workers + Static Assets rather than Pages (Cloudflare's current recommendation for new projects).** Build plan: DESIGN-v3.md.
 
 ## Two routes, depending on where editing happens
 

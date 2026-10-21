@@ -16,6 +16,11 @@ Newest first. Each entry: what changed and why.
 - **Mobile is one column below 520 px.** Two narrow columns clipped the price beside "shown at" text.
 - **The git history was rewritten to remove surnames.** This was safe because no remote existed and the PC copy was replaced whole.
 - **Hosting: Cloudflare over Sheets-first.** Mark wants to edit in our own UI. Cloudflare keeps the single-file app, adds a save API and a database, and puts a free login in front, without a server to maintain (PLATFORMS.md).
+- **Workers + Static Assets, not Pages.** Cloudflare recommends Workers for new projects; Pages is for maintaining existing ones. So the address is *.workers.dev, not *.pages.dev, and Access protects it the same way.
+- **One release instead of v3/v4/v5** (Mark: consolidate onto the new platform). Part 1 is committed but untagged; the tag lands only after a verified deploy.
+- **Optimistic versioning, not merge:** two editors rarely touch the same row, and a 409 "reload" is honest and cheap.
+- **Deploy order is deploy → Access → seed,** so real names are never online without the login.
+- **Build in a fresh PC session:** wrangler needs Mark's browser login on the PC, and a fresh session avoids re-reading this long conversation (RELEASE rules 7 and 12).
 
 ## v2 — 2026-10-20 · Port to Claude Code repo
 

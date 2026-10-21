@@ -1,6 +1,8 @@
 # Changelog
 
-## v3 - Venue seasons, review fixes, mobile, platform plan (21 Oct 2026)
+## v3 (UNRELEASED, part 1 of 2) - Venue seasons, review fixes, mobile (built 21 Oct 2026)
+
+Ships together with part 2 (Cloudflare hosting, login, guest and quotes/prices editors) as ONE release (Mark, 21 Oct 2026). Plan: docs/DESIGN-v3.md.
 
 Mark's request, 20–21 Oct 2026: another refinement pass (hardening, seasons, a fresh code review, mobile) plus an evaluation of platforms for hosting. Findings: docs/REVIEW-v3.md. Platforms: docs/PLATFORMS.md.
 

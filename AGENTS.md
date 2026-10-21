@@ -10,7 +10,7 @@ Index + hard rules. Detail lives in docs/: point, never copy. Facts that change 
 5. ADHD output mode always on: read + follow docs/skills/i-have-adhd/SKILL.md at session start (ayghri/i-have-adhd @839872f, MIT). Off only on "stop adhd mode"/"normal mode", that session only. Conflict -> P0 wins (P0.1 allows >1 question).
 
 ## What this is
-Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenarios priced by guest count, bar tier, wedding date (venue seasons), contingency (source: Reconciled Master v2.0, June 2026). Guest data layer: workbook import, validation, attendance forecast feeding the guest count. One self-contained page (`dist/index.html`), opens from disk; no server, no hosting.
+Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenarios priced by guest count, bar tier, wedding date (venue seasons), contingency (source: Reconciled Master v2.0, June 2026). Guest data layer: workbook import, validation, attendance forecast feeding the guest count. Today: one self-contained page (`dist/index.html`) opened from disk. v3 in progress: Cloudflare Workers + Static Assets + D1 + Access with guest/quote/price editors (docs/DESIGN-v3.md).
 
 ## Session start (in order)
 0. Cowork only: repo not mounted -> device_request_folder_access C:\Users\msche\Documents\Projects\wedding-planner-suite.
@@ -35,7 +35,9 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 - Gate: `npm run check` (typecheck + tests + build, ~10 s) before any behaviour-changing commit.
 - Dev: `npm run dev`. Engine vs doc: `npm test -- golden`.
 - Release: docs/RELEASE.md checklist -> bump package.json, `git tag -a vN -m vN`, CHANGELOG + STATE + BACKLOG + USAGE row.
-- Hand Mark `dist\index.html` path; he opens it. Nothing to deploy.
+- Until v3 deploys: hand Mark `dist\index.html`. After: deploy per docs/DESIGN-v3.md §7; deploy → Access → seed, never seed before Access.
+- Cloudflare work: load skills `cloudflare:wrangler`, `cloudflare:workers-best-practices`, `cloudflare:cloudflare-one` (Access) if available. Never ask Mark for an API token in chat; `wrangler login` in his browser.
+- Never print or commit Access AUD/team secrets beyond wrangler vars; never commit `.wrangler/` or `.dev.vars`.
 - Time estimates to Mark: Sonnet subagent ~25-30 min each, even in parallel.
 
 ## Design rules
