@@ -2,8 +2,13 @@
 
 Newest first. Each entry: what changed and why.
 
-## v0.2.0 — 2026-10-20 · Port to Claude Code repo
+## v2 — 2026-10-20 · Port to Claude Code repo
 
+- **Agent docs follow bauhaus-dashboard.** AGENTS.md is the entry point (CLAUDE.md is just `@AGENTS.md`, so non-Claude agents read the same rules). It carries the P0 block, session-start order and Definition of done. Changing facts live only in STATE.md; rationale lives only here. That's the structure Mark already runs on bauhaus and sheridan, so one mental model covers all three repos.
+- **The repo lives at `Documents\Projects\`** next to bauhaus-dashboard and sheridan-dashboard, not `Documents\Code\`.
+- **Releases are integer `vN`, like bauhaus.** package.json is `N.0.0`. v1 = the claude.ai HTML.
+- **The ADHD output skill is vendored at `docs/skills/i-have-adhd/`**, the same copy and commit as bauhaus (ayghri/i-have-adhd @839872f, MIT).
+- **`dist/` isn't deployed anywhere.** The single file is the product, so RELEASE.md has no deploy or apply steps.
 - **v1 single HTML → Vite + React + TS.** v1 loaded unpinned CDN React and compiled in the browser with Babel. A build step pins versions, enables tests, and still ships one offline `dist/index.html` (vite-plugin-singlefile).
 - **Engine split from UI.** Pricing is pure TypeScript, so it can be tested against the Reconciled Master directly. The UI was where the v1 crash lived (REVIEW F-01).
 - **Golden tests are the contract.** 122 doc totals, ±$30. Tolerance covers the doc rounding percent lines to the nearest $5. A larger gap means a modelling error.

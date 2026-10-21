@@ -5,3 +5,5 @@ data/private/
 .DS_Store
 coverage/
 .claude/settings.local.json
+archive/
+*.bundle

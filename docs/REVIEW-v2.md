@@ -1,4 +1,4 @@
-# Design & Solution Review — v1 → v0.2.0
+# Design & Solution Review — v1 → v2
 
 Reviewed 2026-10-20. Inputs: `wedding-budget-html.html` (v1 Budget Studio), *Wedding Budget Comparative Analysis — Reconciled Master v2.0* (June 11, 2026), `structured_guest_data_model.xlsx`.
 
@@ -10,7 +10,7 @@ The budget **engine** is sound: once the fixes below are in, it reproduces all 1
 
 ## Findings
 
-Sev: 🔴 breaks or misprices · 🟠 misleading · 🟡 quality. Status: ✅ fixed in v0.2.0 · 🗺 in ROADMAP.
+Sev: 🔴 breaks or misprices · 🟠 misleading · 🟡 quality. Status: ✅ fixed in v2 · 🗺 in BACKLOG.
 
 ### Engine & data
 
@@ -45,4 +45,4 @@ Sev: 🔴 breaks or misprices · 🟠 misleading · 🟡 quality. Status: ✅ fi
 
 ### Not in scope / not found
 
-The suite also includes a force-directed family graph and a mobile companion app, but neither is in this project's files, so neither was transferred. If they exist elsewhere, drop them into `legacy/` and run the review prompt in `docs/ROADMAP.md`.
+The suite also includes a force-directed family graph and a mobile companion app, but neither is in this project's files, so neither was transferred. If they exist elsewhere, drop them into `legacy/` and plan from `docs/BACKLOG.md` F8.

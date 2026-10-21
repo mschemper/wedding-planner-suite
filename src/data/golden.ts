@@ -19,7 +19,7 @@ export const GOLDEN: Golden[] = [
   [6, { bar: "Full Bar" }, { 50: 29935, 75: 37265, 100: 48095, 125: 55975 }],
   [7, { bar: "BYO Beer & Wine" }, { 50: 26500, 75: 31175, 100: 35850, 125: 40600 }],
   [7, { bar: "BYO Full Bar (IN-licensed)" }, { 50: 26550, 75: 31575, 100: 36600, 125: 41700 }],
-  // S8 @125: doc totals (47,010 / 50,865) do not sum their own line items; corrected to the line-item sums. See docs/REVIEW.md F-03.
+  // S8 @125: doc totals (47,010 / 50,865) do not sum their own line items; corrected to the line-item sums. See docs/REVIEW-v2.md F-03.
   [8, { bar: "Beer & Wine" }, { 50: 35350, 75: 35775, 100: 40490, 125: 47060 }],
   [8, { bar: "Full Cocktail" }, { 50: 35350, 75: 36280, 100: 43570, 125: 50913 }],
   [9, { bar: "BYO Beer & Wine" }, { 50: 32330, 75: 37110, 100: 41890, 125: 46720 }],

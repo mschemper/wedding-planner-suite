@@ -1,16 +1,12 @@
 # Wedding Planner Suite
 
-Budget Studio (16 venue scenarios from Reconciled Master v2.0) plus a guest-list data layer that feeds the guest count.
+Mark & Angela, 2027. The Budget Studio prices 16 venue scenarios by guest count (from Reconciled Master v2.0), and a guest data layer feeds it the guest count.
 
-```bash
-npm install
-npm run import:guests -- data/private/guests.xlsx   # optional; stays local
+```powershell
+npm ci
+npm run import:guests -- data\private\guests.xlsx   # optional; stays local
 npm run dev                                         # http://localhost:5173
-npm run check                                       # typecheck + 138 tests + build
+npm run check                                       # typecheck + tests + build -> dist\index.html
 ```
 
-`npm run build` → `dist/index.html`, one self-contained file that opens from disk.
-
-Start with `docs/REVIEW.md` for what was found and fixed, then `docs/ROADMAP.md` for what's next.
-
-Working with Claude Code: run `claude` in this folder. `CLAUDE.md` loads automatically.
+Claude Code: double-click `claude-here.cmd` (Windows) or `start-claude.cmd` (WSL). Agents start at `AGENTS.md`; the current state is in `docs/STATE.md`.
