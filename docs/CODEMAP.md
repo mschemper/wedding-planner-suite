@@ -14,6 +14,10 @@ Organised by the thing you're changing, not by folder.
 | Home grid, best value, settings | `src/ui/App.tsx` `App`, `SettingsBar`, `GuestListPanel` | `npm run dev` |
 | Detail page, compare | `src/ui/App.tsx` `DetailView` | `npm run dev` |
 | Colours, type, layout | `src/ui/styles.css` (`:root` tokens) | AGENTS "Design rules" |
-| Money formatting, months | `src/ui/format.ts` | — |
+| Money formatting | `src/ui/format.ts` | — |
+| Personal costs (dress, photo, band, favors, florals base) | `src/data/params.ts` | golden must stay green |
+| A venue's season calendar | `scenarios.ts` `seasons`/`docSeason`/`closedSeasons`/`seasonMinGuests`/`seasonSource` | `tests/engine.test.ts` "seasons"; season-dependent golden rows carry a date |
+| Remembered settings (guests, date, contingency, open venue) | `src/ui/prefs.ts` (localStorage, try/catch) | — |
+| Compare at matching bar tier | `src/engine/compute.ts` `matchOptions` | `tests/engine.test.ts` |
 | Build output | `vite.config.ts`, `index.html` | `npm run build` → `dist/index.html` |
 | Agent permissions | `.claude/settings.json` | — |

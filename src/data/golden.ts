@@ -2,7 +2,8 @@
 // [scenarioId, options, { guests: total }]
 import type { Options } from "../engine/types";
 
-export type Golden = [number, Options, Record<number, number>];
+/** optional 4th element: wedding date; omitted → the scenario's docSeason */
+export type Golden = [number, Options, Record<number, number>, string?];
 
 export const GOLDEN: Golden[] = [
   [1, { bar: "Beer & Wine" }, { 50: 43020, 75: 49695, 100: 56370, 125: 63295 }],
@@ -11,8 +12,11 @@ export const GOLDEN: Golden[] = [
   [2, { bar: "Full Bar" }, { 50: 30480, 75: 36985, 100: 43490, 125: 50045 }],
   [3, { bar: "BYO Beer & Wine" }, { 50: 34960, 75: 41305, 100: 47650, 125: 54045 }],
   [3, { bar: "BYO Full Bar" }, { 50: 35560, 75: 42105, 100: 48650, 125: 55245 }],
-  [4, { bar: "Beer & Wine" }, { 50: 32945, 75: 40220, 100: 51995, 125: 59320 }],
-  [4, { bar: "Full Bar" }, { 50: 33665, 75: 41300, 100: 53435, 125: 61120 }],
+  // S4: doc priced 50/75 as off-peak Saturdays and 100/125 as peak.
+  [4, { bar: "Beer & Wine" }, { 50: 32945, 75: 40220 }, "2027-03-20"],
+  [4, { bar: "Beer & Wine" }, { 100: 51995, 125: 59320 }, "2027-05-15"],
+  [4, { bar: "Full Bar" }, { 50: 33665, 75: 41300 }, "2027-03-20"],
+  [4, { bar: "Full Bar" }, { 100: 53435, 125: 61120 }, "2027-05-15"],
   [5, { bar: "Tier 1 (Beer & Wine)" }, { 50: 33560, 75: 39855, 100: 46150 }],
   [5, { bar: "Tier 2 (Full Bar)" }, { 50: 34160, 75: 40755, 100: 47350 }],
   [6, { bar: "Beer & Wine" }, { 50: 28975, 75: 35825, 100: 46175, 125: 53575 }],

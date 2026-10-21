@@ -24,7 +24,10 @@
       "Bash(git add --force:*)",
       "Bash(git add data/private:*)",
       "Bash(git push --force:*)",
-      "Bash(git push -f:*)"
+      "Bash(git push -f:*)",
+      "Bash(git add -A -f:*)",
+      "Bash(git add . -f:*)",
+      "Bash(git add --all --force:*)"
     ]
   }
 }

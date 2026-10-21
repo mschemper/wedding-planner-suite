@@ -1,30 +1,30 @@
 // Source of truth: "Wedding Budget Comparative Analysis — Reconciled Master v2.0" (June 11, 2026).
 // Every change here must keep tests/golden.test.ts green or update the golden table with a HISTORY.md entry.
 import type { LineItem, OptionDef, Scenario } from "../engine/types";
+import { DEFAULT_PARAMS, type Params } from "./params";
 
 const bar = (choice: string) => ({ options: { bar: choice } });
 const scope = (choice: string) => ({ options: { scope: choice } });
 const barOpt = (choices: [string, string], def = choices[0]): OptionDef => ({ key: "bar", label: "Bar service", choices, def });
-
-const FLORALS_BASE: [number, number][] = [[50, 1350], [75, 1600], [100, 1850], [125, 2150]];
-const FLORALS_REDUCED_400: [number, number][] = [[50, 950], [75, 1200], [100, 1450], [125, 1750]];
-const FLORALS_REDUCED_300: [number, number][] = [[50, 1050], [75, 1300], [100, 1550], [125, 1850]];
-
-/** Personal items common to every non-benchmark scenario (§2.5). */
-const dress = (amount = 2900, desc = "Dress + alterations"): LineItem => ({ cat: "Attire, beauty & rings", desc, type: "fixed", amount });
-const hmu = (amount = 850, desc = "Hair & makeup"): LineItem => ({ cat: "Attire, beauty & rings", desc, type: "fixed", amount });
-const photo = (amount = 4500, desc = "Photography"): LineItem => ({ cat: "Photography & video", desc, type: "fixed", amount });
-const band = (amount = 2000, desc = "Joel Paterson and Friends"): LineItem => ({ cat: "Music & entertainment", desc, type: "fixed", amount });
-const diyFavors: LineItem = { cat: "Stationery & favors", desc: "DIY favors", type: "perGuest", rate: 3 };
-const cake = (base = 100, desc = "Cake", taxable = true): LineItem => ({ cat: "Food & beverage", desc, type: "perGuest", base, rate: 4, taxable });
-
+const at = (vals: [number, number, number, number]): [number, number][] => [[75, vals[0]], [125, vals[1]], [200, vals[2]], [250, vals[3]]];
 /** Benchmarks 14–16 come only as totals in the source; model as anchored bands per option. */
 const allIn = (choice: string, anchors: [number, number][]): LineItem => ({
   cat: "Venue & site", desc: "All-in estimate (source model, all inclusions)", type: "bands", anchors, appliesIf: bar(choice),
 });
-const at = (vals: [number, number, number, number]): [number, number][] => [[75, vals[0]], [125, vals[1]], [200, vals[2]], [250, vals[3]]];
 
-export const SCENARIOS: Scenario[] = [
+/** Personal items (§2.5) come from Params so one edit reprices every scenario. */
+export function buildScenarios(p: Params = DEFAULT_PARAMS): Scenario[] {
+  const dress = (extra = 0, desc = "Dress + alterations"): LineItem => ({ cat: "Attire, beauty & rings", desc, type: "fixed", amount: p.dress + extra });
+  const hmu = (amount = p.hairMakeup, desc = "Hair & makeup"): LineItem => ({ cat: "Attire, beauty & rings", desc, type: "fixed", amount });
+  const photo = (extra = 0, desc = "Photography"): LineItem => ({ cat: "Photography & video", desc, type: "fixed", amount: p.photography + extra });
+  const band = (amount = p.band, desc = "Joel Paterson and Friends"): LineItem => ({ cat: "Music & entertainment", desc, type: "fixed", amount });
+  const diyFavors: LineItem = { cat: "Stationery & favors", desc: "DIY favors", type: "perGuest", rate: p.diyFavorsPerGuest };
+  const cake = (base = p.cakeBase, desc = "Cake", taxable = true): LineItem => ({ cat: "Food & beverage", desc, type: "perGuest", base, rate: p.cakePerGuest, taxable });
+  const florals = (adj = 0): [number, number][] => p.floralsBase.map(([g, v]) => [g, v + adj]);
+  const bandTravel = p.band + p.bandTravel;
+  const hmuTravel = p.hairMakeup + p.beautyTravel;
+
+  return [
   {
     id: 1, name: "Typical Full-Service Chicago Wedding", location: "Generic urban loft / banquet · Chicago", kind: "local",
     desc: "A traditional Saturday city wedding with every originally-excluded item added back. The reference point against which all savings are measured.",
@@ -43,13 +43,13 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Photography & video", desc: "Videographer", type: "fixed", amount: 3000 },
       band(),
       { cat: "Music & entertainment", desc: "Photo booth", type: "fixed", amount: 800 },
-      { cat: "Flowers & décor", desc: "Florals", type: "bands", anchors: [...FLORALS_BASE, [200, 4000], [250, 5000]] },
+      { cat: "Flowers & décor", desc: "Florals", type: "bands", anchors: [...florals(), [200, 4000], [250, 5000]] },
       { cat: "Flowers & décor", desc: "Professional décor", type: "fixed", amount: 1000 },
       dress(),
-      hmu(850, "Hair & makeup (bride)"),
+      hmu(p.hairMakeup, "Hair & makeup (bride)"),
       { cat: "Attire, beauty & rings", desc: "Wedding bands", type: "fixed", amount: 2000 },
       { cat: "Stationery & favors", desc: "Stationery + postage", type: "bands", anchors: [[50, 700], [75, 900], [100, 1100], [125, 1400], [250, 2400]] },
-      { cat: "Stationery & favors", desc: "Favors (purchased)", type: "perGuest", rate: 5 },
+      { cat: "Stationery & favors", desc: "Favors (purchased)", type: "perGuest", rate: p.purchasedFavorsPerGuest },
       { cat: "Transportation & lodging", desc: "Transportation", type: "fixed", amount: 1000 },
       { cat: "Transportation & lodging", desc: "Wedding night suite", type: "fixed", amount: 400 },
       { cat: "Ceremony & legal", desc: "Officiant", type: "fixed", amount: 500 },
@@ -74,9 +74,9 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Rentals & production", desc: "Tableware / linens", type: "perGuest", rate: 12 },
       photo(),
       band(),
-      { cat: "Flowers & décor", desc: "Florals (DIY décor: $0)", type: "bands", anchors: FLORALS_BASE },
+      { cat: "Flowers & décor", desc: "Florals (DIY décor: $0)", type: "bands", anchors: florals() },
       dress(),
-      hmu(850, "Hair & makeup (bride)"),
+      hmu(p.hairMakeup, "Hair & makeup (bride)"),
       { ...diyFavors, desc: "DIY favors (materials)" },
     ],
   },
@@ -84,10 +84,21 @@ export const SCENARIOS: Scenario[] = [
     id: 3, name: "Salvage One", location: "West Town · Chicago", kind: "local",
     desc: "Industrial-chic salvage-warehouse loft. BYOB catering.",
     tag: "Loft", confidence: 80, min: 50, max: 175, def: 100, capacity: { practicalMin: 80 },
-    flag: "Practical minimum ~80 guests. Rental reconciled to $9,000.",
+    flag: "Practical minimum ~80 guests. 2027 Saturday rental by month: Jan–Mar $9,000 · Apr $10,000 · May–Oct $12,000 · Nov–Dec $9,500 (+$500 ceremony fee not modelled).",
+    seasons: [
+      { name: "Jan–Mar", from: "01-01", to: "03-31" },
+      { name: "April", from: "04-01", to: "04-30" },
+      { name: "May–Oct", from: "05-01", to: "10-31" },
+      { name: "Nov–Dec", from: "11-01", to: "12-31" },
+    ],
+    docSeason: "Jan–Mar",
+    seasonSource: "Tulle Together, 12 Jun 2026, from a couple-submitted venue pricing email (third-party)",
     options: [barOpt(["BYO Beer & Wine", "BYO Full Bar"])],
     items: [
-      { cat: "Venue & site", desc: "Venue rental (Saturday peak)", type: "fixed", amount: 9000 },
+      { cat: "Venue & site", desc: "Venue rental (Saturday, Jan–Mar)", type: "fixed", amount: 9000, appliesIf: { seasons: ["Jan–Mar"] } },
+      { cat: "Venue & site", desc: "Venue rental (Saturday, April)", type: "fixed", amount: 10000, appliesIf: { seasons: ["April"] } },
+      { cat: "Venue & site", desc: "Venue rental (Saturday, May–Oct)", type: "fixed", amount: 12000, appliesIf: { seasons: ["May–Oct"] } },
+      { cat: "Venue & site", desc: "Venue rental (Saturday, Nov–Dec)", type: "fixed", amount: 9500, appliesIf: { seasons: ["Nov–Dec"] } },
       { cat: "Venue & site", desc: "Event insurance", type: "fixed", amount: 250 },
       { cat: "Food & beverage", desc: "Catering (approved list)", type: "perGuest", rate: 175, taxable: true },
       cake(),
@@ -97,7 +108,7 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Rentals & production", desc: "Tableware / linens", type: "perGuest", rate: 12 },
       photo(),
       band(),
-      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: FLORALS_REDUCED_400 },
+      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: florals(-400) },
       dress(),
       hmu(),
       diyFavors,
@@ -108,10 +119,18 @@ export const SCENARIOS: Scenario[] = [
     id: 4, name: "River Room at Burning Bush Brewery", location: "North Center · Chicago", kind: "local",
     desc: "Brewery event space with transparent pricing.",
     tag: "Brewery", confidence: 90, min: 50, max: 150, def: 100,
-    flag: "Under 100 guests priced as a winter (off-peak) Saturday at $7,000; peak Saturdays require 100+. A spring date may not get the winter rate — confirm.",
+    flag: "Peak Saturdays (Apr 16–Nov 15, 2027) are $9,000 and need 100+ guests on the bar package; off-peak $7,000, no minimum. Rates third-party; seasons from the venue.",
+    seasons: [
+      { name: "peak", from: "04-16", to: "11-15" },
+      { name: "off-peak", from: "11-16", to: "04-15" },
+    ],
+    docSeason: "off-peak",
+    seasonMinGuests: { peak: 100 },
+    seasonSource: "riverroomchicago.com Common Questions (seasons, minimum); Tulle Together Aug 2025 (rates)",
     options: [barOpt(["Beer & Wine", "Full Bar"])],
     items: [
-      { cat: "Venue & site", desc: "Venue rental (winter Sat <100; peak Sat 100+)", type: "step", breaks: [{ upTo: 99, v: 7000 }, { upTo: Infinity, v: 9000 }] },
+      { cat: "Venue & site", desc: "Venue rental (off-peak Saturday)", type: "fixed", amount: 7000, appliesIf: { seasons: ["off-peak"] } },
+      { cat: "Venue & site", desc: "Venue rental (peak Saturday)", type: "fixed", amount: 9000, appliesIf: { seasons: ["peak"] } },
       { cat: "Venue & site", desc: "Insurance", type: "fixed", amount: 175 },
       { cat: "Food & beverage", desc: "Catering (preferred list)", type: "perGuest", rate: 175, taxable: true },
       cake(),
@@ -122,7 +141,7 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Rentals & production", desc: "Tables / chairs / linens", type: "perGuest", rate: 20 },
       photo(),
       band(),
-      { cat: "Flowers & décor", desc: "Florals", type: "bands", anchors: FLORALS_BASE },
+      { cat: "Flowers & décor", desc: "Florals", type: "bands", anchors: florals() },
       dress(),
       hmu(),
       diyFavors,
@@ -145,8 +164,8 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Food & beverage", desc: "Tax + gratuity (~20%)", type: "percent", rate: 0.2 },
       { cat: "Rentals & production", desc: "Tableware / glassware", type: "perGuest", rate: 12 },
       photo(),
-      band(2000, "Joel Paterson and Friends (confirm allowed)"),
-      { cat: "Flowers & décor", desc: "Florals", type: "bands", anchors: FLORALS_BASE },
+      band(p.band, "Joel Paterson and Friends (confirm allowed)"),
+      { cat: "Flowers & décor", desc: "Florals", type: "bands", anchors: florals() },
       dress(),
       hmu(),
       diyFavors,
@@ -155,7 +174,11 @@ export const SCENARIOS: Scenario[] = [
   {
     id: 6, name: "Promontory Point", location: "Hyde Park · Chicago Park District", kind: "local",
     desc: "Lakefront stone pavilion at the system's lowest fees.",
-    tag: "Park District", confidence: 90, min: 50, max: 130, def: 100, openMonths: [5, 6, 7, 8, 9, 10],
+    tag: "Park District", confidence: 90, min: 50, max: 130, def: 100,
+    seasons: [{ name: "open", from: "05-01", to: "10-31" }, { name: "closed", from: "11-01", to: "04-30" }],
+    docSeason: "open",
+    closedSeasons: ["closed"],
+    seasonSource: "Chicago Park District venue page (published)",
     flag: "Seasonal building (May–Oct), no A/C, 11pm end. Coordinator worth reconsidering (not in totals).",
     options: [barOpt(["Beer & Wine", "Full Bar"])],
     items: [
@@ -170,9 +193,9 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Rentals & production", desc: "Tableware / linens", type: "perGuest", rate: 15 },
       { cat: "Rentals & production", desc: "Patio tent (100+)", type: "step", breaks: [{ upTo: 112, v: 3500 }, { upTo: Infinity, v: 4000 }], appliesIf: { minGuests: 100 } },
       { cat: "Rentals & production", desc: "Generator (band power)", type: "fixed", amount: 500 },
-      photo(4500, "Photography (in-city)"),
-      band(2000, "Joel Paterson and Friends (no travel)"),
-      { cat: "Flowers & décor", desc: "Florals (reduced — lakefront)", type: "bands", anchors: FLORALS_REDUCED_300 },
+      photo(0, "Photography (in-city)"),
+      band(p.band, "Joel Paterson and Friends (no travel)"),
+      { cat: "Flowers & décor", desc: "Florals (reduced — lakefront)", type: "bands", anchors: florals(-300) },
       dress(),
       hmu(),
       diyFavors,
@@ -194,11 +217,11 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Food & beverage", desc: "Tax + gratuity (~15%)", type: "percent", rate: 0.15 },
       { cat: "Rentals & production", desc: "Tableware / linens", type: "perGuest", rate: 12 },
       { cat: "Rentals & production", desc: "Setup / teardown labor", type: "fixed", amount: 400 },
-      photo(4650, "Photography (+travel)"),
-      band(2300, "Joel Paterson and Friends (+travel)"),
-      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: FLORALS_REDUCED_300 },
+      photo(150, "Photography (+travel)"),
+      band(bandTravel, "Joel Paterson and Friends (+travel)"),
+      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: florals(-300) },
       dress(),
-      hmu(950, "Hair & makeup (+travel)"),
+      hmu(hmuTravel, "Hair & makeup (+travel)"),
       diyFavors,
       { cat: "Transportation & lodging", desc: "Guest shuttle", type: "fixed", amount: 1800 },
     ],
@@ -218,7 +241,7 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Food & beverage", desc: "Service + tax (~34% of billed F&B)", type: "percent", rate: 0.34 },
       photo(),
       band(),
-      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: FLORALS_REDUCED_300 },
+      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: florals(-300) },
       dress(),
       hmu(),
       diyFavors,
@@ -239,11 +262,11 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Food & beverage", desc: "Bar — BYO full bar", type: "perGuest", base: 1000, rate: 22, appliesIf: bar("BYO Full Bar") },
       { cat: "Food & beverage", desc: "Tax + gratuity (~18%)", type: "percent", rate: 0.18 },
       { cat: "Rentals & production", desc: "Linens / tableware / lighting", type: "bands", anchors: [[50, 1500], [75, 1800], [100, 2100], [125, 2400]] },
-      photo(4700, "Photography (+travel)"),
-      band(2300, "Joel Paterson and Friends (+travel)"),
-      { cat: "Flowers & décor", desc: "Florals (increased)", type: "bands", anchors: [[50, 1550], [75, 1800], [100, 2050], [125, 2350]] },
+      photo(200, "Photography (+travel)"),
+      band(bandTravel, "Joel Paterson and Friends (+travel)"),
+      { cat: "Flowers & décor", desc: "Florals (increased)", type: "bands", anchors: florals(200) },
       dress(),
-      hmu(950, "Hair & makeup (+travel)"),
+      hmu(hmuTravel, "Hair & makeup (+travel)"),
       diyFavors,
       { cat: "Transportation & lodging", desc: "Guest shuttle", type: "fixed", amount: 1800 },
     ],
@@ -252,20 +275,24 @@ export const SCENARIOS: Scenario[] = [
     id: 10, name: "The Morton Arboretum", location: "Lisle · IL", kind: "local",
     desc: "Garden venue with published packages. In-house catering included.",
     tag: "Garden", confidence: 90, min: 50, max: 150, def: 100,
+    seasons: [{ name: "winter-spring", from: "01-01", to: "04-30" }, { name: "standard", from: "05-01", to: "12-31" }],
+    docSeason: "winter-spring",
+    seasonSource: "mortonarb.org rate sheet (Aug 2025) + Winter & Spring insert (2024; confirm 2027 and Saturday eligibility)",
     flag: "Gardens are the décor (florals reduced); free parking softens distance.",
     options: [barOpt(["Beer & Wine", "Full Bar"])],
     items: [
-      { cat: "Venue & site", desc: "Venue (Ginkgo Package)", type: "fixed", amount: 5000 },
+      { cat: "Venue & site", desc: "Venue (Ginkgo winter–spring package, Jan–Apr)", type: "fixed", amount: 5000, appliesIf: { seasons: ["winter-spring"] } },
+      { cat: "Venue & site", desc: "Venue (Ginkgo Room, standard Saturday)", type: "fixed", amount: 9000, appliesIf: { seasons: ["standard"] } },
       { cat: "Food & beverage", desc: "In-house catering (cake incl.)", type: "perGuest", rate: 125, taxable: true },
       { cat: "Food & beverage", desc: "Bar — beer & wine", type: "perGuest", rate: 26, taxable: true, appliesIf: bar("Beer & Wine") },
       { cat: "Food & beverage", desc: "Bar — full bar", type: "perGuest", rate: 40, taxable: true, appliesIf: bar("Full Bar") },
       { cat: "Food & beverage", desc: "23% admin + tax (~31%)", type: "percent", rate: 0.31 },
       { cat: "Rentals & production", desc: "Ceremony chairs", type: "perGuest", rate: 5 },
-      photo(4600, "Photography (+travel)"),
-      band(2300, "Joel Paterson and Friends (+travel)"),
-      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: FLORALS_REDUCED_400 },
+      photo(100, "Photography (+travel)"),
+      band(bandTravel, "Joel Paterson and Friends (+travel)"),
+      { cat: "Flowers & décor", desc: "Florals (reduced)", type: "bands", anchors: florals(-400) },
       dress(),
-      hmu(950, "Hair & makeup (+travel)"),
+      hmu(hmuTravel, "Hair & makeup (+travel)"),
       diyFavors,
     ],
   },
@@ -303,12 +330,12 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Venue & site", desc: "Ceremony site fee + setup", type: "fixed", amount: 3000 },
       { cat: "Food & beverage", desc: "Reception package (premium bar incl.)", type: "perGuest", rate: 175, taxable: true },
       { cat: "Food & beverage", desc: "24% banquet admin + 11.5% tax (~35.5%)", type: "percent", rate: 0.355 },
-      photo(4500, "Photography (local PR)"),
-      band(6000, "Band fee + travel (×4 musicians)"),
-      { cat: "Flowers & décor", desc: "Florals (resort / local)", type: "bands", anchors: FLORALS_BASE },
-      dress(3200, "Dress + alterations + shipping"),
-      hmu(1000, "Island hair & makeup"),
-      { cat: "Stationery & favors", desc: "Welcome bags", type: "perGuest", rate: 18 },
+      photo(0, "Photography (local PR)"),
+      band(p.band + p.bandFlyIn, "Band fee + travel (×4 musicians)"),
+      { cat: "Flowers & décor", desc: "Florals (resort / local)", type: "bands", anchors: florals() },
+      dress(p.dressShipping, "Dress + alterations + shipping"),
+      hmu(p.islandHairMakeup, "Island hair & makeup"),
+      { cat: "Stationery & favors", desc: "Welcome bags", type: "perGuest", rate: p.welcomeBagPerGuest },
       { cat: "Ceremony & legal", desc: "PR license + officiant", type: "fixed", amount: 600 },
       { cat: "Transportation & lodging", desc: "Couple's flights + 6-night stay", type: "fixed", amount: 4000, appliesIf: scope("Full scope") },
       { cat: "Pre-wedding events", desc: "Welcome reception (~$70/pp)", type: "perGuest", rate: 70, appliesIf: scope("Full scope") },
@@ -326,11 +353,11 @@ export const SCENARIOS: Scenario[] = [
       { cat: "Food & beverage", desc: "Exclusive caterer", type: "perGuest", rate: 175, taxable: true },
       { cat: "Food & beverage", desc: "Bar — beer & wine", type: "perGuest", rate: 26, taxable: true, appliesIf: bar("Beer & Wine") },
       { cat: "Food & beverage", desc: "Bar — premium package", type: "perGuest", rate: 39, taxable: true, appliesIf: bar("Premium Bar") },
-      cake(200, "Cake (upscale)"),
+      cake(2 * p.cakeBase, "Cake (upscale)"),
       { cat: "Food & beverage", desc: "Tax + service (~22% F&B)", type: "percent", rate: 0.22 },
       { cat: "Rentals & production", desc: "Tables + chairs", type: "perGuest", rate: 11 },
       { cat: "Rentals & production", desc: "Lighting — Frost (exclusive)", type: "fixed", amount: 4000 },
-      photo(5300, "Photography + second shooter"),
+      photo(p.secondShooter, "Photography + second shooter"),
       { cat: "Photography & video", desc: "Videographer", type: "fixed", amount: 3500 },
       band(),
       { cat: "Music & entertainment", desc: "Sound reinforcement", type: "fixed", amount: 1000 },
@@ -340,7 +367,7 @@ export const SCENARIOS: Scenario[] = [
       hmu(),
       { cat: "Attire, beauty & rings", desc: "Wedding bands", type: "fixed", amount: 2000 },
       { cat: "Stationery & favors", desc: "Stationery + postage", type: "bands", anchors: [[200, 1800], [250, 2200]] },
-      { cat: "Stationery & favors", desc: "Favors", type: "perGuest", rate: 5 },
+      { cat: "Stationery & favors", desc: "Favors", type: "perGuest", rate: p.purchasedFavorsPerGuest },
       { cat: "Transportation & lodging", desc: "Parking arrangement / shuttle", type: "fixed", amount: 1500 },
       { cat: "Transportation & lodging", desc: "Hotel suite", type: "fixed", amount: 500 },
       { cat: "Ceremony & legal", desc: "Officiant", type: "fixed", amount: 500 },
@@ -384,6 +411,9 @@ export const SCENARIOS: Scenario[] = [
     ],
   },
 ];
+}
+
+export const SCENARIOS: Scenario[] = buildScenarios();
 
 export const scenarioById = (id: number): Scenario => {
   const s = SCENARIOS.find((x) => x.id === id);

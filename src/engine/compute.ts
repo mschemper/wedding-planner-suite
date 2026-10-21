@@ -22,8 +22,21 @@ export function stepVal(breaks: { upTo: number; v: number }[], g: number): numbe
   return breaks[breaks.length - 1].v;
 }
 
-export function applies(a: AppliesIf | undefined, g: number, opts: Options): boolean {
+/** "YYYY-MM-DD" → season name, or undefined when the scenario has no calendar. */
+export function seasonOf(sc: Scenario, date?: string): string | undefined {
+  if (!sc.seasons?.length) return undefined;
+  if (!date) return sc.docSeason;
+  const md = date.slice(5, 10);
+  for (const s of sc.seasons) {
+    const inside = s.from <= s.to ? md >= s.from && md <= s.to : md >= s.from || md <= s.to;
+    if (inside) return s.name;
+  }
+  return sc.docSeason;
+}
+
+export function applies(a: AppliesIf | undefined, g: number, opts: Options, season?: string): boolean {
   if (!a) return true;
+  if (a.seasons && (!season || !a.seasons.includes(season))) return false;
   if (a.minGuests != null && g < a.minGuests) return false;
   if (a.maxGuests != null && g > a.maxGuests) return false;
   for (const [k, v] of Object.entries(a.options ?? {})) if (opts[k] !== v) return false;
@@ -57,18 +70,20 @@ function itemAmount(it: Exclude<LineItem, { type: "percent" }>, g: number): { v:
 export interface ComputeOptions {
   /** fraction, e.g. 0.075 adds a 7.5% contingency row */
   contingency?: number;
-  /** 1–12; checked against scenario.openMonths */
-  month?: number;
+  /** wedding date "YYYY-MM-DD"; omitted → the season the source document priced */
+  date?: string;
 }
 
-export function computeBudget(sc: Scenario, g: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): Budget {
+export function computeBudget(sc: Scenario, guests: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): Budget {
+  const g = Number.isFinite(guests) ? Math.max(0, Math.round(guests)) : 0;
+  const season = seasonOf(sc, co.date);
   const pending: { it: LineItem; rate: number }[] = [];
   const rows: BudgetRow[] = [];
   let taxBase = 0;
   const order: (BudgetRow | { pendingIdx: number })[] = [];
 
   for (const it of sc.items) {
-    if (!applies(it.appliesIf, g, opts)) continue;
+    if (!applies(it.appliesIf, g, opts, season)) continue;
     if (it.type === "percent") {
       order.push({ pendingIdx: pending.length });
       pending.push({ it, rate: it.rate });
@@ -100,9 +115,13 @@ export function computeBudget(sc: Scenario, g: number, opts: Options = defaultOp
   if (sc.capacity?.hardMax && g > sc.capacity.hardMax) warnings.push(`Exceeds venue capacity (~${sc.capacity.hardMax}).`);
   if (rows.some((r) => r.extrapolated)) warnings.push("Some lines are extrapolated beyond the source data points.");
   if (sc.understated && g < sc.understated.belowGuests) warnings.push(`Likely understated by $${sc.understated.low.toLocaleString()}–${sc.understated.high.toLocaleString()} (minimum spend not enforced in source).`);
-  if (co.month && sc.openMonths && !sc.openMonths.includes(co.month)) warnings.push("Venue is closed in the selected month.");
+  let unavailable: string | undefined;
+  if (season && sc.closedSeasons?.includes(season)) unavailable = "Closed on this date (seasonal venue).";
+  const seasonMin = season ? sc.seasonMinGuests?.[season] : undefined;
+  if (!unavailable && seasonMin && g < seasonMin) unavailable = `Needs ${seasonMin}+ guests in ${season} season.`;
+  if (unavailable) warnings.unshift(unavailable);
 
-  return { guests: g, rows, byCat, total, perGuest: g ? total / g : 0, warnings };
+  return { guests: g, rows, byCat, total, perGuest: g ? total / g : 0, season, unavailable, warnings };
 }
 
 /** Line-item diff keyed by category; used by the compare panel. */
@@ -110,4 +129,16 @@ export function diffByCategory(a: Budget, b: Budget): { cat: Category; a: number
   const cats = new Set<Category>([...a.byCat.keys(), ...b.byCat.keys()]);
   const sum = (bu: Budget, c: Category) => (bu.byCat.get(c) ?? []).reduce((s, r) => s + r.amount, 0);
   return [...cats].map((cat) => ({ cat, a: sum(a, cat), b: sum(b, cat), delta: sum(a, cat) - sum(b, cat) }));
+}
+
+/** Carry option choices across scenarios by position (tier 1 ↔ tier 1), so compare is like-for-like. */
+export function matchOptions(from: Scenario, opts: Options, to: Scenario): Options {
+  const out = defaultOpts(to);
+  for (const o of to.options) {
+    const src = from.options.find((x) => x.key === o.key);
+    if (!src) continue;
+    const idx = src.choices.indexOf(opts[o.key]);
+    if (idx >= 0 && idx < o.choices.length) out[o.key] = o.choices[idx];
+  }
+  return out;
 }

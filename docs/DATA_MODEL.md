@@ -4,7 +4,9 @@
 - `Scenario` → `items: LineItem[]` (`src/engine/types.ts`).
 - Line types: `fixed` · `perGuest` (base + rate×g) · `bands` (piecewise-linear through data points) · `step` (break thresholds) · `minSpend` (max(min, rate×g)) · `percent` (rate × sum of applicable `taxable` items; the row stays in its listed position).
 - `appliesIf: { minGuests?, maxGuests?, options?: {key: choice} }`.
-- Scenario metadata: `kind` (local | destination, which drives attendance), `confidence`, `min`/`max` (modelled range), `capacity`, `openMonths`, `rangeNote`, `understated`.
+- Scenario metadata: `kind` (local | destination, which drives attendance), `confidence`, `min`/`max` (modelled range), `capacity`, `rangeNote`, `understated`.
+- Seasons: `seasons: {name, from: "MM-DD", to: "MM-DD"}[]` (first match wins; may wrap the year end); `appliesIf.seasons` picks the line items for a season; `closedSeasons` and `seasonMinGuests` set `Budget.unavailable`; `docSeason` is the season used when no date is given. `computeBudget(..., { date })`.
+- Personal costs: `src/data/params.ts` `Params`; `buildScenarios(params)` → `SCENARIOS`.
 
 ## Guests — mirrors `structured_guest_data_model.xlsx`
 - **Households**: HouseholdID (e.g. `M-LUG-001` = family–branch–seq), Family (Mark | Angela), FamilySide, PrimaryHouseholdName, HouseholdType, Notes.

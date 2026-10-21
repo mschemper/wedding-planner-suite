@@ -10,7 +10,7 @@ Index + hard rules. Detail lives in docs/: point, never copy. Facts that change 
 5. ADHD output mode always on: read + follow docs/skills/i-have-adhd/SKILL.md at session start (ayghri/i-have-adhd @839872f, MIT). Off only on "stop adhd mode"/"normal mode", that session only. Conflict -> P0 wins (P0.1 allows >1 question).
 
 ## What this is
-Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenarios priced by guest count, bar tier, month, contingency (source: Reconciled Master v2.0, June 2026). Guest data layer: workbook import, validation, attendance forecast feeding the guest count. One self-contained page (`dist/index.html`), opens from disk; no server, no hosting.
+Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenarios priced by guest count, bar tier, wedding date (venue seasons), contingency (source: Reconciled Master v2.0, June 2026). Guest data layer: workbook import, validation, attendance forecast feeding the guest count. One self-contained page (`dist/index.html`), opens from disk; no server, no hosting.
 
 ## Session start (in order)
 0. Cowork only: repo not mounted -> device_request_folder_access C:\Users\msche\Documents\Projects\wedding-planner-suite.
@@ -19,12 +19,14 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 3. docs/BACKLOG.md -- open requests + bugs; plan from here. docs/CODEMAP.md -- files per subject.
 4. docs/RELEASE.md -- usage-first sizing (incl. subagents) without asking Mark, then its checklist and traps. Follow both.
 5. docs/GIT.md -- repository, GitHub. docs/CHANGELOG.md -- per-release changes.
-6. Before changing pricing or guests: docs/DATA_MODEL.md; findings behind current code: docs/REVIEW-v2.md. Old rationale: docs/HISTORY.md.
+6. Before changing pricing or guests: docs/DATA_MODEL.md; findings behind current code: docs/REVIEW-v3.md, docs/REVIEW-v2.md. Hosting plans: docs/PLATFORMS.md. Old rationale: docs/HISTORY.md.
 
 ## Architecture constraints
 - `src/engine/` pure TS: no React, no I/O. UI never computes money.
 - Scenarios = data (`src/data/scenarios.ts`). Oracle = `src/data/golden.ts` (Reconciled Master totals, +/-$30).
 - Price change -> golden.ts + HISTORY.md entry with source. New line-item type -> engine test + golden coverage.
+- Personal costs only via `src/data/params.ts`. Venue seasons: `Scenario.seasons` from the venue's own page; cite in `seasonSource`; `docSeason` keeps golden on the doc's assumption.
+- Golden rows that depend on season carry a date.
 - Guest column names identical to the workbook. Import only via `npm run import:guests`.
 - Build = Vite + vite-plugin-singlefile -> one file. No CDN, no runtime fetch.
 - Exact dependency versions. SheetJS from cdn.sheetjs.com tarball (npm `xlsx` frozen at CVE'd 0.18.5).
@@ -38,7 +40,8 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 
 ## Design rules
 - Palette tokens only via `:root` in src/ui/styles.css (cream ground, burnt, teal, mustard, avocado). Palatino headings, Helvetica body. Preserve.
-- Dimmed card = venue cannot host the count or is closed that month. Never hide a scenario.
+- Dimmed card = venue cannot host the count or that date (`Budget.unavailable`). Never hide a scenario.
+- Text colours: `--*-ink` tokens only (WCAG AA on cream); fills keep the base tokens.
 - Every estimate shows its uncertainty: confidence %, ranges, understatement, extrapolation (≈).
 - Show design options before building visual changes.
 
@@ -54,6 +57,8 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 - Source doc arithmetic error at Three Top @125 -- REVIEW-v2.md F-03; golden uses line-item sums.
 - Data-point lines extrapolate past the source (≈) -- treat those figures as soft. REVIEW-v2.md F-04.
 - Hooks after an early return crashed v1 -- keep all hooks above returns in src/ui/App.tsx.
+- Controlled number input that rejects keystrokes cannot be typed into -- edit a draft, commit on blur/Enter (REVIEW-v3 R1).
+- `gitignore` `node_modules/` misses a symlinked node_modules (worktrees) -- pattern is `node_modules`.
 
 ## Environment
 - PC: Claude Code native Windows (claude-here.cmd, PowerShell) or WSL (start-claude.cmd). Repo C:\Users\msche\Documents\Projects\wedding-planner-suite; WSL /mnt/c/Users/msche/Documents/Projects/wedding-planner-suite. Edit, gate, commit in place.

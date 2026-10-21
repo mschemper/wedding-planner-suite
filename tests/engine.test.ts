@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeBudget, diffByCategory, guestStops, interp, snapGuests } from "../src/engine/compute";
+import { computeBudget, diffByCategory, guestStops, interp, matchOptions, seasonOf, snapGuests } from "../src/engine/compute";
 import { SCENARIOS, scenarioById } from "../src/data/scenarios";
 
 describe("interp", () => {
@@ -26,7 +26,7 @@ describe("computeBudget", () => {
   it("warns on capacity, range, season, understatement", () => {
     expect(computeBudget(scenarioById(3), 50).warnings.join()).toMatch(/practical minimum/);
     expect(computeBudget(scenarioById(5), 125).warnings.join()).toMatch(/capacity/);
-    expect(computeBudget(scenarioById(6), 100, undefined, { month: 4 }).warnings.join()).toMatch(/closed/);
+    expect(computeBudget(scenarioById(6), 100, undefined, { date: "2027-04-24" }).unavailable).toMatch(/Closed/);
     expect(computeBudget(scenarioById(14), 100).warnings.join()).toMatch(/understated/);
   });
   it("every scenario computes at every stop with defaults, no NaN", () => {
@@ -48,5 +48,45 @@ describe("helpers", () => {
   it("diffByCategory sums to total delta", () => {
     const a = computeBudget(scenarioById(10), 100), b = computeBudget(scenarioById(2), 100);
     expect(diffByCategory(a, b).reduce((s, d) => s + d.delta, 0)).toBe(a.total - b.total);
+  });
+});
+
+describe("seasons (venue calendars)", () => {
+  const rr = scenarioById(4);
+  it("River Room: Apr 15 off-peak, Apr 16 peak (venue's 2027 dates)", () => {
+    expect(seasonOf(rr, "2027-04-15")).toBe("off-peak");
+    expect(seasonOf(rr, "2027-04-16")).toBe("peak");
+    expect(seasonOf(rr, "2027-12-01")).toBe("off-peak"); // wraps year end
+  });
+  it("River Room peak under 100 is not offered; at 100 it prices $9,000 rental", () => {
+    expect(computeBudget(rr, 75, undefined, { date: "2027-05-15" }).unavailable).toMatch(/100\+/);
+    const b = computeBudget(rr, 100, undefined, { date: "2027-05-15" });
+    expect(b.unavailable).toBeUndefined();
+    expect(b.rows.find((r) => r.desc.startsWith("Venue rental"))!.amount).toBe(9000);
+  });
+  it("Salvage One rental follows the 2027 month tiers", () => {
+    const rent = (d: string) => computeBudget(scenarioById(3), 100, undefined, { date: d }).rows.find((r) => r.desc.startsWith("Venue rental"))!.amount;
+    expect([rent("2027-03-20"), rent("2027-04-24"), rent("2027-05-22"), rent("2027-11-20")]).toEqual([9000, 10000, 12000, 9500]);
+  });
+  it("Morton: package Jan–Apr, standard $9,000 from May", () => {
+    const rent = (d: string) => computeBudget(scenarioById(10), 100, undefined, { date: d }).rows.find((r) => r.desc.startsWith("Venue"))!.amount;
+    expect([rent("2027-04-24"), rent("2027-05-01")]).toEqual([5000, 9000]);
+  });
+  it("Promontory open May–Oct only", () => {
+    expect(computeBudget(scenarioById(6), 100, undefined, { date: "2027-05-01" }).unavailable).toBeUndefined();
+    expect(computeBudget(scenarioById(6), 100, undefined, { date: "2027-03-20" }).unavailable).toBeTruthy();
+  });
+  it("no date → doc season (golden unchanged)", () => expect(seasonOf(scenarioById(3))).toBe("Jan–Mar"));
+});
+
+describe("guards and compare", () => {
+  it("negative / fractional / NaN guest counts are clamped and rounded", () => {
+    expect(computeBudget(scenarioById(2), -5).guests).toBe(0);
+    expect(computeBudget(scenarioById(2), 99.6).guests).toBe(100);
+    expect(computeBudget(scenarioById(2), NaN).total).toBeGreaterThan(0);
+  });
+  it("matchOptions maps bar tier by position", () => {
+    expect(matchOptions(scenarioById(2), { bar: "Full Bar" }, scenarioById(5))).toEqual({ bar: "Tier 2 (Full Bar)" });
+    expect(matchOptions(scenarioById(2), { bar: "Full Bar" }, scenarioById(12))).toEqual({ scope: "Full scope" });
   });
 });

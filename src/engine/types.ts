@@ -17,6 +17,8 @@ export type Options = Record<string, string>;
 export interface AppliesIf {
   minGuests?: number;
   maxGuests?: number;
+  /** season names from Scenario.seasons */
+  seasons?: string[];
   /** option key -> required choice */
   options?: Options;
 }
@@ -66,8 +68,16 @@ export interface Scenario {
   def: number;
   /** guest counts the venue cannot practically host; shown as warnings, still computed */
   capacity?: { practicalMin?: number; hardMax?: number };
-  /** e.g. seasonal building; checked against wedding month */
-  openMonths?: number[];
+  /** venue's own season calendar; first match wins; `from`/`to` are "MM-DD", inclusive, may wrap the year end */
+  seasons?: Season[];
+  /** season the Reconciled Master priced; used when no date is given (keeps golden totals) */
+  docSeason?: string;
+  /** seasons in which the venue is closed or will not book */
+  closedSeasons?: string[];
+  /** season → minimum guests the venue requires */
+  seasonMinGuests?: Record<string, number>;
+  /** where the season data came from */
+  seasonSource?: string;
   flag?: string;
   /** optimistic alternative total range, e.g. Three Top Model B */
   rangeNote?: string;
@@ -75,6 +85,12 @@ export interface Scenario {
   understated?: { belowGuests: number; low: number; high: number };
   options: OptionDef[];
   items: LineItem[];
+}
+
+export interface Season {
+  name: string;
+  from: string;
+  to: string;
 }
 
 export interface BudgetRow {
@@ -90,5 +106,9 @@ export interface Budget {
   byCat: Map<Category, BudgetRow[]>;
   total: number;
   perGuest: number;
+  /** season in effect, if the scenario has seasons */
+  season?: string;
+  /** set when the venue cannot be booked at this date/count; card dims, excluded from best value */
+  unavailable?: string;
   warnings: string[];
 }

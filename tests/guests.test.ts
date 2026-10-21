@@ -33,3 +33,27 @@ describe("guest data", () => {
     expect(g.households).toEqual([{ HouseholdID: "H1", Family: "Mark" }]);
   });
 });
+
+describe("review fixes (v3)", () => {
+  it("bad friend Locality falls back instead of NaN, and is reported", () => {
+    const bad: GuestData = { ...d, friends: [{ ...d.friends[0], Locality: "Local" as never }] };
+    expect(Number.isFinite(forecastAttendance(bad).expected)).toBe(true);
+    expect(validateGuests(bad).some((i) => i.msg.includes("bad Locality"))).toBe(true);
+  });
+  it("status matching is case-insensitive", () => {
+    const bad: GuestData = { ...d, friends: [d.friends[0], { ...d.friends[1], InviteStatus: "declined" as never }] };
+    expect(forecastAttendance(bad).invited).toBe(forecastAttendance(d).invited - 1);
+  });
+  it("duplicate FriendGroupID and duplicate DisplayName are reported", () => {
+    const dup: GuestData = { ...d, friends: [...d.friends, d.friends[0]], individuals: [...d.individuals, { ...d.individuals[0], PersonID: "M999" }] };
+    const msgs = validateGuests(dup).map((i) => i.msg).join("|");
+    expect(msgs).toMatch(/duplicate FriendGroupID/);
+    expect(msgs).toMatch(/same DisplayName/);
+  });
+  it("parse trims header keys, stringifies numeric IDs, survives numeric ParentPersonIDs", () => {
+    const g = parseSheets({ Households: [{ " HouseholdID ": 7, Family: "Mark" }], Individuals: [{ "PersonID ": 1, HouseholdID: 7, ParentPersonIDs: 2 }] });
+    expect(g.households[0].HouseholdID).toBe("7");
+    expect(g.individuals[0].ParentPersonIDs).toBe("2");
+    expect(() => validateGuests(g)).not.toThrow();
+  });
+});

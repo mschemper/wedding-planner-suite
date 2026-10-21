@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 dist/
 data/private/
 *.local
@@ -7,3 +7,10 @@ coverage/
 .claude/settings.local.json
 archive/
 *.bundle
+# any workbook or data export outside the fixtures
+*.xlsx
+*.xls
+*.csv
+/data/*
+!/data/fixtures/
+*.rejected.json

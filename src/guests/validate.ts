@@ -33,8 +33,24 @@ export function validateGuests(d: GuestData): Issue[] {
   }
   for (const p of d.individuals) {
     if (p.PartnerPersonID && !people.has(p.PartnerPersonID)) out.push({ level: "error", where: p.PersonID, msg: `unknown PartnerPersonID ${p.PartnerPersonID}` });
-    for (const par of (p.ParentPersonIDs ?? "").split(",").map((s) => s.trim()).filter(Boolean))
+    for (const par of String(p.ParentPersonIDs ?? "").split(",").map((s) => s.trim()).filter(Boolean))
       if (!people.has(par)) out.push({ level: "error", where: p.PersonID, msg: `unknown parent ${par}` });
+  }
+  const names = new Map<string, string>();
+  for (const p of d.individuals) {
+    const key = `${p.HouseholdID}|${String(p.DisplayName ?? "").toLowerCase()}`;
+    if (names.has(key)) out.push({ level: "warn", where: p.PersonID, msg: `same DisplayName as ${names.get(key)} in this household` });
+    else names.set(key, p.PersonID);
+  }
+  const friendIds = new Set<string>();
+  for (const f of d.friends) {
+    const w = f.FriendGroupID;
+    if (friendIds.has(w)) out.push({ level: "error", where: w, msg: "duplicate FriendGroupID" });
+    friendIds.add(w);
+    if (!inEnum(ENUMS.Locality, f.Locality)) out.push({ level: "error", where: w, msg: `bad Locality "${f.Locality}"` });
+    if (!inEnum(ENUMS.InviteStatus, f.InviteStatus)) out.push({ level: "error", where: w, msg: `bad InviteStatus "${f.InviteStatus}"` });
+    if (!inEnum(ENUMS.YesNo, f.PlusOneDefault)) out.push({ level: "error", where: w, msg: `bad PlusOneDefault "${f.PlusOneDefault}"` });
+    if (!inEnum(ENUMS.AdultOrChild, f.AdultOrChild)) out.push({ level: "error", where: w, msg: `bad AdultOrChild "${f.AdultOrChild}"` });
   }
   for (const id of hh) if (!usedHH.has(id)) out.push({ level: "warn", where: id, msg: "household has no individuals" });
   const unknownLoc = d.individuals.filter((p) => p.Locality === "Unknown").length;

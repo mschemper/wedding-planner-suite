@@ -2,11 +2,16 @@ import type { FriendGroup, GuestData, Household, Individual } from "./schema";
 
 export type Row = Record<string, unknown>;
 
+/** ID columns are always strings (a numeric cell would otherwise never match a reference). */
+const ID_COLS = new Set(["HouseholdID", "PersonID", "PartnerPersonID", "ParentPersonIDs", "FriendGroupID"]);
+
 const clean = (r: Row): Row => {
   const o: Row = {};
-  for (const [k, v] of Object.entries(r)) {
+  for (const [rawKey, v] of Object.entries(r)) {
+    const k = rawKey.trim();
     if (v === null || v === undefined || v === "") continue;
-    o[k] = typeof v === "string" ? v.trim() : v;
+    const val = v instanceof Date ? v.toISOString().slice(0, 10) : v;
+    o[k] = typeof val === "string" ? val.trim() : ID_COLS.has(k) ? String(val) : val;
   }
   return o;
 };

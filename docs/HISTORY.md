@@ -2,6 +2,21 @@
 
 Newest first. Each entry: what changed and why.
 
+## v3 — 2026-10-21 · Seasons, review fixes, mobile, platform plan
+
+- **Seasons come from each venue, not a global winter/summer split** (Mark: "that should depend on what the specific venue says"). Each scenario carries its own calendar and cites it in `seasonSource`. Venues with nothing published stay unseasoned rather than guessed.
+- **Date, not month.** River Room's peak starts on Apr 16, partway through a month.
+- **`docSeason` keeps the golden tests on the Reconciled Master's own assumption** when no date is given. River Room's doc priced 50/75 off-peak and 100/125 peak, so its golden rows carry dates instead.
+- **Peak River Room under 100 guests is "not offered", not repriced.** The venue requires the 100-guest bar package; the card dims and the total still shows for reference.
+- **`Budget.unavailable` is a field.** The UI no longer parses warning strings (R16).
+- **The Salvage One schedule is third-party** (a couple-submitted venue email via Tulle Together). It was used because the venue publishes nothing; confidence stays at 80.
+- **Params via `buildScenarios(params)`.** One edit reprices every scenario, and v5's prices editor can pass edited params without touching scenario data.
+- **Compare maps option choices by position:** tier 1 ↔ tier 1. Every bar option lists beer & wine first.
+- **Ink tokens instead of new colours.** Darker text-only variants fix WCAG contrast while keeping the palette for fills (AGENTS "Design rules").
+- **Mobile is one column below 520 px.** Two narrow columns clipped the price beside "shown at" text.
+- **The git history was rewritten to remove surnames.** This was safe because no remote existed and the PC copy was replaced whole.
+- **Hosting: Cloudflare over Sheets-first.** Mark wants to edit in our own UI. Cloudflare keeps the single-file app, adds a save API and a database, and puts a free login in front, without a server to maintain (PLATFORMS.md).
+
 ## v2 — 2026-10-20 · Port to Claude Code repo
 
 - **Agent docs follow bauhaus-dashboard.** AGENTS.md is the entry point (CLAUDE.md is just `@AGENTS.md`, so non-Claude agents read the same rules). It carries the P0 block, session-start order and Definition of done. Changing facts live only in STATE.md; rationale lives only here. That's the structure Mark already runs on bauhaus and sheridan, so one mental model covers all three repos.
