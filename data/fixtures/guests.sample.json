@@ -1,0 +1,23 @@
+{
+  "source": "synthetic fixture — same schema as structured_guest_data_model.xlsx; no real people",
+  "households": [
+    { "HouseholdID": "M-PAR-001", "Family": "Mark", "FamilySide": "Groom's father", "PrimaryHouseholdName": "Alder and Birch Example", "HouseholdType": "Parents" },
+    { "HouseholdID": "M-SIB-001", "Family": "Mark", "FamilySide": "Groom's father", "PrimaryHouseholdName": "Cedar and Dale Sample", "HouseholdType": "Sibling household" },
+    { "HouseholdID": "A-PAR-001", "Family": "Angela", "FamilySide": "Bride's father", "PrimaryHouseholdName": "Elm and Fern Placeholder", "HouseholdType": "Parents" },
+    { "HouseholdID": "A-COU-001", "Family": "Angela", "FamilySide": "Bride's mother", "PrimaryHouseholdName": "Gale Placeholder", "HouseholdType": "Cousin household" }
+  ],
+  "individuals": [
+    { "PersonID": "M001", "HouseholdID": "M-PAR-001", "FirstName": "Alder", "LastName": "Example", "DisplayName": "Alder Example", "Family": "Mark", "FamilySide": "Groom's father", "GenerationGroup": "Parent", "AdultOrChild": "Adult", "HouseholdRole": "Head of household", "PartnerPersonID": "M002", "InviteException": "No", "Locality": "Out of Town", "InvitePriority": "Core", "InviteStatus": "TBD" },
+    { "PersonID": "M002", "HouseholdID": "M-PAR-001", "FirstName": "Birch", "LastName": "Example", "DisplayName": "Birch Example", "Family": "Mark", "FamilySide": "Groom's mother", "GenerationGroup": "Parent", "AdultOrChild": "Adult", "HouseholdRole": "Spouse/partner", "PartnerPersonID": "M001", "InviteException": "No", "Locality": "Out of Town", "InvitePriority": "Core", "InviteStatus": "Accepted" },
+    { "PersonID": "M003", "HouseholdID": "M-SIB-001", "FirstName": "Cedar", "LastName": "Sample", "DisplayName": "Cedar Sample", "Family": "Mark", "FamilySide": "Groom's father", "GenerationGroup": "Sibling", "AdultOrChild": "Adult", "HouseholdRole": "Head of household", "ParentPersonIDs": "M001,M002", "InviteException": "No", "Locality": "Local Chicago Area", "InvitePriority": "Core", "InviteStatus": "TBD" },
+    { "PersonID": "M004", "HouseholdID": "M-SIB-001", "FirstName": "Dale", "LastName": "Sample", "DisplayName": "Dale Sample", "Family": "Mark", "FamilySide": "Groom's father", "GenerationGroup": "Sibling spouse", "AdultOrChild": "Adult", "HouseholdRole": "Spouse/partner", "PartnerPersonID": "M003", "InviteException": "No", "Locality": "Local Chicago Area", "InvitePriority": "Core", "InviteStatus": "TBD" },
+    { "PersonID": "M005", "HouseholdID": "M-SIB-001", "FirstName": "Child 1", "LastName": "Sample", "DisplayName": "Child 1 Sample", "Family": "Mark", "FamilySide": "Groom's father", "GenerationGroup": "Niece/Nephew", "AdultOrChild": "Child", "HouseholdRole": "Child", "ParentPersonIDs": "M003,M004", "InviteException": "Yes", "ExceptionReason": "Name not yet captured", "Locality": "Local Chicago Area", "InvitePriority": "Core", "InviteStatus": "TBD" },
+    { "PersonID": "A001", "HouseholdID": "A-PAR-001", "FirstName": "Elm", "LastName": "Placeholder", "DisplayName": "Elm Placeholder", "Family": "Angela", "FamilySide": "Bride's father", "GenerationGroup": "Parent", "AdultOrChild": "Adult", "HouseholdRole": "Head of household", "PartnerPersonID": "A002", "InviteException": "No", "Locality": "Unknown", "InvitePriority": "Core", "InviteStatus": "TBD" },
+    { "PersonID": "A002", "HouseholdID": "A-PAR-001", "FirstName": "Fern", "LastName": "Placeholder", "DisplayName": "Fern Placeholder", "Family": "Angela", "FamilySide": "Bride's father", "GenerationGroup": "Parent", "AdultOrChild": "Adult", "HouseholdRole": "Spouse/partner", "PartnerPersonID": "A001", "InviteException": "No", "Locality": "Unknown", "InvitePriority": "Core", "InviteStatus": "TBD" },
+    { "PersonID": "A003", "HouseholdID": "A-COU-001", "FirstName": "Gale", "LastName": "Placeholder", "DisplayName": "Gale Placeholder", "Family": "Angela", "FamilySide": "Bride's mother", "GenerationGroup": "Cousin", "AdultOrChild": "Adult", "HouseholdRole": "Head of household", "InviteException": "No", "Locality": "Out of Town", "InvitePriority": "Review", "InviteStatus": "Declined" }
+  ],
+  "friends": [
+    { "FriendGroupID": "F001", "GroupName": "College roommate", "Locality": "Local Chicago Area", "PlusOneDefault": "Yes", "AdultOrChild": "Adult", "InviteException": "No", "InviteStatus": "TBD" },
+    { "FriendGroupID": "F002", "GroupName": "Work friend", "Locality": "Out of Town", "PlusOneDefault": "No", "AdultOrChild": "Adult", "InviteException": "No", "InviteStatus": "TBD" }
+  ]
+}

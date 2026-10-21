@@ -1,0 +1,7 @@
+node_modules/
+dist/
+data/private/
+*.local
+.DS_Store
+coverage/
+.claude/settings.local.json
