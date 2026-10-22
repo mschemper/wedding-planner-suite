@@ -1,4 +1,4 @@
-import type { AppliesIf, Budget, BudgetRow, Category, LineItem, Options, Scenario } from "./types";
+import type { AppliesIf, Budget, BudgetRow, Category, LineItem, Options, Quote, Scenario } from "./types";
 
 export const STOP = 25;
 
@@ -72,6 +72,8 @@ export interface ComputeOptions {
   contingency?: number;
   /** wedding date "YYYY-MM-DD"; omitted → the season the source document priced */
   date?: string;
+  /** all quotes; those for this scenario with status received/accepted override rows (DESIGN-v3 §4) */
+  quotes?: Quote[];
 }
 
 export function computeBudget(sc: Scenario, guests: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): Budget {

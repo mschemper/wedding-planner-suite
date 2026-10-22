@@ -2,7 +2,7 @@
 
 Mark, 21 Oct 2026: "go the cloudflare + database route … consolidate updates into a single release on the new platform." Choices made in the same question round: **everything pending** goes into v3 (the refinements already committed, plus hosting, login, the guest editor, and the quotes/prices editor). He has an **existing Cloudflare account**. The address is a free **\*.workers.dev**. The build happens in a **fresh Claude Code session on the PC**.
 
-Status: the refinements are committed (CHANGELOG v3, part 1). Everything below is to build. Nothing is deployed.
+Status: part 1 committed (CHANGELOG v3). Part 2 round 1 (Worker, D1, API, data layer) built; round 2 (screens) in progress. Nothing is deployed.
 
 ## 1. Platform (product choice)
 
@@ -11,69 +11,75 @@ Status: the refinements are committed (CHANGELOG v3, part 1). Everything below i
 | Host the React app | **Workers + Static Assets** | Cloudflare recommends this over Pages for new projects. The address is `<name>.<account>.workers.dev`. |
 | Save API | Same Worker, `/api/*` | `run_worker_first: ["/api/*"]`; everything else is served from assets with SPA fallback |
 | Database | **D1** (binding `DB`) | SQLite; migrations live in `migrations/` |
-| Login | **Cloudflare Access** on the workers.dev URL **and preview URLs** | Email one-time PIN for Mark and Angela only. Verify the Zero Trust free-plan seat count at setup and record it in STATE. |
+| Login | **Cloudflare Access** on the workers.dev URL (preview URLs disabled) | Email one-time PIN for Mark and Angela only. Verify the Zero Trust free-plan seat count at setup and record it in STATE. |
 | Identity in code | `Cf-Access-Jwt-Assertion` validated in the Worker (team domain + AUD as vars) | Defence in depth: the API refuses requests without a valid Access JWT, even if Access is misconfigured |
 
 Not used: KV, R2, Durable Objects, Pages. Two editors don't need per-entity coordination.
 
-## 2. Data (D1)
+## 2. Data (D1) — built (`migrations/0001_init.sql`)
 
-Tables mirror `src/guests/schema.ts` (column names = workbook names). Every row gets `version INTEGER` and `updated_at TEXT` / `updated_by TEXT` (Access email).
+Tables mirror `src/guests/schema.ts` (column names = workbook names; optional/enum columns nullable TEXT). Every row: `version`, `updated_at` (ISO UTC), `updated_by` (Access email).
 
 | Table | Key | Purpose |
 |---|---|---|
-| households | HouseholdID | the workbook's Households sheet |
-| individuals | PersonID | Individuals (FK HouseholdID) |
-| friends | FriendGroupID | Friends |
-| quotes | id (uuid) | scenario_id, item_desc (matches a LineItem `desc`) or `"*"` for an all-in total, amount, vendor, received_on, status (`requested`/`received`/`accepted`), notes |
-| params | key | one row per `Params` field; value is JSON |
-| audit | id | ts, who, table, row_id, op, before JSON, after JSON (last 1,000 kept) |
+| households | HouseholdID | Households sheet |
+| individuals | PersonID | Individuals; `HouseholdID REFERENCES households ON DELETE RESTRICT`; ParentPersonIDs stays comma TEXT |
+| friends | FriendGroupID | Friends; Ranking TEXT |
+| quotes | id (uuid) | scenario_id, item_desc (a LineItem `desc` or `"*"`), options (JSON Options or null = any), basis (total/perGuest), amount, includes_tax, vendor, received_on, status (requested/received/accepted), notes |
+| params | key | one row per overridden `Params` field; value JSON; no row = doc value |
+| audit | id autoincrement | ts, who, tbl, row_id, op, before, after; last 1,000 kept |
+| _guard | — | concurrency guard (below) |
 
-- **Concurrency:** every write sends the row's `version`. The server updates `WHERE version = ?` and returns 409 when the row has changed, and the UI shows "Angela changed this — reload". No silent overwrite.
-- **Validation:** the API runs `validateGuests` (from `src/guests/validate.ts`, shared code) on the post-write state of that household or friend, and rejects on `error`.
-- **Seed:** `scripts/seed-d1.ts` turns `data/private/guests.json` into SQL for `wrangler d1 execute --remote --file`. It's one-time. After that, D1 is the source of truth and the xlsx import is retired, except for the seed.
-- **Export:** a button builds an xlsx client-side with SheetJS, in the same sheet layout as the workbook, as a backup.
+- **One save = one `DB.batch()`** (`worker/write.ts`): guards first, then writes (households created first, deleted last), audit, trim. Guard per touched row: `INSERT INTO _guard SELECT 0 WHERE NOT EXISTS (row with read version)` → CHECK fails → whole batch rolls back → 409.
+- **409:** stale `version` on update/delete → `{error:"conflict", message:"<updated_by> changed <id> — reload", row}`. Missing row → 404. UI shows `message` + Reload; never hard-code a name.
+- **Ids:** server allocates. Person `{M|A}NNN` (max+1 per Family), household `{M|A}-{BRANCH}-{NNN}` (`_branch` 2–4 letters, default first 3 letters of PrimaryHouseholdName), friend `FNNN`, quote uuid. Creates may use `tmp:*` ids; references to them are rewritten; response `ids` maps tmp → real.
+- **Delete person** clears their id from others' PartnerPersonID/ParentPersonIDs in the same batch (versions bumped, audited). **Delete household** requires its people deleted/moved in the same save (else 422).
+- **Validation:** per-row shape check (`worker/db.ts normalize`: known columns, text, Family/YesNo/enums, quotes, params via `parseParamValue`) → 400. Then `validateGuests` on the whole post-write dataset; reject (422 + `issues`) only errors not present before the save.
+- **Seed:** `npm run seed:sql` → `data/private/seed.sql` (real names; gitignored) for `wrangler d1 execute DB --remote --file`. One-time, only after Access; delete the file after. Then D1 is the source of truth.
+- **Export:** button builds an xlsx client-side with SheetJS (dynamic `import()`), same sheet layout as the workbook.
 
-## 3. API (Worker)
+## 3. API (Worker) — built (`worker/`)
 
-`GET /api/data` returns everything (guests, quotes, params, version map); it's one call because the data is small. `PUT/POST/DELETE /api/{households|individuals|friends|quotes|params}/:id`. `GET /api/audit?limit=50`. Responses are JSON. Errors are `{error, issues?}`. No CORS: same origin only.
+- `GET /api/data` → `ApiData` (all rows with versions, params rows, `me`). `POST /api/write {ops: Op[]}` → `{ids, data}`. `GET /api/audit?limit=` (≤200). Contract: `src/api/types.ts`; client `src/api/client.ts`; React `src/ui/data.tsx` (`useData()`).
+- Errors `{error, message, issues?, row?}`; all `Cache-Control: no-store`; unknown `/api/*` → JSON 404.
+- **CSRF:** non-GET needs `Origin` = request origin and JSON content type, else 403. No CORS.
+- **Access JWT** (`worker/auth.ts`): `jose.jwtVerify` against `<team>/cdn-cgi/access/certs`, issuer = team URL, audience ∈ `ACCESS_AUD` (comma list), RS256, 60 s skew; email ∈ `ALLOWED_EMAILS`. Missing vars → 500 (fail closed). Dev bypass: `DEV_ACCESS_EMAIL` (never in wrangler.jsonc; test enforces) AND localhost host.
+- `preview_urls: false` (one Access app, one AUD).
 
-## 4. Engine changes
+## 4. Engine changes (round 2, builder B)
 
-- `ComputeOptions.quotes?: Quote[]`. A quote with `received`/`accepted` status replaces the matching row's amount. The row is marked `quoted: true` and shows a "quote" chip, with the variance against the estimate in the detail view. An `"*"` quote replaces the scenario total, for the benchmark venues.
-- `SCENARIOS` comes from `buildScenarios(paramsFromDb)`. With no params in the DB, it falls back to `DEFAULT_PARAMS`.
-- Golden tests run with no quotes and default params, so they're unchanged.
+- `ComputeOptions.quotes?: Quote[]`. Applies quotes for this scenario with status received/accepted whose `options` (if set) match the current choices. Precedence on one row: accepted > latest received_on.
+- Override happens before the row joins the tax base, so percent rows recompute; `includes_tax` drops the row from the tax base. `basis: "perGuest"` → amount × guests.
+- Row gets `quoted: true`, `quoteId`, `estimate` (model amount). UI: "quote" chip + variance; quoted rows don't show a confidence %.
+- `"*"` quote replaces all item rows with one "Quoted all-in" row; contingency still applies after it.
+- `Budget.unmatchedQuotes`: received/accepted quotes for this scenario that matched no row at this date/options; the Quotes screen shows them as "not applied at this date/options".
+- Scenarios come from `useData().scenarios` = `buildScenarios(mergeParams(paramRows))`. `SCENARIOS` stays for golden. Golden tests run with no quotes and default params: unchanged.
 
-## 5. UI (new screens; palette and type unchanged)
+## 5. UI (palette and type unchanged)
 
-- **Guests:** a household list grouped by Family and FamilySide, with filters from the workbook's Filter Guide (family side, adult/child, exceptions, locality, status, priority). Edit in a side panel. Add or remove a person or household. Inline errors from `validateGuests`. A partner/parent picker. A live forecast at the top. Export to xlsx.
-- **Quotes:** per venue, a list of quotes, and an "add quote" button on any budget line.
-- **Prices:** the `Params` form, with a "reset to doc values" button.
-- **Budget Studio:** as now; reads from the API.
-- **Navigation:** three tabs (Budget · Guests · Quotes & prices) in a header that works at 390 px.
-- **Design options first** (AGENTS rule): two layout sketches for the Guests screen go to Mark before it's built.
+- **Guests (Mark chose layout A, 21 Oct):** households grouped by Family → FamilySide; filter chips (family side, adult/child, exceptions, locality, status, priority) + search; live forecast strip on top with "Price at this". Tap a household → side panel (full-screen sheet ≤ 520 px) editing household + its people, add/remove person/household, partner/parent picker, inline issues from `validateGuests`. Friends listed as their own group. Export xlsx.
+- **Quotes:** per venue, a list of quotes (add/edit/delete, status), unmatched quotes flagged; "add quote" on any budget line (`QuoteLineAction`).
+- **Prices:** the `Params` form, per-field "doc value" hint, "reset to doc values".
+- **Budget Studio:** as now; scenarios/guests/quotes from `useData()`.
+- **Navigation:** three tabs (Budget · Guests · Quotes & prices) in a header that works at 390 px. Loading / load-error / signed-out / read-only-offline states.
 
-## 6. Build plan (RELEASE.md: Large)
+## 6. Build plan (RELEASE.md: Large) — status
 
-1. **The lead verifies the environment** (Node, `npx wrangler --version`, pinned versions) and reads this doc.
-2. **One Opus design review** of this doc and the current code. The lead resolves its findings into this doc.
-3. **Round 1 — shared data (the lead, or 1 Sonnet):** `wrangler.jsonc`, `worker/` (router, Access JWT check, API, validation reuse), `migrations/0001_init.sql`, `scripts/seed-d1.ts`, API tests (`@cloudflare/vitest-pool-workers`), and a client `api.ts`. Commit.
-4. **Guests-screen design options to Mark** (one question round).
-5. **Round 2 — up to 3 Sonnet builders on disjoint files:**
-   - A: the Guests screen + xlsx export.
-   - B: the Quotes & Prices screens + engine quote overrides + their tests.
-   - C: the app shell, tabs, loading/error/409 states, Budget Studio reading from the API, offline build (`npm run build:offline` keeps the single-file page with the sample data).
-6. **One Sonnet integration review.** Then `npm run check` plus the Worker tests.
-7. **Deploy session** (fresh; RELEASE rule 12), with the steps in §7.
+1. Environment verified; one Opus design review done (findings folded in above; rationale HISTORY v3).
+2. Round 1 done: wrangler.jsonc, worker/, migration, seed, `tests/worker.test.ts` (node:sqlite), client + `useData()`, vite hosted/offline split, dev `/api` in `npm run dev`.
+3. Round 2: A = Guests + export; B = Quotes & Prices + engine overrides + tests; C = shell, tabs, states, Budget from `useData()`.
+4. One Sonnet integration review; `npm run check`; commit.
+5. Deploy session (fresh), §7.
 
 ## 7. Deploy — what Mark does vs. Claude
 
 | Step | Who |
 |---|---|
 | `npx wrangler login` (opens the browser; approve) | Mark clicks |
-| `wrangler d1 create`, migrations, seed, `wrangler deploy` | Claude (PC session) |
-| Zero Trust: confirm the free plan and team name. Access → protect the Worker's workers.dev URL + previews. Policy: Mark's and Angela's emails, one-time PIN. | Mark clicks, following steps the session gives him (the session can't sign in to the dashboard for him) |
-| Set the `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` vars and redeploy | Claude |
+| `wrangler d1 create` → put database_id in wrangler.jsonc → `wrangler d1 migrations apply DB --remote` → `npm run build` → `wrangler deploy` (no seed yet) | Claude (PC session) |
+| Zero Trust: confirm the free plan and team name. Access → protect the Worker's workers.dev URL (preview URLs are off). Policy: Mark's and Angela's emails, one-time PIN. | Mark clicks, following steps the session gives him (the session can't sign in to the dashboard for him) |
+| Set `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` / `ALLOWED_EMAILS` vars and redeploy; verify `/api/data` without the Access cookie never returns data (Access login redirect or 401) | Claude |
+| Seed: `npm run seed:sql` → `wrangler d1 execute DB --remote --file data/private/seed.sql` → delete seed.sql | Claude |
 | Check: open the URL, get the code by email, edit a test row, confirm 409 handling with two tabs | Mark + Claude |
 | Angela: open the link, enter her email, get the code | Angela |
 

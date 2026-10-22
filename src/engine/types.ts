@@ -93,11 +93,38 @@ export interface Season {
   to: string;
 }
 
+export type QuoteStatus = "requested" | "received" | "accepted";
+
+/** A vendor quote (D1 `quotes`). Applies when status is received/accepted; DESIGN-v3 §4. */
+export interface Quote {
+  id: string;
+  scenario_id: number;
+  /** a LineItem `desc`, or "*" = all-in total for the scenario */
+  item_desc: string;
+  /** only applies under these option choices; null = any */
+  options?: Options | null;
+  /** "perGuest": amount × guests */
+  basis: "total" | "perGuest";
+  amount: number;
+  /** true: the quote already includes tax/gratuity, so it leaves the percent rows' base */
+  includes_tax: boolean;
+  vendor?: string | null;
+  /** "YYYY-MM-DD" */
+  received_on?: string | null;
+  status: QuoteStatus;
+  notes?: string | null;
+}
+
 export interface BudgetRow {
   cat: Category;
   desc: string;
   amount: number;
   extrapolated: boolean;
+  /** amount comes from a quote */
+  quoted?: boolean;
+  quoteId?: string;
+  /** model amount before the quote replaced it */
+  estimate?: number;
 }
 
 export interface Budget {
@@ -111,4 +138,6 @@ export interface Budget {
   /** set when the venue cannot be booked at this date/count; card dims, excluded from best value */
   unavailable?: string;
   warnings: string[];
+  /** received/accepted quotes for this scenario that matched no row at this date/options */
+  unmatchedQuotes?: Quote[];
 }

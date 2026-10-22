@@ -1,5 +1,6 @@
 node_modules
 dist/
+dist-offline/
 data/private/
 *.local
 .DS_Store
