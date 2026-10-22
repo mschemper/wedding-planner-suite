@@ -2,16 +2,16 @@
 
 **Read this first in a new session** (after AGENTS.md). It is the one file that says what is true right now. What isn't done yet is in `docs/BACKLOG.md`, how things got this way is in `docs/HISTORY.md`, and which files a change touches is in `docs/CODEMAP.md`. Update this at the end of any session that changes it.
 
-Last updated: 21 October 2026 (v3 part 2 built and committed; deploy = next session).
+Last updated: 21 October 2026 (v3 deployed and verified).
 
 ## Version
 
 | | |
 |---|---|
-| Released | **v2** (tag `v2`) |
-| In progress | **v3** (package.json 3.0.0, untagged). Part 1 + part 2 built and committed (Worker API, D1 schema, Access check, Guests / Quotes & Prices screens, tabs). **Next: deploy session** (DESIGN-v3 §7). Tag only when deployed and verified. |
+| Released | **v3** (tag `v3`, package.json 3.0.0): deployed, Access on, seeded, two-tab 409 check passed |
+| Previous release | v2 (tag `v2`) |
 | Previous | v1 = single-file HTML Budget Studio in the claude.ai project "Wedding Planner Suite" (with the Reconciled Master .docx and the guest workbook) |
-| Output | Until deploy: `dist-offline\index.html` (`npm run build:offline`), opened from disk, read-only. Hosted build: `dist/` (Worker assets). |
+| Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline fallback: `dist-offline\index.html` (`npm run build:offline`), read-only. |
 
 ## The wedding (facts that drive the model)
 
@@ -60,9 +60,10 @@ Last updated: 21 October 2026 (v3 part 2 built and committed; deploy = next sess
 ## Platform
 
 - **Chosen (Mark, 21 Oct): Cloudflare Workers + Static Assets + D1 + Access**, free *.workers.dev, on his **existing Cloudflare account**. docs/DESIGN-v3.md.
-- Not deployed. Account name, team domain, free-plan seat count, Worker URL, D1 database_id: fill in at the deploy session.
-- `wrangler.jsonc`: Worker `wedding-planner`, D1 `wedding-planner` (placeholder id), `preview_urls: false`, vars ACCESS_TEAM_DOMAIN / ACCESS_AUD / ALLOWED_EMAILS empty (API refuses until set).
-- Until v3 deploys, `dist-offline/index.html` from disk is the app.
+- Deployed 21 Oct 2026. Account `mschemper@gmail.com` (ID 57b28195dc1564bee550b665117db76c). Access team `sukursschemper.cloudflareaccess.com`, one-time PIN, allowed: Mark + Angela. D1 `wedding-planner` id 87b1c95c-7e87-4307-98a3-cac03d0a3937 (ENAM).
+- `wrangler.jsonc` holds the real vars; `preview_urls: false`. Unauthenticated `/` and `/api/data` redirect to the Access login (verified).
+- Redeploy: `npm run build` then `npx wrangler deploy`. New migration: `npx wrangler d1 migrations apply DB --remote`. Re-seeding: `npm run seed:sql`, `wrangler d1 execute DB --remote --file data/private/seed.sql`, delete the file.
+- Free-tier limits for D1/Workers/Access not re-checked on the day: confirm in the dashboard.
 
 ## Standing preferences (Mark)
 

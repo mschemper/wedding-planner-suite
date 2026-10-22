@@ -1,6 +1,8 @@
 # Changelog
 
-## v3 (UNRELEASED, part 2 of 2) - Online editors on Cloudflare (built 21 Oct 2026; not deployed)
+## v3 - Online editors on Cloudflare (21 Oct 2026)
+
+**Deployed** 21 Oct 2026: https://wedding-planner.wedding-planner-suite.workers.dev behind Cloudflare Access (one-time PIN; Mark + Angela). D1 `wedding-planner` seeded (21 households / 45 individuals). Two-tab 409 check passed.
 
 Mark's request, 21 Oct 2026: build DESIGN-v3 (Workers + Static Assets + D1 + Access, guest editor, quotes & prices editor); deploy in a separate session. Mark picked Guests layout A (list + side panel).
 

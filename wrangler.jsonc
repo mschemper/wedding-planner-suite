@@ -16,14 +16,14 @@
     {
       "binding": "DB",
       "database_name": "wedding-planner",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "87b1c95c-7e87-4307-98a3-cac03d0a3937",
       "migrations_dir": "migrations"
     }
   ],
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": "",
-    "ALLOWED_EMAILS": ""
+    "ACCESS_TEAM_DOMAIN": "sukursschemper.cloudflareaccess.com",
+    "ACCESS_AUD": "15ffbe7d1f46fa9071b240643f11815805be503627df54f9d0b549ff674ed8c0",
+    "ALLOWED_EMAILS": "mschemper@gmail.com,angela.sukurs@gmail.com"
   },
   "observability": { "enabled": true }
 }

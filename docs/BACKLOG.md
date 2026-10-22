@@ -18,8 +18,8 @@ Each answer replaces an estimate in `src/data/scenarios.ts` → golden + HISTORY
 
 ## Requested / planned (features)
 
-### P1. v3 deploy — M (build done 21 Oct; this is the separate deploy session)
-DESIGN-v3 §7 in order: wrangler login (Mark) → D1 create + migrations → deploy (no seed) → Access (Mark clicks) → vars + redeploy → verify the API refuses without Access → seed → Mark + Angela check. Then tag v3, CHANGELOG date, USAGE row.
+### P1. Angela's first sign-in — XS
+Angela opens the link and enters her email for the PIN. Not yet confirmed.
 
 ### F12. Guests panel: warn before discarding unsaved edits — XS (integration review #7)
 Opening another household or pressing Escape drops a dirty draft silently. Confirm when `buildOps(...)` is non-empty.
