@@ -2,16 +2,16 @@
 
 **Read this first in a new session** (after AGENTS.md). It is the one file that says what is true right now. What isn't done yet is in `docs/BACKLOG.md`, how things got this way is in `docs/HISTORY.md`, and which files a change touches is in `docs/CODEMAP.md`. Update this at the end of any session that changes it.
 
-Last updated: 22 October 2026 (v4 "Garden" deployed and verified).
+Last updated: 22 October 2026 (v5 People tab deployed and verified).
 
 ## Version
 
 | | |
 |---|---|
-| Released | **v4 "Garden"** (tag `v4`, package.json 4.0.0): deployed 22 Oct 2026, Worker version 6a48668b-2e08-4d7a-825b-af0e4743b927; signed-in `/api/version` = 4.0.0; unauthenticated `/`, `/api/version`, `/api/data` → Access login (verified) |
-| Previous release | v3 (tag `v3`). Rollback = check out `v3`, `npm ci`, `npm run build`, `npx wrangler deploy` (D1 v3 tables still present) |
+| Released | **v5 People tab** (tag `v5`, package.json 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452; signed-in `/api/version` = 5.0.0; unauthenticated `/` → Access login (verified) |
+| Previous release | v4 "Garden" (tag `v4`). Rollback = check out `v4`, `npm run build`, `npx wrangler deploy` (0003 columns are additive; v4 ignores them) |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
-| Design | docs/DESIGN-v4.md; mockups docs/mockups/v4-garden.html, v4-people.html |
+| Design | docs/DESIGN-v4.md, docs/DESIGN-v5.md (People), review docs/REVIEW-v4-people.md; mockups docs/mockups/ |
 
 ## The wedding (facts that drive the model)
 
@@ -31,7 +31,7 @@ Last updated: 22 October 2026 (v4 "Garden" deployed and verified).
 | | |
 |---|---|
 | Workbook | `G:\My Drive\Wedding Planner\wedding_guest_data_comprehensive_v4.xlsx` (21 Oct 23:33) → `data/private/guests-v4.xlsx` (gitignored) |
-| People | 126 (+ 4 tree-only grandparent placeholders): 2 couple, 104 family, 20 friends; 3 deceased |
+| People | 115 (+ 4 tree-only grandparent placeholders): 2 couple, 93 family, 20 friends; 3 deceased; 11 unnamed kids now a household count (0003) |
 | Households (parties) | 55 (45 family + 10 friend groups) |
 | Decisions at seed | invite 36 heads (23 adults / 13 kids' room) · if room 0 · undecided 85 heads (42 households) · no 0 |
 | Live headcount at seed | ≈ 28 expected of 36 invited; ≈ 95 if the undecided are invited (default pricing basis) |
@@ -50,7 +50,7 @@ Last updated: 22 October 2026 (v4 "Garden" deployed and verified).
 
 - PC: Windows 10, repo `C:\Users\msche\Documents\Projects\wedding-planner-suite` = WSL `/mnt/c/Users/msche/Documents/Projects/wedding-planner-suite`. Git identity repo-local (Mark).
 - **WSL (v4 built + deployed here):** Node 24.18 in `~/.local/node/current/bin` (no sudo; `export PATH="$HOME/.local/node/current/bin:$PATH"`); node_modules = **Linux** copy. Native Windows session → `npm ci` first.
-- WSL: wrangler logged in (OAuth, 22 Oct 2026). Vite on /mnt/c gets no file-change events: restart `npm run dev` after edits.
+- WSL: wrangler logged in (OAuth, 22 Oct 2026). Vite on /mnt/c gets no file-change events: restart `npm run dev` after edits. `WPS_DEV_DATA=data/private/garden.json npm run dev` seeds the local dev DB with real data (local only; delete `.wrangler/dev/db-v4.sqlite` afterwards).
 - Pinned: wrangler 4.151.3, jose 6.2.13, vite 5.4.21, vitest 2.1.9 (all deps exact).
 - workerd crashes on the PC (native) → no `wrangler dev`; tests and `npm run dev` run the Worker in Node.
 - GitHub: **https://github.com/mschemper/wedding-planner-suite** (private), `main` + tags v2–v4; Git Credential Manager pushes from WSL.
@@ -58,8 +58,10 @@ Last updated: 22 October 2026 (v4 "Garden" deployed and verified).
 ## Platform
 
 - Cloudflare Workers + Static Assets + D1 + Access, account `mschemper@gmail.com` (ID 57b28195dc1564bee550b665117db76c). Access team `sukursschemper.cloudflareaccess.com`, one-time PIN, allowed: Mark + Angela. D1 `wedding-planner` id 87b1c95c-7e87-4307-98a3-cac03d0a3937 (ENAM).
-- Migrations applied: 0001, 0002 (22 Oct 2026). v3 tables (households, individuals, friends) still present; drop in 0003 (BACKLOG).
-- Backup before v4: `data/private/d1-backup-v3.sql` (export, 22 Oct 2026); Time Travel bookmark before 0002: `00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a`.
+- Migrations applied: 0001, 0002, 0003 (22 Oct 2026). v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
+- Friend tiers set on live from the workbook InviteTier (A→Must, B→Want, C→Nice to have), 22 Oct 2026.
+- Backup before v4: `data/private/d1-backup-v3.sql`; bookmark before 0002: `00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a`.
+- Backup before v5: `data/private/d1-backup-v4.sql` (7 in-app edits); bookmark before 0003: `0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8`.
 - Redeploy: `npm run build` then `npx wrangler deploy`. New migration: `npx wrangler d1 migrations apply DB --remote`. Re-seed people: `npm run import:v4`, `npm run seed:v4 -- --replace`, `wrangler d1 execute DB --remote --file data/private/seed-v4.sql`, delete the file (replace wipes in-app edits: export first).
 - Free-tier limits for D1/Workers/Access not re-checked: confirm in the dashboard.
 

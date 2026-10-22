@@ -10,7 +10,7 @@
 
 ## People (v4, DESIGN-v4 §3)
 - **people**: id, first, last, nick, side (Mark | Angela | Both), branch (family side), gen (0 couple/siblings/cousins, -1 parents/aunts, -2 grandparents, +1 kids/nieces), kind (couple | family | friend), party_id → parties, partner_id (symmetric; server mirrors), parent_ids (JSON, ≤ 2, no loops), age (adult | child), override (null | invite | no: one-person exception), rsvp (none | accepted | declined), deceased, placeholder (tree-only, e.g. grandparents), local (local | away | unknown), circle (friends), plus_one, kids_room, label (relationship text when the tree can't derive it), notes, sort.
-- **parties** (households / envelopes): id, name, invite (undecided | invite | ifroom | no), kids (policy | in | out), rank (if-room order), talk + talk_note, notes.
+- **parties** (households / envelopes): id, name, invite (undecided | invite | ifroom | no), kids (policy | in | out), rank (order within its ring / tier), talk + talk_note, notes, tier (family 1 Inner · 2 Close · 3 Extended · 4 Wider; friends 1 Must · 2 Want · 3 Nice to have; null = derived, `src/people/tier.ts`), unnamed_kids, circle, known_by (Mark | Angela | Both), reciprocal (v5, migration 0003).
 - Couple rows (kind couple) anchor the tree; never counted. Placeholders have no party; every other person has one.
 - Effective invite (`src/people/invite.ts`): override → party decision; children only when kids resolve in (party.kids, else `kidsPolicy`: ours = the couple's own kids, family = family households, all).
 - Headcount (`src/people/headcount.ts`): invited / if room / undecided / no tallies (heads, adults, kids' room, expected at §2.3 rates: local 0.85, away 0.55, unknown 0.78; accepted 1, declined 0). Capacity cutoff per venue: main room = adults (+ kids when no kids' room) at full acceptance; ranked if-room households added until the cap.
@@ -22,7 +22,7 @@
 - **venues**: one row per scenario (seeded; update only): active (shortlist), status (researching | tour booked | toured | held | quoted | booked | passed), hold_date, tour_date, contacts, next_step, notes.
 - **musthaves**: id, text, detail, sort, archived (no delete). **fit**: id `{scenario_id}:{musthave_id}`, verdict (yes | partly | no | unknown), note. Fit score = (yes + ½ partly) / answered.
 - **tasks**: id, title, detail, due, owner (Mark | Angela | Both), category, status (open | done), done_at, source (Gmail URL | email | manual), source_date, scenario_id, sort.
-- **params** also holds settings: dateWindows, heldDate, kidsPolicy (`src/data/params.ts` `Settings`).
+- **params** also holds settings: dateWindows, heldDate, kidsPolicy, branchNames (`src/data/params.ts` `Settings`).
 
 ## Stored (D1)
 - Schema: `migrations/0001_init.sql` (quotes, params, audit, _guard; v3 guest tables kept until 0003) + `migrations/0002_garden.sql` (v4 tables). Specs: `worker/db.ts` `SPECS`.
