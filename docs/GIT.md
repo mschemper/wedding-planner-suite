@@ -6,7 +6,7 @@
 C:\Users\msche\Documents\Projects\wedding-planner-suite
 ```
 
-It's a normal repository on branch `main`, with tags `v2`, … and **no remote yet**. A Claude Code session on the PC works in place.
+It's a normal repository on branch `main`, with tags `v2`, `v3`, `v4`, and remote `origin` = https://github.com/mschemper/wedding-planner-suite (private, created 21 Oct 2026). A Claude Code session on the PC works in place and pushes after each commit round (`git push origin main --tags`; release work may sit on a branch until the release merges).
 
 Repo-local settings to set once:
 

@@ -1,5 +1,23 @@
 # Changelog
 
+## v4 - Garden (22 Oct 2026)
+
+**Deployed** 22 Oct 2026 to https://wedding-planner.wedding-planner-suite.workers.dev (Access). D1 migration 0002 (add-only), v4 seed from the 21 Oct workbook: 126 people, 55 households, 18 venue rows, 9 must-haves, 11 tasks.
+
+Mark's request, 21 Oct 2026: comprehensive rebuild — better UX, simpler guest data shown as a family tree plus friends, must-haves list, active venues only + Firehouse Chicago, tasks from email, floral garden look, full design → review → QA → deploy. Picked: Twinkle garden look; tasks seeded + paste refresh; flexible date (late spring / early fall 2027); household-level invite decisions with a kids option, "if room" ranking, shared decision + talk flag.
+
+**Tabs**: Today · Venues · People · Plan (bottom bar on phones). Day and dusk themes.
+
+**Today**: countdown to the next date window, the Firehouse hold, headcount (expected / invited / undecided, adults vs kids' room), next 5 tasks with check-off, must-haves, shortlist with totals, capacity and fit.
+
+**Venues**: shortlist of 4 (Firehouse held, Ravenswood, River Room, Joinery); compare cards / table; price at "incl. undecided", invited only, everyone invited or a custom count; held date or either window; totals per window; capacity check with the kids' room; must-have × venue matrix (tap to rate, notes); venue detail with editable status/contacts/next step, budget breakdown, quotes; archive of the other 14; Assumptions (prices, held date, date windows).
+
+**People**: Decide view — one tap per household (Invite / If room / No), kids policy + per-household kids control, talk flag + note, live impact bar with venue capacity, ranked "if room" list with a cutoff line, recent decisions (who changed what). Family garden: the couple at the centre, each side's branches as beds by generation, parent/partner lines, "Set parents" and "Add relative". Friends by circle. Envelopes with JSON/xlsx export. Person sheet for details and one-person exceptions. Undo on every tap.
+
+**Plan**: tasks grouped overdue / this week / later, owners, Gmail links, quick add, "Paste tasks" from an email sweep; must-haves ordered, editable, archivable.
+
+**Data**: new people model (enter names + links; relationships derived), workbook importer with a review list, Firehouse priced from official rates, Joinery capacity 160, Ravenswood unpriced. Contrast gate for the palette.
+
 ## v3 - Online editors on Cloudflare (21 Oct 2026)
 
 **Deployed** 21 Oct 2026: https://wedding-planner.wedding-planner-suite.workers.dev behind Cloudflare Access (one-time PIN; Mark + Angela). D1 `wedding-planner` seeded (21 households / 45 individuals). Two-tab 409 check passed.
