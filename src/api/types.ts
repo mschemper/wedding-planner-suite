@@ -1,7 +1,7 @@
-// API contract shared by worker/ and the client (DESIGN-v3 §3). Pure types.
+// API contract shared by worker/ and the client (DESIGN-v3 §3; v4 tables DESIGN-v4 §3). Pure types.
 import type { Quote } from "../engine/types";
-import type { Issue } from "../guests/validate";
-import type { FriendGroup, Household, Individual } from "../guests/schema";
+import type { Party, Person } from "../people/types";
+import type { Fit, MustHave, Task, VenueRow } from "../plan/types";
 
 export interface RowMeta {
   version: number;
@@ -12,7 +12,7 @@ export interface RowMeta {
 }
 export type Versioned<T> = T & RowMeta;
 
-export type TableName = "households" | "individuals" | "friends" | "quotes" | "params";
+export type TableName = "people" | "parties" | "venues" | "musthaves" | "fit" | "tasks" | "quotes" | "params";
 
 export interface ParamRow extends RowMeta {
   key: string;
@@ -20,22 +20,34 @@ export interface ParamRow extends RowMeta {
 }
 
 export interface ApiData {
-  households: Versioned<Household>[];
-  individuals: Versioned<Individual>[];
-  friends: Versioned<FriendGroup>[];
+  people: Versioned<Person>[];
+  parties: Versioned<Party>[];
+  venues: Versioned<VenueRow>[];
+  musthaves: Versioned<MustHave>[];
+  fit: Versioned<Fit>[];
+  tasks: Versioned<Task>[];
   quotes: Versioned<Quote>[];
   params: ParamRow[];
   /** the signed-in email */
   me: string;
 }
 
+export interface Issue {
+  level: "error" | "warning";
+  /** row id the issue is about */
+  where: string;
+  msg: string;
+}
+
 /**
- * One save = one atomic batch of ops. Ids for households/individuals/friends/quotes are allocated by the server.
- * A create may carry a temporary id ("tmp:<anything>") in its id column; other ops in the same batch may reference it
- * (HouseholdID, PartnerPersonID, ParentPersonIDs). The response maps tmp → real ids.
- * households create: optional `_branch` (2–4 letters) → id `{M|A}-{BRANCH}-{NNN}`; default from PrimaryHouseholdName.
+ * One save = one atomic batch of ops. Ids for people/parties/musthaves/tasks/quotes are allocated by the server.
+ * A create may carry a temporary id ("tmp:<anything>") in `id`; other ops in the same batch may reference it
+ * (party_id, partner_id, parent_ids, musthave_id). The response maps tmp → real ids.
+ * fit: id is derived by the server as `${scenario_id}:${musthave_id}`. venues: update only (one seeded row per scenario).
+ * musthaves: no delete (archive). parties: delete only when empty.
  * params: create/update with id = key and row = { value }; delete = back to the doc value.
- * Order inside a batch matters: create a household before its people; delete people before their household.
+ * people.partner_id: set it on ONE side; the server mirrors it and clears previous partners.
+ * Order inside a batch matters: create a party before its people, a must-have before its fit rows.
  */
 export type Op =
   | { table: TableName; op: "create"; row: Record<string, unknown> }
@@ -57,15 +69,15 @@ export interface AuditEntry {
   tbl: TableName;
   row_id: string;
   op: "create" | "update" | "delete";
-  before: unknown;
-  after: unknown;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
 }
 
 export type ApiErrorKind = "unauthorized" | "forbidden" | "conflict" | "invalid" | "not_found" | "bad_request" | "server";
 export interface ApiErrorBody {
   error: ApiErrorKind;
   message: string;
-  /** invalid: validateGuests issues introduced by this save */
+  /** invalid: issues introduced by this save */
   issues?: Issue[];
   /** conflict / not_found: the row that changed */
   row?: { table: TableName; id: string; updated_by?: string };

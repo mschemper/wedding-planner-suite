@@ -1,6 +1,6 @@
 {
   "name": "wedding-planner-suite",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Mark & Angela wedding planning suite: budget studio + guest data layer",
   "scripts": {
     "dev": "vite",
@@ -10,10 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "import:guests": "tsx scripts/import-guests.ts",
-    "seed:sql": "tsx scripts/seed-d1.ts",
     "deploy:dry": "vite build && wrangler deploy --dry-run",
-    "check": "npm run typecheck && npm test && vite build && vite build --mode offline"
+    "check": "npm run typecheck && npm test && vite build && vite build --mode offline",
+    "import:v4": "tsx scripts/import-v4.ts",
+    "seed:v4": "tsx scripts/seed-v4.ts"
   },
   "devDependencies": {
     "@types/node": "22.10.1",

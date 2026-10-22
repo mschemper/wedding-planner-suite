@@ -1,28 +1,57 @@
 import type { Tab } from "./nav";
 
-// Per-viewer conveniences only. Storage can be missing or throw (private mode, file://): always fall back to defaults.
+// Per-viewer conveniences only (DESIGN-v4 §2 "Prefs"). Storage can be missing or throw (private mode, file://): always fall back.
+/** considered = expected if every undecided / if-room household is invited too (default while deciding) */
+export type GuestBasis = "considered" | "expected" | "ceiling" | "custom";
+export type PeopleView = "decide" | "garden" | "friends" | "envelopes";
+
 export interface Prefs {
-  guests: number;
-  date: string;
-  contingency: number;
-  selected: number | null;
   tab: Tab;
+  /** what the venue budgets are priced at */
+  guestBasis: GuestBasis;
+  /** used when guestBasis = custom */
+  guests: number;
+  /** compare date (YYYY-MM-DD); null = the held date, else the first window's reference date */
+  date: string | null;
+  contingency: number;
+  /** venue detail open on the Venues tab */
+  selected: number | null;
+  /** venue used for the capacity bar on People → Decide */
+  capacityVenue: number;
+  /** null = by screen width (garden ≥ 860px, decide below) */
+  peopleView: PeopleView | null;
+  theme: "auto" | "day" | "dusk";
 }
 
-const KEY = "wps.prefs.v1";
-export const DEFAULT_PREFS: Prefs = { guests: 75, date: "2027-04-24", contingency: 0, selected: null, tab: "budget" };
+const KEY = "wps.prefs.v2";
+const OLD_KEY = "wps.prefs.v1";
+export const DEFAULT_PREFS: Prefs = {
+  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto",
+};
+
+const TABS: Tab[] = ["today", "venues", "people", "plan"];
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export function loadPrefs(): Prefs {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return DEFAULT_PREFS;
+    if (!raw) {
+      const old = JSON.parse(localStorage.getItem(OLD_KEY) ?? "null") as { tab?: string; guests?: number; contingency?: number } | null;
+      if (!old) return DEFAULT_PREFS;
+      const tab: Tab = old.tab === "guests" ? "people" : old.tab === "budget" || old.tab === "quotes" ? "venues" : "today";
+      return { ...DEFAULT_PREFS, tab, contingency: Number.isFinite(old.contingency) ? Number(old.contingency) : 0 };
+    }
     const p = JSON.parse(raw) as Partial<Prefs>;
     return {
+      tab: TABS.includes(p.tab as Tab) ? (p.tab as Tab) : DEFAULT_PREFS.tab,
+      guestBasis: p.guestBasis === "ceiling" || p.guestBasis === "custom" || p.guestBasis === "expected" ? p.guestBasis : "considered",
       guests: Number.isFinite(p.guests) ? Number(p.guests) : DEFAULT_PREFS.guests,
-      date: typeof p.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : DEFAULT_PREFS.date,
-      contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : DEFAULT_PREFS.contingency,
+      date: typeof p.date === "string" && DAY.test(p.date) ? p.date : null,
+      contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : 0,
       selected: typeof p.selected === "number" ? p.selected : null,
-      tab: p.tab === "guests" || p.tab === "quotes" ? p.tab : "budget",
+      capacityVenue: typeof p.capacityVenue === "number" ? p.capacityVenue : DEFAULT_PREFS.capacityVenue,
+      peopleView: ["decide", "garden", "friends", "envelopes"].includes(String(p.peopleView)) ? (p.peopleView as PeopleView) : null,
+      theme: p.theme === "day" || p.theme === "dusk" ? p.theme : "auto",
     };
   } catch {
     return DEFAULT_PREFS;

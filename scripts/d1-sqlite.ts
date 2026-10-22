@@ -55,12 +55,12 @@ export class SqliteD1 implements D1Database {
       throw e;
     }
   }
-  /** Applies migrations/*.sql in order (only 0001 today). */
-  migrate(files = ["migrations/0001_init.sql"]): this {
+  /** Applies migrations/*.sql in order. */
+  migrate(files = ["migrations/0001_init.sql", "migrations/0002_garden.sql"]): this {
     for (const f of files) this.raw.exec(readFileSync(f, "utf8"));
     return this;
   }
   get empty(): boolean {
-    return !this.raw.prepare("SELECT 1 FROM households LIMIT 1").get();
+    return !this.raw.prepare("SELECT 1 FROM people LIMIT 1").get();
   }
 }

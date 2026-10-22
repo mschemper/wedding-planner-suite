@@ -1,31 +1,31 @@
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import type { IncomingMessage } from "node:http";
 import { defineConfig, type Plugin, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
-import fixture from "./data/fixtures/guests.sample.json";
 
-// Two builds (DESIGN-v3 §6):
-//   hosted  (`vite build`)                → dist/          multi-file, served by the Worker; guests come only from /api. Never bundles data/private.
-//   offline (`vite build --mode offline`) → dist-offline/  one self-contained index.html, read-only, opens from disk; real names if data/private/guests.json exists.
-const PRIVATE_GUESTS = "data/private/guests.json";
-const VIRTUAL = "virtual:private-guests";
-
-function privateGuests(offline: boolean): Plugin {
+// Two builds (DESIGN-v4 §1.10):
+//   hosted  (`vite build`)                → dist/          multi-file, served by the Worker; data only from /api.
+//   offline (`vite build --mode offline`) → dist-offline/  one self-contained index.html, read-only budget; no fonts CDN, no fetch.
+// Neither build may bundle data/private (real names).
+function noPrivate(): Plugin {
   return {
-    name: "private-guests",
-    resolveId: (id) => (id === VIRTUAL ? "\0" + VIRTUAL : null),
+    name: "no-private",
     load(id) {
-      if (id === "\0" + VIRTUAL) return `export default ${offline && existsSync(PRIVATE_GUESTS) ? readFileSync(PRIVATE_GUESTS, "utf8") : "null"};`;
-      if (!offline && id.replace(/\\/g, "/").includes("/data/private/")) this.error(`hosted build must not bundle ${id}`);
+      if (id.replace(/\\/g, "/").includes("/data/private/")) this.error(`build must not bundle ${id}`);
       return null;
     },
   };
 }
 
-/** `npm run dev`: /api runs worker/api.ts in Node against .wrangler/dev/db.sqlite (seeded from the synthetic fixture). */
+/** Offline copy opens from disk: drop the Google Fonts links (falls back to Georgia / system sans). */
+function stripFonts(): Plugin {
+  return { name: "strip-fonts", transformIndexHtml: (html) => html.replace(/\s*<link[^>]+fonts\.(googleapis|gstatic)\.com[^>]*>/g, "") };
+}
+
+/** `npm run dev`: /api runs worker/api.ts in Node against .wrangler/dev/db-v4.sqlite (seeded from the synthetic fixture + seed-v4). */
 function devApi(): Plugin {
-  type Db = { empty: boolean; raw: { prepare(sql: string): { run(...v: unknown[]): unknown } }; migrate(): unknown };
+  type Db = { raw: { prepare(sql: string): { run(...v: unknown[]): unknown } }; migrate(): unknown };
   let ready: Promise<Db> | undefined;
   const body = (req: IncomingMessage) => new Promise<Buffer>((ok) => { const c: Buffer[] = []; req.on("data", (d) => c.push(d)); req.on("end", () => ok(Buffer.concat(c))); });
   return {
@@ -38,11 +38,16 @@ function devApi(): Plugin {
           ready ??= (async () => {
             const { SqliteD1 } = await server.ssrLoadModule("/scripts/d1-sqlite.ts");
             const { seedRows } = await server.ssrLoadModule("/worker/seed.ts");
+            const { SEED_VENUES, SEED_MUSTHAVES, SEED_FIT, SEED_TASKS } = await server.ssrLoadModule("/src/data/seed-v4.ts");
+            const fixture = (await server.ssrLoadModule("/data/fixtures/garden.sample.json")).default;
             mkdirSync(".wrangler/dev", { recursive: true });
-            const d = new SqliteD1(".wrangler/dev/db.sqlite") as Db;
-            const fresh = !(d.raw.prepare("SELECT name FROM sqlite_master WHERE name = 'households'") as unknown as { get(): unknown }).get();
-            if (fresh) d.migrate();
-            if (d.empty) for (const r of seedRows(fixture, "seed")) d.raw.prepare(r.sql).run(...r.values);
+            const d = new SqliteD1(".wrangler/dev/db-v4.sqlite") as Db;
+            const fresh = !(d.raw.prepare("SELECT name FROM sqlite_master WHERE name = 'people'") as unknown as { get(): unknown }).get();
+            if (fresh) {
+              d.migrate();
+              const set = { ...fixture, venues: SEED_VENUES, musthaves: SEED_MUSTHAVES, fit: SEED_FIT, tasks: SEED_TASKS };
+              for (const r of seedRows(set, "seed")) d.raw.prepare(r.sql).run(...r.values);
+            }
             return d;
           })();
           const db = await ready;
@@ -65,8 +70,8 @@ function devApi(): Plugin {
 
 export default defineConfig(({ mode, command }) => {
   const offline = mode === "offline";
-  const plugins: PluginOption[] = [react(), privateGuests(offline)];
-  if (offline) plugins.push(viteSingleFile());
+  const plugins: PluginOption[] = [react(), noPrivate()];
+  if (offline) plugins.push(stripFonts(), viteSingleFile());
   if (!offline && command === "serve") plugins.push(devApi());
   return {
     plugins,

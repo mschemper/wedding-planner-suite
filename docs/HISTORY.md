@@ -2,6 +2,16 @@
 
 Newest first. Each entry: what changed and why.
 
+## v4 — 2026-10-22 · Garden rebuild
+- Households, not people, carry the invite decision: Mark decides by household with a kids option; per-person overrides only for exceptions. Kids policy is global so "our kids only" vs "all kids" is one switch.
+- Relationships derived from links instead of typed: the workbook's 21 columns per person were the complexity Mark asked to remove. Gendered workbook labels are kept when they agree with the derivation.
+- Tree = branch beds, not strict genealogy (Opus design review): only 11 of 106 people had parent links; a strict layout would have left half the people unplaced.
+- Migration 0002 add-only (design review): v3 stays redeployable; drop old tables in 0003.
+- Default pricing basis "incl. undecided": with 36 of 121 decided, invited-only priced every venue at its minimum.
+- Firehouse priced from its official rate table (21 Oct 2026); third-party $6–8k figures looked dated.
+- Stat numbers use Inter: Cormorant Garamond's old-style "1" reads as "I".
+- Repo-create via the API was refused by the permission classifier; Mark created the GitHub repo by hand.
+
 ## v3 — 2026-10-21 · Seasons, review fixes, mobile, platform plan
 
 - **Seasons come from each venue, not a global winter/summer split** (Mark: "that should depend on what the specific venue says"). Each scenario carries its own calendar and cites it in `seasonSource`. Venues with nothing published stay unseasoned rather than guessed.

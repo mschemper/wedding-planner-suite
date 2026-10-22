@@ -1,0 +1,15 @@
+/* Today (mockup docs/mockups/v4-garden.html). Tokens only; classes prefixed td-. */
+.g-grid > .span-12 { grid-column: span 12; }
+.td-big { font-family: var(--sans); font-size: 40px; font-weight: 600; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+.td-muted { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.td-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
+.td-list { padding-left: 18px; margin: 6px 0 4px; }
+.td-list li { margin: 3px 0; }
+.td-venues { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.td-venue { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--ground); min-height: 44px; }
+.td-venue:hover { border-color: var(--euc); }
+.td-venue-top { display: flex; align-items: center; gap: 8px; }
+.td-venue-name { font-family: var(--serif); font-size: 21px; font-weight: 700; line-height: 1.15; }
+.td-price { font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--peony-ink); line-height: 1.1; }
+.td-price-none { font-family: var(--sans); font-size: 16px; color: var(--gold-ink); }
+.td-venue-meta { font-size: 13px; color: var(--muted); }

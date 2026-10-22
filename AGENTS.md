@@ -10,7 +10,7 @@ Index + hard rules. Detail lives in docs/: point, never copy. Facts that change 
 5. ADHD output mode always on: read + follow docs/skills/i-have-adhd/SKILL.md at session start (ayghri/i-have-adhd @839872f, MIT). Off only on "stop adhd mode"/"normal mode", that session only. Conflict -> P0 wins (P0.1 allows >1 question).
 
 ## What this is
-Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenarios priced by guest count, bar tier, wedding date (venue seasons), contingency (source: Reconciled Master v2.0, June 2026). Guest data layer: workbook import, validation, attendance forecast feeding the guest count. Today: one self-contained page (`dist/index.html`) opened from disk. v3 in progress: Cloudflare Workers + Static Assets + D1 + Access with guest/quote/price editors (docs/DESIGN-v3.md).
+Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + Static Assets + D1 + Access): https://wedding-planner.wedding-planner-suite.workers.dev. v4 "Garden" (docs/DESIGN-v4.md): tabs Today, Venues (shortlist, budget per venue, must-have fit, quotes), People (household invite decisions, family garden, friends, envelopes), Plan (tasks, must-haves). Budget engine prices 18 scenarios by guest count, date (venue seasons), options, quotes (source: Reconciled Master v2.0 + venue pages). Offline build = read-only budget.
 
 ## Session start (in order)
 0. Cowork only: repo not mounted -> device_request_folder_access C:\Users\msche\Documents\Projects\wedding-planner-suite.
@@ -22,45 +22,47 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 6. Before changing pricing or guests: docs/DATA_MODEL.md; findings behind current code: docs/REVIEW-v3.md, docs/REVIEW-v2.md. Hosting plans: docs/PLATFORMS.md. Old rationale: docs/HISTORY.md.
 
 ## Architecture constraints
-- `src/engine/` pure TS: no React, no I/O. UI never computes money.
-- Scenarios = data (`src/data/scenarios.ts`). Oracle = `src/data/golden.ts` (Reconciled Master totals, +/-$30).
-- Price change -> golden.ts + HISTORY.md entry with source. New line-item type -> engine test + golden coverage.
-- Personal costs only via `src/data/params.ts`. Venue seasons: `Scenario.seasons` from the venue's own page; cite in `seasonSource`; `docSeason` keeps golden on the doc's assumption.
-- Golden rows that depend on season carry a date.
-- Guest column names identical to the workbook. Import only via `npm run import:guests`.
-- Two builds: hosted `dist/` (Worker assets; data only via /api; build fails if data/private is bundled) and offline `dist-offline/index.html` (singlefile, read-only, no CDN, no fetch).
-- Worker: `worker/` pure handler; one save = one D1 batch (`POST /api/write`); never write D1 outside it. Contract `src/api/types.ts`; UI reads only `useData()` (src/ui/data.tsx).
-- New D1 column/table -> new migration file + `worker/db.ts` TABLES + tests/worker.test.ts. Never edit an applied migration.
+- `src/engine/`, `src/people/`, `src/plan/` pure TS: no React, no I/O. UI never computes money, headcount or relationships.
+- Scenarios = data (`src/data/scenarios.ts`). Oracle = `src/data/golden.ts` (Reconciled Master totals, +/-$30). Venue shortlist/status lives ONLY in D1 `venues`.
+- Price change -> golden.ts + HISTORY.md entry with source. New line-item type -> engine test + golden coverage. Unpriced venue -> `priced: false`.
+- Personal costs only via `src/data/params.ts` `Params`. Shared settings (dateWindows, heldDate, kidsPolicy) = `Settings`, same D1 `params` table.
+- Venue seasons: `Scenario.seasons` from the venue's own page; cite in `seasonSource`; `docSeason` keeps golden on the doc's assumption. Golden rows that depend on season carry a date.
+- People model (DESIGN-v4 §3): invite decision per party (household); kids via `kidsPolicy` + party `kids`; person `override` only for exceptions. Effective invite = `src/people/invite.ts`; headcount = `src/people/headcount.ts`.
+- Workbook import only via `npm run import:v4` (src/people/fromWorkbook.ts). Workbook columns never drive the UI.
+- Two builds: hosted `dist/` (Worker assets; data only via /api) and offline `dist-offline/index.html` (singlefile, read-only budget, no CDN, no fetch). Neither bundles data/private (vite `noPrivate`).
+- Worker: `worker/` pure handler; one save = one D1 batch (`POST /api/write`); never write D1 outside it. Table specs `worker/db.ts SPECS`; contract `src/api/types.ts`; UI reads only `useData()` (src/ui/data.tsx); one-tap edits via `edit()` (Undo).
+- New D1 column/table -> new migration file + `SPECS` + tests/worker.test.ts. Never edit an applied migration. 0002 is add-only; v3 tables drop in 0003 (later release).
 - Exact dependency versions. SheetJS from cdn.sheetjs.com tarball (npm `xlsx` frozen at CVE'd 0.18.5).
 
 ## Build and release
 - Gate: `npm run check` (typecheck + tests incl. Worker + both builds, ~15 s) before any behaviour-changing commit.
 - Dev: `npm run dev` (UI + local /api on .wrangler/dev/db.sqlite, synthetic data; delete that folder to reset). Engine vs doc: `npm test -- golden`.
 - Release: docs/RELEASE.md checklist -> bump package.json, `git tag -a vN -m vN`, CHANGELOG + STATE + BACKLOG + USAGE row.
-- Until v3 deploys: hand Mark `dist-offline\index.html` (`npm run build:offline`). After: deploy per docs/DESIGN-v3.md §7; deploy → Access → seed, never seed before Access.
+- Deploy per docs/DESIGN-v4.md §7.5: D1 export backup → migrations apply → seed (only behind Access) → `npm run build` → `npx wrangler deploy` → verify `/api/version`.
 - Cloudflare work: load skills `cloudflare:wrangler`, `cloudflare:workers-best-practices`, `cloudflare:cloudflare-one` (Access) if available. Never ask Mark for an API token in chat; `wrangler login` in his browser.
 - Never print or commit Access AUD/team secrets beyond wrangler vars; never commit `.wrangler/` or `.dev.vars`.
 - Time estimates to Mark: Sonnet subagent ~25-30 min each, even in parallel.
 
 ## Design rules
-- Palette tokens only via `:root` in src/ui/styles.css (cream ground, burnt, teal, mustard, avocado). Palatino headings, Helvetica body. Preserve.
-- Dimmed card = venue cannot host the count or that date (`Budget.unavailable`). Never hide a scenario.
-- Text colours: `--*-ink` tokens only (WCAG AA on cream); fills keep the base tokens.
-- Every estimate shows its uncertainty: confidence %, ranges, understatement, extrapolation (≈).
+- Twinkle garden (DESIGN-v4 §6). Colours only as tokens in `src/ui/styles.css` `:root` (day) + dusk set; never literal colours in components. Text colours: `--ink`, `--muted`, `--*-ink` only; `tests/contrast.test.ts` gates AA.
+- Cormorant Garamond headings, Inter body; 16px body, 13px floor.
+- Shared primitives `src/ui/kit/kit.tsx` and motifs `src/ui/garden/motifs.tsx` are lead-owned: compose, don't restyle. Screen CSS lives in the screen's own folder.
+- State never by colour alone (Bloom shapes, verdict icons + text). Touch targets >= 44px. 360px wide works; tabs become a bottom bar < 640px.
+- Every estimate shows its uncertainty: confidence %, ranges, understatement, extrapolation (≈). Unpriced venues say so.
+- Dimmed / flagged venue = cannot host the count or date (`Budget.unavailable`) or over capacity. Never hide a scenario (Archive keeps them).
 - Show design options before building visual changes.
 
 ## Private data
-- Real guest data ONLY in `data/private/` (gitignored). Never commit, paste into docs, tests, fixtures, commit messages or chat summaries beyond counts.
-- Tests use `data/fixtures/guests.sample.json` (synthetic).
-- `dist/` built with private data contains real names: gitignored, never commit or publish.
-- No addresses, phone numbers or emails in the workbook until a plan for them is in docs/DATA_MODEL.md.
+- Real guest data ONLY in `data/private/` (gitignored: workbook, garden.json, import-review.json, seed SQL, D1 backups) and in D1. Never commit, paste into docs, tests, fixtures, commit messages or chat summaries beyond counts.
+- Tests use synthetic fixtures (`data/fixtures/garden.sample.json`, `guests.sample.json`).
+- No addresses, phone numbers or emails for guests until a plan for them is in docs/DATA_MODEL.md. Vendor business contacts are fine.
 
 ## Known pitfalls (detail at the link)
 - exceljs cannot read the workbook (x: namespace) -- REVIEW-v2.md G-05.
 - tsx <4.20 breaks on `module-sync` exports in exceljs deps -- HISTORY.md v2.
 - Source doc arithmetic error at Three Top @125 -- REVIEW-v2.md F-03; golden uses line-item sums.
 - Data-point lines extrapolate past the source (≈) -- treat those figures as soft. REVIEW-v2.md F-04.
-- Hooks after an early return crashed v1 -- keep all hooks above returns in src/ui/App.tsx.
+- Hooks after an early return crashed v1 -- keep all hooks above early returns in every component.
 - Controlled number input that rejects keystrokes cannot be typed into -- edit a draft, commit on blur/Enter (REVIEW-v3 R1).
 - workerd crashes on Mark's PC: no `wrangler dev`/`wrangler types`/vitest-pool-workers; Worker runs in Node via scripts/d1-sqlite.ts -- HISTORY.md v3.
 - npm 11 skips postinstall scripts: if a wrangler command needs workerd, `node node_modules/workerd/install.js`.

@@ -2,17 +2,20 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 21 Oct 2026 (P1 part 2 built; B3 shipped). Before: 21 Oct 2026 (v3 built: F2 seasons, F3 params, F4 compare tier, F5 saved state, F10 mobile and B1 a11y shipped; F6/F9 folded into P1/P2). Before: 20 Oct 2026 (v2).
+Last reviewed: 22 Oct 2026 (v4 shipped: family garden (F7), household decisions, must-haves, tasks, shortlist; v3 Guests/Quotes screens retired, so F12/F13 are gone; Rockwell archived by Mark, so F1 is gone).
 
 ---
 
 ## Mark's actions (data, not code)
 
-### D1. Fill the guest workbook (REVIEW G-01–G-04)
-Add Angela's side (doc target ~40), the Friends sheet, `Locality` for every person, and `PartnerPersonID`/`ParentPersonIDs`. Review the four placeholder children and the "Cousin child" row. Then run `npm run import:guests -- <xlsx>` and update STATE "Guest data". Changes the venue answer more than any code item.
+### D1. Link the 23 cousins to their parents in the Family garden ("Set parents")
+Import couldn't tell which aunt/uncle household they belong to. `data/private/import-review.json` lists them by id.
 
-### D2. Send the five quote requests (STATE "Open quotes")
-Each answer replaces an estimate in `src/data/scenarios.ts` → golden + HISTORY entry.
+### D2. Decide the 42 undecided households (People → Decide)
+Pricing defaults to "incl. undecided" until they're decided.
+
+### D3. Venue answers (tasks T001–T007 in the app)
+Each price answer replaces an estimate in `src/data/scenarios.ts` → golden + HISTORY entry (or a quote in the app).
 
 ---
 
@@ -21,26 +24,39 @@ Each answer replaces an estimate in `src/data/scenarios.ts` → golden + HISTORY
 ### P1. Angela's first sign-in — XS
 Angela opens the link and enters her email for the PIN. Not yet confirmed.
 
-### F12. Guests panel: warn before discarding unsaved edits — XS (integration review #7)
-Opening another household or pressing Escape drops a dirty draft silently. Confirm when `buildOps(...)` is non-empty.
+### F14. Ravenswood Event Center pricing — S (needs the rate sheet, task T004)
+`priced: false` today. Add line items + golden rows when rates arrive.
 
-### F13. Quotes screen: "not applied" uses default guests/options/no date — S (integration review #6)
-Show applicability at the Budget tab's current date/guests instead, or per quote "applies at …".
-
-### F1. Rockwell on the River as scenario 17 — S (needs the tour answers in STATE "Open quotes" #6)
-
-### F7. Family graph — M (after v3; needs partner/parent edges entered in the Guests screen)
-A force-directed view built from `PartnerPersonID`/`ParentPersonIDs`. If the v1 graph code exists, put it in `archive/` and port it.
+### F15. Firehouse unknowns — XS
+F&B minimum, service/tax, insurance/security fees, linens, 2027 availability. Model assumes $160/guest catering, 22% tax+service, $14/guest linens.
 
 ### F8. Port missing v1 pieces — size on arrival
-The graph and the mobile companion aren't in this repo. Mark supplies the files → review against REVIEW-v2/v3 conventions first.
+The mobile companion isn't in this repo. Mark supplies the files → review first.
 
 ### F11. Promontory package price check — XS
-The Park District lists $3,679 for the weekend 11-hour package; the doc itemises $3,179. Probably the $500 deposit. Confirm, then update golden + HISTORY if different.
+Park District lists $3,679 for the weekend 11-hour package; the doc itemises $3,179 (probably the $500 deposit). Confirm, then golden + HISTORY.
+
+### F16. Automatic Gmail sync for tasks — L (out of v4 scope)
+Needs a Google OAuth app + stored tokens. Today: docs/skills/email-sweep.md → Plan "Paste tasks".
+
+### F17. Seating chart, RSVP site, mailing addresses — L
+Addresses need a DATA_MODEL plan first (AGENTS "Private data").
 
 ---
 
 ## Bugs / debt
 
-### B4. Attendance doesn't count the couple, vendors or a plus-one rate (REVIEW-v3 R15) — S
-Decide with Mark whether to add them.
+### B5. Drop v3 tables (migration 0003) — XS
+households / individuals / friends are unused since v4. Drop in a later release once rollback to v3 is no longer wanted.
+
+### B6. Date settings: concurrent edit overwrites (integration review #9) — XS
+`src/ui/venues/Assumptions.tsx` reads `version()` at save time. Capture versions when the sheet opens so a parallel change returns 409.
+
+### B7. "All must-haves" link uses sessionStorage — XS
+`src/ui/today` sets `wps.planSection`; add a nav field (e.g. `openPlan(section)`) instead.
+
+### B8. Vite dev on /mnt/c misses file changes — XS
+Set `server.watch.usePolling` when running under WSL on a Windows drive, or restart `npm run dev` after edits.
+
+### B4. Attendance ignores vendors and a plus-one acceptance rate (REVIEW-v3 R15) — S
+v4 excludes the couple. Vendors (photographer, band, coordinator meals) and plus-ones at the host's rate are still not modelled. Decide with Mark.

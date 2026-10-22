@@ -67,7 +67,13 @@ export interface Scenario {
   max: number;
   def: number;
   /** guest counts the venue cannot practically host; shown as warnings, still computed */
-  capacity?: { practicalMin?: number; hardMax?: number };
+  capacity?: { practicalMin?: number; hardMax?: number; /** standing / cocktail-style maximum */ cocktail?: number };
+  /** venue has a separate room for the kids' party (kids do not count toward the main room) */
+  kidsRoom?: boolean;
+  /** false = no published price yet ("Awaiting rate sheet"): no total is shown; items may be empty */
+  priced?: boolean;
+  /** official / source links shown on the venue detail */
+  sources?: string[];
   /** venue's own season calendar; first match wins; `from`/`to` are "MM-DD", inclusive, may wrap the year end */
   seasons?: Season[];
   /** season the Reconciled Master priced; used when no date is given (keeps golden totals) */
