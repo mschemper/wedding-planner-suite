@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>People tab options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#FBF7EF;--card:#FFFDF8;--ink:#2E3A2F;--muted:#5C6B5E;--line:#E3DCCB;--blush:#E8A9A0;--sage:#9DB08A;--marigold:#E3B04B;--euc:#5C7962;--peony:#C86F7E;--peony-ink:#A4505F;--euc-ink:#4F6B55;--gold-ink:#7A5A12;--on-euc:#fff;--soft:#F3EEE2}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--ground:#1F3B2D;--card:#26453A;--ink:#F4EFE4;--muted:#C9D3C4;--line:#3C5E4F;--peony-ink:#F2B7BF;--euc-ink:#B9D3BE;--gold-ink:#F6D98B;--euc:#7FA088;--on-euc:#10241A;--soft:#2D5043}}
+:root[data-theme=dark]{--ground:#1F3B2D;--card:#26453A;--ink:#F4EFE4;--muted:#C9D3C4;--line:#3C5E4F;--peony-ink:#F2B7BF;--euc-ink:#B9D3BE;--gold-ink:#F6D98B;--euc:#7FA088;--on-euc:#10241A;--soft:#2D5043}
+*{box-sizing:border-box;margin:0}body{background:var(--ground);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;font-variant-numeric:lining-nums tabular-nums}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;line-height:1.15}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 80px}
+header.page{text-align:center;margin-bottom:22px}header.page h1{font-size:36px}header.page p{color:var(--muted);max-width:720px;margin:6px auto 0}
+nav.toc{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}nav.toc a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink);text-decoration:none;font-size:14px;background:var(--card)}
+section.group{margin-top:34px}section.group>h2{font-size:30px}section.group>p.lead{color:var(--muted);margin:4px 0 14px;max-width:820px}
+.opts{display:grid;gap:18px;grid-template-columns:1fr}@media(min-width:980px){.opts.two{grid-template-columns:1fr 1fr}.opts.three{grid-template-columns:1fr 1fr 1fr}}
+.opt{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 16px 18px;box-shadow:0 6px 20px rgba(46,58,47,.06);display:flex;flex-direction:column;min-width:0}
+.opt h3{font-size:24px}.tag{display:inline-block;font:600 12px Inter;padding:2px 10px;border-radius:999px;background:color-mix(in srgb,var(--euc) 22%,transparent);color:var(--euc-ink);margin-left:6px;vertical-align:middle}
+.tag.alt{background:var(--soft);color:var(--muted)}
+.why{font-size:14px;color:var(--muted);margin:4px 0 10px}.pc{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-top:auto;padding-top:10px;border-top:1px dashed var(--line)}
+.pc b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.screen{border:1px solid var(--line);border-radius:14px;background:var(--ground);padding:10px;margin-bottom:10px;overflow:hidden}
+/* shared bits */
+.chip{display:inline-flex;align-items:center;gap:4px;font:600 12px Inter;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.chip.kid{background:color-mix(in srgb,var(--marigold) 28%,transparent);color:var(--gold-ink)}
+.chip.talk{background:color-mix(in srgb,var(--blush) 40%,transparent);color:var(--peony-ink)}
+.d{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}.d span{padding:3px 8px;font:600 12px Inter;border-left:1px solid var(--line)}.d span:first-child{border-left:0}
+.d .y{background:var(--euc);color:var(--on-euc)}.d .r{background:var(--marigold);color:#2e2200}.d .n{background:var(--line);color:var(--ink)}
+.q{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px dashed var(--euc);font:700 11px Inter;color:var(--euc-ink);flex:none}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}.dot.y{background:var(--euc)}.dot.r{background:var(--marigold)}.dot.n{background:var(--line);border:1px solid var(--muted)}.dot.u{border:1.5px dashed var(--euc)}
+/* room check */
+.room{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:13px}.room .bar{flex:1 1 260px;height:14px;border-radius:9px;background:var(--line);position:relative;overflow:hidden;display:flex}
+.room .bar i{display:block;height:100%}.room .cap{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--peony)}
+/* A1 rings */
+.ring{border-left:4px solid var(--sage);padding:6px 0 6px 10px;margin:8px 0}.ring h4{font:700 13px Inter;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ring h4 small{font-weight:600;color:var(--muted)}.ring .bulk{margin-left:auto;font:600 12px Inter;color:var(--euc-ink);text-decoration:underline}
+.hh{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line);font-size:13px;flex-wrap:wrap}.hh:first-of-type{border-top:0}
+.hh .nm{flex:1 1 140px;min-width:0}.hh .nm b{font-weight:600}.hh .nm small{display:block;color:var(--muted);font-size:12px}
+.fitline{font:600 12px Inter;color:var(--peony-ink);border-top:2px solid var(--peony);margin:6px 0 2px;padding-top:2px}
+/* A2 board */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.col{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;min-height:200px}
+.col h5{font:700 12px Inter;display:flex;justify-content:space-between;margin-bottom:4px}.card{background:var(--ground);border:1px solid var(--line);border-radius:8px;padding:5px 6px;margin:4px 0;font-size:12px}
+.card b{font-weight:600;display:block}.card small{color:var(--muted)}
+/* A3 table */
+table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;font:700 11px Inter;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:4px}td{padding:5px 4px;border-top:1px dashed var(--line);vertical-align:middle}
+tr.grp td{font:700 12px Inter;background:var(--soft);border-top:0}
+/* B1 outline */
+.tree{font-size:13px}.tree ul{list-style:none;padding-left:18px;margin:0;border-left:1.5px solid var(--sage)}.tree>ul{border-left:0;padding-left:0}
+.tree li{position:relative;padding:3px 0 3px 10px}.tree ul ul li::before{content:"";position:absolute;left:-18px;top:13px;width:22px;border-top:1.5px solid var(--sage)}
+.tree .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.tree .gen{font:700 11px Inter;text-transform:uppercase;color:var(--muted);letter-spacing:.4px;margin:6px 0 2px}
+.tree .ph{font-style:italic;color:var(--muted)}
+/* B2 fan */
+.fan{display:block;margin:0 auto;max-width:100%}
+/* C1 friends list */
+.tier{margin:8px 0}.tier h4{font:700 13px Inter;margin-bottom:2px;display:flex;gap:8px;align-items:center}.fr{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px dashed var(--line);font-size:13px;flex-wrap:wrap}
+.fr .nm{flex:1 1 150px}.who{font:700 11px Inter;width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;background:var(--soft);color:var(--ink);flex:none}
+.add{display:flex;gap:6px;margin-top:8px}.add span{flex:1;border:1px dashed var(--line);border-radius:10px;padding:6px 10px;color:var(--muted);font-size:13px}
+/* C2 circles */
+.bubbles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}.bub{border-radius:50%;background:color-mix(in srgb,var(--sage) 25%,transparent);border:1.5px solid var(--sage);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:12px}
+.bub b{font:700 15px "Cormorant Garamond",Georgia,serif}
+.pick{margin-top:30px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.pick ol{padding-left:20px}.pick li{margin:4px 0}
+.toggle{position:fixed;right:12px;bottom:12px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 13px Inter}
+</style></head><body><div class="wrap">
+<header class="page"><h1>People tab · design options</h1>
+<p>Review of v4 found the list unordered by closeness, 20 screens tall, tangled tree lines, workbook jargon, and friends shown like family. Below: three ways to decide, two tree treatments, two ways to weigh friends, one compact room check. Names are placeholders.</p>
+<nav class="toc"><a href="#a">A · Deciding</a><a href="#b">B · Family tree</a><a href="#c">C · Friends</a><a href="#d">D · Room check</a><a href="#data">Data changes</a></nav></header>
+
+<section class="group" id="d"><h2>D · Room check (replaces the impact bar)</h2>
+<p class="lead">One line, always visible: a stacked bar of decided seats, the venue's cap as a line, and money. Tap to switch venue.</p>
+<div class="opt"><div class="screen"><div class="room">
+<b>Firehouse · 82 seated</b>
+<div class="bar"><i style="width:28%;background:var(--euc)"></i><i style="width:6%;background:var(--marigold)"></i><i style="width:52%;background:repeating-linear-gradient(45deg,var(--line),var(--line) 4px,transparent 4px,transparent 8px)"></i><span class="cap" style="left:68%"></span></div>
+<span><span class="dot y"></span> 23 in</span><span><span class="dot r"></span> 5 if room</span><span><span class="dot u"></span> 70 undecided</span><span>13 kids upstairs</span><span><b>≈ $49.9k</b></span></div></div>
+<p class="why">Reads left to right like a glass filling up; the pink line is the room. Undecided is hatched so it's visibly "not yet".</p></div></section>
+
+<section class="group" id="a"><h2>A · Deciding who's invited</h2>
+<p class="lead">All three order households by <b>closeness</b> (new: Inner circle · Close · Extended · Wider) and show one row per household instead of a tall card.</p>
+<div class="opts three">
+
+<div class="opt"><h3>A1 · Rings of closeness <span class="tag">recommended</span></h3>
+<p class="why">Decide from the inside out. Each ring shows its seat count and where the room runs out, so "do we invite the cousins?" becomes one look.</p>
+<div class="screen">
+<div class="ring" style="border-color:var(--peony)"><h4>Inner circle <small>6 households · 19 seats</small><span class="bulk">all decided ✓</span></h4>
+<div class="hh"><span class="dot y"></span><div class="nm"><b>Brother's household</b><small>brother, sister-in-law · 3 kids</small></div><span class="chip kid">kids in</span><span class="d"><span class="y">In</span><span>If room</span><span>No</span></span></div>
+<div class="hh"><span class="dot y"></span><div class="nm"><b>Mom & Dad</b><small>parents</small></div><span class="d"><span class="y">In</span><span>If room</span><span>No</span></span></div></div>
+<div class="ring" style="border-color:var(--marigold)"><h4>Close family <small>12 households · 31 seats</small><span class="bulk">Invite all 12</span></h4>
+<div class="hh"><span class="q">?</span><div class="nm"><b>Aunt R. & Uncle T.</b><small>dad's sister · out of town</small></div><span class="d"><span>In</span><span>If room</span><span>No</span></span></div>
+<div class="hh"><span class="dot r"></span><div class="nm"><b>Cousin J.'s household</b><small>first cousin · 2 kids</small></div><span class="chip talk">talk</span><span class="d"><span>In</span><span class="r">If room</span><span>No</span></span></div>
+<div class="fitline">— Firehouse fills here (82 seated) —</div></div>
+<div class="ring"><h4>Extended <small>24 households · 61 seats</small><span class="bulk">Invite all</span></h4>
+<div class="hh"><span class="q">?</span><div class="nm"><b>Cousin's household</b><small>mom's side · cousin</small></div><span class="d"><span>In</span><span>If room</span><span>No</span></span></div></div>
+<div class="ring" style="border-color:var(--line)"><h4>Friends <small>10 households · 20 seats</small></h4>
+<div class="hh"><span class="q">?</span><div class="nm"><b>College friends J. & C.</b><small>Mark · College</small></div><span class="d"><span>In</span><span>If room</span><span>No</span></span></div></div>
+</div>
+<div class="pc"><div><b>Good</b>Order = priority; bulk decide a ring; capacity line in context.</div><div><b>Cost</b>Needs the new closeness tier (derived, editable).</div></div></div>
+
+<div class="opt"><h3>A2 · Sorting board <span class="tag alt">alternative</span></h3>
+<p class="why">Four columns; move each household from Undecided to a decision. Progress is literal: the left column empties.</p>
+<div class="screen"><div class="board">
+<div class="col"><h5>Undecided <span>42</span></h5><div class="card"><b>Aunt R. & Uncle T.</b><small>close · 2</small></div><div class="card"><b>Cousin's household</b><small>extended · 4</small></div><div class="card"><b>College J. & C.</b><small>friends · 2</small></div></div>
+<div class="col"><h5>Invite <span>13</span></h5><div class="card"><b>Mom & Dad</b><small>inner · 2</small></div><div class="card"><b>Brother's household</b><small>inner · 5</small></div></div>
+<div class="col"><h5>If room <span>1</span></h5><div class="card"><b>Cousin J.</b><small>close · 4</small></div></div>
+<div class="col"><h5>Not inviting <span>0</span></h5></div></div></div>
+<div class="pc"><div><b>Good</b>Very intuitive; great on desktop; drag or tap "move".</div><div><b>Cost</b>Loses closeness order; cramped on phones (becomes tabs).</div></div></div>
+
+<div class="opt"><h3>A3 · Compact grouped list <span class="tag alt">alternative</span></h3>
+<p class="why">A tidy table grouped by side, then closeness. One row per household, decision inline. Closest to a spreadsheet.</p>
+<div class="screen"><table><thead><tr><th>Household</th><th>Seats</th><th>Kids</th><th>Decision</th></tr></thead><tbody>
+<tr class="grp"><td colspan="4">Mark's side · Inner circle</td></tr>
+<tr><td>Mom & Dad</td><td>2</td><td>–</td><td><span class="d"><span class="y">In</span><span>Room</span><span>No</span></span></td></tr>
+<tr><td>Brother's household</td><td>2 + 3</td><td>in</td><td><span class="d"><span class="y">In</span><span>Room</span><span>No</span></span></td></tr>
+<tr class="grp"><td colspan="4">Mark's side · Close</td></tr>
+<tr><td>Aunt R. & Uncle T.</td><td>2</td><td>–</td><td><span class="d"><span>In</span><span>Room</span><span>No</span></span></td></tr>
+<tr><td>Cousin J.'s household</td><td>2 + 2</td><td>out</td><td><span class="d"><span>In</span><span class="r">Room</span><span>No</span></span></td></tr>
+</tbody></table></div>
+<div class="pc"><div><b>Good</b>Densest: all 55 households in ~2 screens; sortable.</div><div><b>Cost</b>Least warm; small targets on phones.</div></div></div>
+</div></section>
+
+<section class="group" id="b"><h2>B · Family tree</h2>
+<p class="lead">Both replace the free-floating lines with structure that can't tangle. Unlinked people collect in one "Not placed yet" tray instead of 60 "Set parents" links.</p>
+<div class="opts two">
+<div class="opt"><h3>B1 · Outline tree <span class="tag">recommended</span></h3>
+<p class="why">Like a family-history book: each side opens into grandparents → their children → those children's households. Indentation carries the relationships; decisions show as dots.</p>
+<div class="screen tree"><ul>
+<li><div class="gen">Mark's dad's side</div><div class="row"><span class="ph">Grandparents (not guests)</span></div>
+<ul><li><div class="row"><span class="dot y"></span><b>Dad</b><span class="chip">father</span></div>
+<ul><li><div class="row"><span class="dot y"></span><b>Mark</b> & <b>Angela</b></div></li><li><div class="row"><span class="dot y"></span><b>Sister & Ken</b><span class="chip kid">2 kids</span></div></li></ul></li>
+<li><div class="row"><span class="dot u"></span><b>Aunt Fran & Len</b><span class="chip">aunt</span></div>
+<ul><li><div class="row"><span class="dot u"></span><b>Cousin Cassie & Josh</b></div></li><li><div class="row"><span class="dot u"></span><b>Cousin Molly</b></div></li></ul></li></ul></li>
+<li><div class="gen">Not placed yet · 23</div><div class="row"><span class="dot u"></span>Cousin Ben <span class="chip">drag under a parent</span></div></li>
+</ul></div>
+<div class="pc"><div><b>Good</b>Readable at any size; collapsible per branch; works on phones.</div><div><b>Cost</b>Less "garden-like" than a picture.</div></div></div>
+
+<div class="opt"><h3>B2 · Fan chart <span class="tag alt">alternative</span></h3>
+<p class="why">A half-circle per side around the couple: rings are generations, wedges are branches, colour is the decision. A beautiful overview; tap a wedge to open its list.</p>
+<div class="screen"><svg class="fan" viewBox="0 0 360 200" width="360" height="200" aria-label="Fan chart preview">
+<g transform="translate(180,190)">
+<path d="M-60 0 A60 60 0 0 1 60 0 Z" fill="var(--blush)"/><text y="-22" text-anchor="middle" font-size="12" font-family="Inter" fill="var(--ink)">Mark & Angela</text>
+<path d="M-110 0 A110 110 0 0 1 0 -110 L0 -62 A62 62 0 0 0 -62 0Z" fill="color-mix(in srgb,var(--euc) 70%,transparent)"/>
+<path d="M0 -110 A110 110 0 0 1 110 0 L62 0 A62 62 0 0 0 0 -62Z" fill="color-mix(in srgb,var(--euc) 55%,transparent)"/>
+<path d="M-160 0 A160 160 0 0 1 -113 -113 L-79 -79 A112 112 0 0 0 -112 0Z" fill="color-mix(in srgb,var(--marigold) 60%,transparent)"/>
+<path d="M-113 -113 A160 160 0 0 1 0 -160 L0 -112 A112 112 0 0 0 -79 -79Z" fill="var(--line)"/>
+<path d="M0 -160 A160 160 0 0 1 113 -113 L79 -79 A112 112 0 0 0 0 -112Z" fill="color-mix(in srgb,var(--euc) 40%,transparent)"/>
+<path d="M113 -113 A160 160 0 0 1 160 0 L112 0 A112 112 0 0 0 79 -79Z" fill="var(--line)"/>
+<text x="-70" y="-60" font-size="11" font-family="Inter" fill="var(--ink)">Dad's</text><text x="40" y="-60" font-size="11" font-family="Inter" fill="var(--ink)">Mom's</text>
+<text x="-140" y="-40" font-size="10" font-family="Inter" fill="var(--ink)">cousins</text></g></svg></div>
+<div class="pc"><div><b>Good</b>Whole family on one screen; shows which branches are decided.</div><div><b>Cost</b>Names don't fit; overview only, needs a list behind it.</div></div></div>
+</div></section>
+
+<section class="group" id="c"><h2>C · Friends we're considering</h2>
+<p class="lead">Friends aren't a tree: the questions are "how close are we, who knows them, would we feel bad leaving them off?" Both options add circle, who knows them, tier and plus-one.</p>
+<div class="opts two">
+<div class="opt"><h3>C1 · Friend shortlist by tier <span class="tag">recommended</span></h3>
+<p class="why">Three tiers you rank within: Must invite · Want to · If room. Each row says how you know them; quick-add at the bottom for new names.</p>
+<div class="screen">
+<div class="tier"><h4>Must invite <span class="chip">4 seats</span></h4>
+<div class="fr"><span class="who" title="Mark">M</span><div class="nm"><b>J. & C.</b> <span class="chip">College</span></div><span class="chip">named partner</span><span class="d"><span class="y">In</span><span>If room</span><span>No</span></span></div>
+<div class="fr"><span class="who" title="Both">M+A</span><div class="nm"><b>Neighbors S. & P.</b> <span class="chip">Neighbors</span> <span class="chip talk">we went to theirs</span></div><span class="d"><span class="y">In</span><span>If room</span><span>No</span></span></div></div>
+<div class="tier"><h4>Want to <span class="chip">6 seats</span></h4>
+<div class="fr"><span class="who" title="Angela">A</span><div class="nm"><b>Work friend R.</b> <span class="chip">Work</span></div><span class="chip">+1</span><span class="d"><span>In</span><span>If room</span><span>No</span></span></div></div>
+<div class="tier"><h4>If room <span class="chip">2 seats</span></h4>
+<div class="fr"><span class="who">M</span><div class="nm"><b>Gym friend K.</b> <span class="chip">Gym</span></div><span class="d"><span>In</span><span class="r">If room</span><span>No</span></span></div></div>
+<div class="add"><span>+ Add a friend: name, circle, who knows them…</span></div></div>
+<div class="pc"><div><b>Good</b>Matches how couples actually cut friends; quick to add.</div><div><b>Cost</b>Tiers are a judgment call you set once per friend.</div></div></div>
+
+<div class="opt"><h3>C2 · Circles <span class="tag alt">alternative</span></h3>
+<p class="why">Each social circle is a bubble sized by seats. Tap a circle to see and decide everyone in it ("all of College").</p>
+<div class="screen"><div class="bubbles">
+<div class="bub" style="width:130px;height:130px"><b>College</b>3 households · 6 seats<br><span class="dot y"></span><span class="dot y"></span><span class="dot u"></span></div>
+<div class="bub" style="width:105px;height:105px"><b>Work</b>2 · 3 seats<br><span class="dot u"></span><span class="dot u"></span></div>
+<div class="bub" style="width:90px;height:90px"><b>Neighbors</b>1 · 2<br><span class="dot y"></span></div>
+<div class="bub" style="width:80px;height:80px"><b>Gym</b>1 · 1<br><span class="dot r"></span></div></div></div>
+<div class="pc"><div><b>Good</b>Shows balance between circles; decide a whole circle at once.</div><div><b>Cost</b>Hides individual closeness; bubbles are imprecise.</div></div></div>
+</div></section>
+
+<section class="group" id="data"><h2>Data changes behind these</h2>
+<div class="opt"><ol style="padding-left:20px;font-size:14px">
+<li><b>Closeness tier</b> per household (Inner · Close · Extended · Wider), derived from the closest relation, editable. Drives order, bulk decisions and the room line.</li>
+<li><b>Friendly branch names</b> ("Mark's dad's side") instead of workbook titles; branches become a small list you can rename.</li>
+<li><b>Friend fields</b>: circle, who knows them (Mark · Angela · both), tier, "we went to theirs", plus-one as a named partner or an unnamed +1.</li>
+<li><b>Unnamed kids</b> as a count on the household (no more "Child 1/2/3" people).</li>
+<li><b>Generation from links</b> where possible (fixes great-aunts shown as grandparents); "Not placed yet" tray for the rest.</li>
+<li><b>One decision display</b>: dot + 3-way control; undecided gets its own "?" mark.</li>
+</ol></div></section>
+
+<div class="pick"><h2>Recommended combination</h2><ol>
+<li><b>D</b> room check on top, always.</li><li><b>A1</b> rings as the default view (A3's density on wide screens via a compact toggle).</li>
+<li><b>B1</b> outline tree as the "Family" view, with the "Not placed yet" tray.</li><li><b>C1</b> friend shortlist by tier, also shown as the Friends ring in A1.</li></ol>
+<p class="why">Views shrink from four (Decide · Garden · Friends · Envelopes) to three: <b>Decide</b> (rings) · <b>Family</b> (tree) · <b>Friends</b> (shortlist); envelopes move to an Export button.</p></div>
+</div>
+<button class="toggle" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">Day / dusk</button>
+</body></html>
