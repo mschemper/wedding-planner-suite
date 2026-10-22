@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Garden mockup v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#FBF7EF;--card:#FFFDF8;--ink:#2E3A2F;--muted:#5C6B5E;--line:#E3DCCB;--blush:#E8A9A0;--sage:#9DB08A;--marigold:#E3B04B;--euc:#6E8B74;--peony:#C86F7E;--peony-ink:#A4505F;--euc-ink:#4F6B55;--twinkle:#F6D98B}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--ground:#1F3B2D;--card:#26453A;--ink:#F4EFE4;--muted:#C9D3C4;--line:#3C5E4F;--peony-ink:#F2B7BF;--euc-ink:#B9D3BE}}
+:root[data-theme=dark]{--ground:#1F3B2D;--card:#26453A;--ink:#F4EFE4;--muted:#C9D3C4;--line:#3C5E4F;--peony-ink:#F2B7BF;--euc-ink:#B9D3BE}
+*{box-sizing:border-box;margin:0}body{background:var(--ground);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700}
+.top{position:relative;padding:34px 20px 0;text-align:center}
+.garland{position:absolute;inset:0 0 auto 0;height:44px;width:100%}
+.bulb{animation:tw 2.4s ease-in-out infinite}.bulb:nth-child(3n){animation-delay:.8s}.bulb:nth-child(3n+1){animation-delay:1.6s}
+@keyframes tw{50%{opacity:.35}}@media (prefers-reduced-motion:reduce){.bulb{animation:none}}
+h1{font-size:40px;line-height:1;letter-spacing:.5px}.sub{color:var(--muted);font-size:14px;letter-spacing:2px;text-transform:uppercase;margin-top:6px}
+nav{display:flex;justify-content:center;gap:6px;margin:18px auto 0;flex-wrap:wrap}
+nav a{padding:8px 16px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px}
+nav a.on{background:var(--euc);color:#fff}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 60px;display:grid;gap:18px;grid-template-columns:repeat(12,1fr)}
+.card{grid-column:span 12;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px;position:relative;box-shadow:0 6px 20px rgba(46,58,47,.06);overflow:hidden}
+.card h2{font-size:24px;margin-bottom:8px}.corner{position:absolute;right:-6px;top:-6px;width:86px;opacity:.9}
+@media(min-width:860px){.half{grid-column:span 6}.third{grid-column:span 4}.twothird{grid-column:span 8}}
+.big{font-family:"Cormorant Garamond",Georgia,serif;font-size:46px;font-weight:700;line-height:1}
+.muted{color:var(--muted);font-size:14px}.chip{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--sage) 28%,transparent);margin:2px 4px 2px 0}
+.chip.peony{background:color-mix(in srgb,var(--blush) 40%,transparent);color:var(--peony-ink)}.chip.gold{background:color-mix(in srgb,var(--marigold) 30%,transparent)}
+.task{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line)}.task:last-child{border:0}
+.box{width:20px;height:20px;border:2px solid var(--euc);border-radius:6px;flex:none;margin-top:2px}
+.venues{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.v{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--ground)}.v h3{font-size:21px}
+.price{font-family:"Cormorant Garamond",Georgia,serif;font-size:28px;font-weight:700;color:var(--peony-ink)}
+.fit{height:8px;border-radius:9px;background:var(--line);margin:8px 0 4px;overflow:hidden}.fit i{display:block;height:100%;background:var(--euc)}
+.mh{columns:2;column-gap:24px}.mh li{margin:4px 0;break-inside:avoid}ul{padding-left:18px}
+.leafrule{display:block;margin:4px auto 0;width:140px;opacity:.8}
+svg text{font-family:Inter,system-ui,sans-serif;fill:var(--ink)}
+.toggle{position:fixed;right:12px;bottom:12px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 13px Inter}
+</style></head><body>
+<header class="top">
+<svg class="garland" viewBox="0 0 1200 44" preserveAspectRatio="none" aria-hidden="true">
+<path d="M0 6 Q150 40 300 8 T600 8 T900 8 T1200 6" fill="none" stroke="var(--euc)" stroke-width="1.5"/>
+<g fill="var(--twinkle)" stroke="var(--marigold)" stroke-width=".8">
+<circle class="bulb" cx="60" cy="19" r="4"/><circle class="bulb" cx="150" cy="25" r="4"/><circle class="bulb" cx="240" cy="18" r="4"/><circle class="bulb" cx="360" cy="18" r="4"/><circle class="bulb" cx="450" cy="25" r="4"/><circle class="bulb" cx="540" cy="18" r="4"/><circle class="bulb" cx="660" cy="18" r="4"/><circle class="bulb" cx="750" cy="25" r="4"/><circle class="bulb" cx="840" cy="18" r="4"/><circle class="bulb" cx="960" cy="18" r="4"/><circle class="bulb" cx="1050" cy="25" r="4"/><circle class="bulb" cx="1140" cy="17" r="4"/></g></svg>
+<h1>Mark &amp; Angela</h1><div class="sub">Our garden wedding · 2027</div>
+<svg class="leafrule" viewBox="0 0 140 14" aria-hidden="true"><path d="M0 7H55M85 7H140" stroke="var(--sage)"/><path d="M70 1c6 3 6 9 0 12c-6-3-6-9 0-12z" fill="var(--sage)"/><path d="M58 7c3-4 8-4 10 0c-2 4-7 4-10 0zM82 7c-3-4-8-4-10 0c2 4 7 4 10 0z" fill="var(--blush)"/></svg>
+<nav><a class="on" href="#">Today</a><a href="#">Venues</a><a href="#">People</a><a href="#">Plan</a></nav>
+</header>
+<main>
+<section class="card third"><h2>When</h2><div class="big">7½ mo</div><p class="muted">until the late-spring window opens (May 1)</p>
+<p style="margin-top:8px"><span class="chip peony">Held · Sat 12 Jun 2027 · Firehouse</span><span class="chip">Late spring</span><span class="chip">Early fall</span></p></section>
+<section class="card third"><h2>Headcount</h2><div class="big">≈ 78</div><p class="muted">expected of 96 invited · 18 maybe</p>
+<p style="margin-top:8px"><span class="chip">66 adults · main room</span><span class="chip gold">12 kids · Sylvie's party</span></p></section>
+<section class="card third"><h2>Must-haves</h2><p class="muted">11 on the list · Firehouse fits 8, unknown 2</p>
+<ul style="margin-top:6px"><li>Late-night food</li><li>Dancing / good music</li><li>Lots of flowers &amp; twinkle lights</li></ul></section>
+<section class="card twothird"><svg class="corner" viewBox="0 0 90 90" aria-hidden="true"><circle cx="62" cy="28" r="16" fill="var(--blush)"/><circle cx="62" cy="28" r="7" fill="var(--peony)"/><path d="M20 80C30 50 45 40 70 50" stroke="var(--euc)" fill="none" stroke-width="2"/><path d="M38 58c-8-2-12-9-10-14c8 1 12 8 10 14z" fill="var(--sage)"/></svg>
+<h2>Next up</h2>
+<div class="task"><span class="box"></span><div><b>Book the Joinery visit (asked Oct 21)</b><div class="muted">Mark · venue · due Oct 28 · from email</div></div></div>
+<div class="task"><span class="box"></span><div><b>Ask Firehouse when the June 12 hold resolves</b><div class="muted">Both · venue · due Oct 28</div></div></div>
+<div class="task"><span class="box"></span><div><b>Get Ravenswood Event Center rate sheet + 2027 dates</b><div class="muted">Mark · venue · due Oct 30</div></div></div>
+<div class="task"><span class="box"></span><div><b>Plan Sylvie's party: supervision, kid food, activities</b><div class="muted">Angela · guests · no date</div></div></div></section>
+<section class="card third"><h2>Family garden</h2>
+<svg viewBox="0 0 300 210" width="100%" aria-label="Tree preview">
+<g stroke="var(--euc)" fill="none" stroke-width="1.5"><path d="M75 40V70M225 40V70M75 70H130M225 70H170M150 95V130M150 130H70M150 130H230M70 130V155M150 130V155M230 130V155"/></g>
+<g><circle cx="75" cy="30" r="11" fill="var(--sage)"/><circle cx="225" cy="30" r="11" fill="var(--sage)"/>
+<circle cx="150" cy="82" r="15" fill="var(--blush)"/><circle cx="150" cy="82" r="6" fill="var(--peony)"/>
+<circle cx="70" cy="165" r="10" fill="var(--blush)"/><circle cx="150" cy="165" r="10" fill="var(--blush)"/><circle cx="230" cy="165" r="7" fill="none" stroke="var(--euc)" stroke-width="2"/></g>
+<g font-size="11" text-anchor="middle"><text x="75" y="12">Mark's parents</text><text x="225" y="12">Angela's parents</text><text x="150" y="112">Mark &amp; Angela</text><text x="70" y="190">sibling</text><text x="150" y="190">Sylvie</text><text x="230" y="190">maybe</text></g></svg>
+<p class="muted">Open bloom = invited · bud = maybe · leaf = not inviting</p></section>
+<section class="card"><h2>Shortlist</h2><div class="venues">
+<div class="v"><span class="chip peony">Held</span><h3>Firehouse Chicago</h3><div class="price">$41,800</div><div class="muted">Sat 12 Jun · 66 adults seated (cap 82) ✓ · kids upstairs</div><div class="fit"><i style="width:80%"></i></div><div class="muted">Fit 8 of 10 · valet not included</div></div>
+<div class="v"><span class="chip">Tour to book</span><h3>The Joinery</h3><div class="price">$38,900</div><div class="muted">Sat 12 Jun · capacity 160 ✓</div><div class="fit"><i style="width:55%"></i></div><div class="muted">Fit 5 of 9 known</div></div>
+<div class="v"><span class="chip">Researching</span><h3>River Room</h3><div class="price">$44,200</div><div class="muted">Peak Sat · needs 100+ on bar pkg</div><div class="fit"><i style="width:60%"></i></div><div class="muted">Fit 6 of 10 · valet available</div></div>
+<div class="v"><span class="chip gold">Awaiting rates</span><h3>Ravenswood Event Center</h3><div class="price">—</div><div class="muted">Atrium 200 · Loft 250</div><div class="fit"><i style="width:20%"></i></div><div class="muted">Fit unknown · ask for rate sheet</div></div>
+</div><p class="muted" style="margin-top:8px">Figures in this mockup are illustrative, not computed.</p></section>
+</main>
+<button class="toggle" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">Day / dusk</button>
+</body></html>
