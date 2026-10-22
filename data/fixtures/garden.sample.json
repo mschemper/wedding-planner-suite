@@ -638,7 +638,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-M1",
@@ -648,7 +653,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-M2",
@@ -658,7 +668,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-M3",
@@ -668,7 +683,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-M4",
@@ -678,7 +698,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 2,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-A1",
@@ -688,7 +713,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-A2",
@@ -698,7 +728,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-A3",
@@ -708,7 +743,12 @@
    "rank": 2,
    "talk": true,
    "talk_note": "travel?",
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "H-A4",
@@ -718,7 +758,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": null,
+   "unnamed_kids": 0,
+   "circle": null,
+   "known_by": null,
+   "reciprocal": false
   },
   {
    "id": "F-1",
@@ -728,7 +773,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": 1,
+   "unnamed_kids": 0,
+   "circle": "College",
+   "known_by": "Mark",
+   "reciprocal": true
   },
   {
    "id": "F-2",
@@ -738,7 +788,12 @@
    "rank": null,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": 2,
+   "unnamed_kids": 0,
+   "circle": "Work",
+   "known_by": "Angela",
+   "reciprocal": false
   },
   {
    "id": "F-3",
@@ -748,7 +803,12 @@
    "rank": 1,
    "talk": false,
    "talk_note": null,
-   "notes": null
+   "notes": null,
+   "tier": 3,
+   "unnamed_kids": 0,
+   "circle": "Neighbors",
+   "known_by": "Both",
+   "reciprocal": false
   }
  ]
 }

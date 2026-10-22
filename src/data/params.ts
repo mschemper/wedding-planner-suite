@@ -60,6 +60,8 @@ export interface Settings {
   /** a date a venue is holding for us (YYYY-MM-DD) or null */
   heldDate: string | null;
   kidsPolicy: KidsPolicy;
+  /** raw branch (workbook FamilySide) → display name; missing keys use defaultBranchName() */
+  branchNames: Record<string, string>;
 }
 export const DEFAULT_SETTINGS: Settings = {
   dateWindows: [
@@ -68,13 +70,26 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
   heldDate: "2027-06-12",
   kidsPolicy: "ours",
+  branchNames: {},
 };
+
+/** "Lugene Schemper (Mark's father)" → "Mark's dad's side"; anything else unchanged. */
+export function defaultBranchName(raw: string): string {
+  const m = /\((Mark|Angela)'s (father|mother)\)/i.exec(raw);
+  if (!m) return raw;
+  return `${m[1][0].toUpperCase()}${m[1].slice(1).toLowerCase()}'s ${m[2].toLowerCase() === "father" ? "dad" : "mom"}'s side`;
+}
+export const branchName = (s: Settings, raw: string | null | undefined) => (raw ? s.branchNames[raw] ?? defaultBranchName(raw) : "Other");
 export type SettingKey = keyof Settings;
 export const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS) as SettingKey[];
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 function parseSetting(key: SettingKey, v: unknown): { ok: true; value: unknown } | { ok: false; msg: string } {
   if (key === "kidsPolicy") return (KIDS_POLICIES as readonly unknown[]).includes(v) ? { ok: true, value: v } : { ok: false, msg: "kidsPolicy must be ours, family or all" };
+  if (key === "branchNames") {
+    const ok = !!v && typeof v === "object" && !Array.isArray(v) && Object.entries(v).every(([k, n]) => k && typeof n === "string" && n.trim() && n.length <= 60);
+    return ok ? { ok: true, value: v } : { ok: false, msg: "branchNames maps a branch to a name (1–60 characters)" };
+  }
   if (key === "heldDate") return v === null || (typeof v === "string" && DAY.test(v)) ? { ok: true, value: v } : { ok: false, msg: "heldDate must be YYYY-MM-DD or null" };
   const ok = Array.isArray(v) && v.length >= 1 && v.length <= 4 && v.every((w) =>
     w && typeof w === "object" && typeof w.name === "string" && w.name.trim() && [w.from, w.to, w.ref].every((d) => typeof d === "string" && DAY.test(d)) &&

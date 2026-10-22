@@ -39,7 +39,10 @@ function devApi(): Plugin {
             const { SqliteD1 } = await server.ssrLoadModule("/scripts/d1-sqlite.ts");
             const { seedRows } = await server.ssrLoadModule("/worker/seed.ts");
             const { SEED_VENUES, SEED_MUSTHAVES, SEED_FIT, SEED_TASKS } = await server.ssrLoadModule("/src/data/seed-v4.ts");
-            const fixture = (await server.ssrLoadModule("/data/fixtures/garden.sample.json")).default;
+            // WPS_DEV_DATA=<path to a garden.json> seeds the local dev DB from it (e.g. data/private/garden.json for a real-data look; never served or bundled)
+            const fixture = process.env.WPS_DEV_DATA
+              ? JSON.parse((await import("node:fs")).readFileSync(process.env.WPS_DEV_DATA, "utf8"))
+              : (await server.ssrLoadModule("/data/fixtures/garden.sample.json")).default;
             mkdirSync(".wrangler/dev", { recursive: true });
             const d = new SqliteD1(".wrangler/dev/db-v4.sqlite") as Db;
             const fresh = !(d.raw.prepare("SELECT name FROM sqlite_master WHERE name = 'people'") as unknown as { get(): unknown }).get();

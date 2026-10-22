@@ -8,7 +8,7 @@ Last reviewed: 22 Oct 2026 (v4 shipped: family garden (F7), household decisions,
 
 ## Mark's actions (data, not code)
 
-### D1. Link the 23 cousins to their parents in the Family garden ("Set parents")
+### D1. Link the unplaced cousins to their parents (People → Family → "Not placed yet")
 Import couldn't tell which aunt/uncle household they belong to. `data/private/import-review.json` lists them by id.
 
 ### D2. Decide the 42 undecided households (People → Decide)
@@ -54,6 +54,12 @@ households / individuals / friends are unused since v4. Drop in a later release 
 
 ### B7. "All must-haves" link uses sessionStorage — XS
 `src/ui/today` sets `wps.planSection`; add a nav field (e.g. `openPlan(section)`) instead.
+
+### B9. Leftover v4 garden helpers — XS
+`buildGarden`/`relativeDefaults` in `src/people/garden.ts` are unused by the UI since v5; delete with their tests, or reuse relativeDefaults for "Add relative" in the Family view.
+
+### B10. Relationship words from the workbook ("Niece/nephew", "Uncle / father's sibling") — XS
+Show derived words, or edit labels in the person sheet.
 
 ### B8. Vite dev on /mnt/c misses file changes — XS
 Set `server.watch.usePolling` when running under WSL on a Windows drive, or restart `npm run dev` after edits.

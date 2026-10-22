@@ -2,6 +2,13 @@
 
 Newest first. Each entry: what changed and why.
 
+## v5 — 2026-10-22 · People tab rebuild
+- Order by closeness, not alphabet: decisions follow inner → outer; the A–Z list mixed a sister among cousins-in-law (REVIEW-v4-people P1).
+- Rings + fill line over a capacity bar alone: "do we invite the cousins?" is answered where the cousins are.
+- Outline tree over the v4 SVG overlay: links are sparse and lines tangled; indentation cannot tangle.
+- Friends ranked by tier, not drawn as a tree; tier is separate from the decision (a must-invite can still be undecided).
+- Placeholder "Child n" people → a household count: fake people distorted names, relations and the tree.
+
 ## v4 — 2026-10-22 · Garden rebuild
 - Households, not people, carry the invite decision: Mark decides by household with a kids option; per-person overrides only for exceptions. Kids policy is global so "our kids only" vs "all kids" is one switch.
 - Relationships derived from links instead of typed: the workbook's 21 columns per person were the complexity Mark asked to remove. Gendered workbook labels are kept when they agree with the derivation.

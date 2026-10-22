@@ -1,5 +1,18 @@
 # Changelog
 
+## v5 - People tab rebuild (22 Oct 2026)
+
+**Deployed** 22 Oct 2026. D1 migration 0003 (add-only columns + placeholder kids → counts). Design review: docs/REVIEW-v4-people.md; options docs/mockups/v5-people-options.html; Mark picked rings, outline tree, friend shortlist and all data changes.
+
+**People tab**: three views instead of four — Decide · Family · Friends; Add and Export menus; History.
+  * Room check: one sticky line with the chosen venue's seats as a bar (in / if room / undecided) and its cap, kids upstairs, ≈ cost; kids policy lives here.
+  * Decide: households grouped in rings of closeness — Inner circle, Close, Extended, Wider, Friends — one line each, with "Invite all undecided" per ring and a line where the venue fills.
+  * Family: an outline tree per side and branch (parents → their households → kids), friendly branch names you can rename, a "Not placed yet" tray instead of a link on every row.
+  * Friends: Must invite / Want to / Nice to have, with who knows them, circle, partner or +1, "we went to theirs", reorder, and a quick-add row.
+  * Household sheet: ring (automatic or chosen), kids rule, unnamed kids, talk note, friend fields, members.
+
+**Data**: closeness tier per household (derived, editable); friend circle / known by / reciprocal on the household; unnamed kids as a count (11 placeholders converted); branch display names (settings).
+
 ## v4 - Garden (22 Oct 2026)
 
 **Deployed** 22 Oct 2026 to https://wedding-planner.wedding-planner-suite.workers.dev (Access). D1 migration 0002 (add-only), v4 seed from the 21 Oct workbook: 126 people, 55 households, 18 venue rows, 9 must-haves, 11 tasks.

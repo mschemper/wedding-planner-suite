@@ -3,7 +3,7 @@ import type { Tab } from "./nav";
 // Per-viewer conveniences only (DESIGN-v4 §2 "Prefs"). Storage can be missing or throw (private mode, file://): always fall back.
 /** considered = expected if every undecided / if-room household is invited too (default while deciding) */
 export type GuestBasis = "considered" | "expected" | "ceiling" | "custom";
-export type PeopleView = "decide" | "garden" | "friends" | "envelopes";
+export type PeopleView = "decide" | "family" | "friends";
 
 export interface Prefs {
   tab: Tab;
@@ -16,9 +16,9 @@ export interface Prefs {
   contingency: number;
   /** venue detail open on the Venues tab */
   selected: number | null;
-  /** venue used for the capacity bar on People → Decide */
+  /** venue used for the room check on the People tab */
   capacityVenue: number;
-  /** null = by screen width (garden ≥ 860px, decide below) */
+  /** null = Decide */
   peopleView: PeopleView | null;
   theme: "auto" | "day" | "dusk";
 }
@@ -28,6 +28,13 @@ const OLD_KEY = "wps.prefs.v1";
 export const DEFAULT_PREFS: Prefs = {
   tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto",
 };
+
+/** v4 values: garden → family, envelopes → decide. */
+function migrateView(v: unknown): PeopleView | null {
+  if (v === "garden") return "family";
+  if (v === "envelopes") return "decide";
+  return v === "decide" || v === "family" || v === "friends" ? v : null;
+}
 
 const TABS: Tab[] = ["today", "venues", "people", "plan"];
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -50,7 +57,7 @@ export function loadPrefs(): Prefs {
       contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : 0,
       selected: typeof p.selected === "number" ? p.selected : null,
       capacityVenue: typeof p.capacityVenue === "number" ? p.capacityVenue : DEFAULT_PREFS.capacityVenue,
-      peopleView: ["decide", "garden", "friends", "envelopes"].includes(String(p.peopleView)) ? (p.peopleView as PeopleView) : null,
+      peopleView: migrateView(p.peopleView),
       theme: p.theme === "day" || p.theme === "dusk" ? p.theme : "auto",
     };
   } catch {

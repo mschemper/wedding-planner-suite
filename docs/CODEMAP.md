@@ -36,6 +36,9 @@ Organised by the thing you're changing, not by folder.
 | Colours, type, shared components | `src/ui/styles.css` (tokens), `src/ui/kit/kit.tsx`, `src/ui/garden/motifs.tsx` | `tests/contrast.test.ts`; AGENTS "Design rules" |
 | Today tab | `src/ui/today/*` | `tests/plan-ui.test.ts` |
 | Venues tab (shortlist, fit matrix, detail, quotes, assumptions) | `src/ui/venues/*` | `tests/venues-ui.test.ts` |
-| People tab (Decide, garden, friends, envelopes, person sheet) | `src/ui/people/*` | `tests/people-ui.test.ts` |
+| People tab (room check, Decide rings, Family outline, Friends shortlist, household + person sheets, export) | `src/ui/people/*` | `tests/people-ui.test.ts` |
+| Closeness tiers, rings, fill line | `src/people/tier.ts`, `src/people/rings.ts` | `tests/people-v5.test.ts` |
+| Family outline tree | `src/people/outline.ts` | `tests/people-v5.test.ts` |
+| Branch display names | `src/data/params.ts` `branchName` / settings `branchNames` | `tests/people-v5.test.ts` |
 | Plan tab (tasks, paste, must-haves) | `src/ui/plan/*` | `tests/plan-ui.test.ts` |
 | D1 seed | `scripts/seed-v4.ts`, `worker/seed.ts` | DESIGN-v4 §7.5 |

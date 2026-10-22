@@ -2,7 +2,7 @@
 import type { ApiData, ParamRow, TableName } from "../src/api/types";
 import { parseParamValue } from "../src/data/params";
 import { SCENARIOS } from "../src/data/scenarios";
-import { AGES, KIDS_RULES, KINDS, DECISIONS, LOCALS, OVERRIDES, RSVPS, SIDES } from "../src/people/types";
+import { AGES, KIDS_RULES, KINDS, KNOWN_BY, DECISIONS, LOCALS, OVERRIDES, RSVPS, SIDES } from "../src/people/types";
 import { CATEGORIES, OWNERS, TASK_STATUSES, VENUE_STATUSES, VERDICTS } from "../src/plan/types";
 import type { D1Database, D1PreparedStatement } from "./env";
 
@@ -46,7 +46,8 @@ export const SPECS: Record<TableName, Spec> = {
   parties: {
     pk: "id", prefix: "H", width: 3, create: true, del: true,
     cols: [t("id"), t("name", { required: true }), e("invite", DECISIONS, "undecided"), e("kids", KIDS_RULES, "policy"), i("rank"),
-      b("talk"), t("talk_note"), t("notes")],
+      b("talk"), t("talk_note"), t("notes"), i("tier"), i("unnamed_kids", { def: 0, required: true }), t("circle"),
+      e("known_by", KNOWN_BY, undefined, false), b("reciprocal")],
   },
   venues: {
     pk: "scenario_id", create: false, del: false,
@@ -96,7 +97,7 @@ export function fromDb(table: TableName, r: Rec): Rec {
 /** API row → column values in spec order (+ meta). */
 export function toDbValues(table: TableName, r: Rec): unknown[] {
   const vals = SPECS[table].cols.map((c) => {
-    const v = r[c.name];
+    const v = r[c.name] === undefined ? c.def : r[c.name];
     if (v === undefined || v === null) return c.type === "ids" ? "[]" : null;
     if (c.type === "bool") return v ? 1 : 0;
     if (c.type === "json" || c.type === "ids") return JSON.stringify(v);
@@ -186,6 +187,8 @@ export function normalize(table: TableName, patch: Rec, isCreate: boolean): { ok
     if (row.options != null && (typeof row.options !== "object" || Array.isArray(row.options) || Object.values(row.options as Rec).some((v) => typeof v !== "string")))
       return { ok: false, msg: "options must map option key → choice" };
   }
+  if (table === "parties" && row.tier != null && !((row.tier as number) >= 1 && (row.tier as number) <= 4)) return { ok: false, msg: "tier must be 1–4" };
+  if (table === "parties" && row.unnamed_kids != null && !((row.unnamed_kids as number) >= 0 && (row.unnamed_kids as number) <= 20)) return { ok: false, msg: "unnamed_kids must be 0–20" };
   if ((table === "fit" || table === "tasks") && row.scenario_id != null && !SCENARIOS.some((s) => s.id === row.scenario_id))
     return { ok: false, msg: "unknown scenario_id" };
   if (table === "params") {

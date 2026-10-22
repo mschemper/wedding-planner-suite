@@ -1,11 +1,13 @@
-// Pure helpers for the People tab (no React, no I/O): decision patches, filters, ranking, person ops, audit wording, exports.
+// Pure helpers for the People tab (no React, no I/O): decision patches, rings filters, room check, household + friend edits, person ops, audit wording, exports.
 import type { AuditEntry, Op } from "../../api/types";
 import type { Scenario } from "../../engine/types";
 import { cutoff, type Headcount } from "../../people/headcount";
 import { effectiveInvite, heads, kidsIn, type InviteCtx } from "../../people/invite";
-import { anchorFor, graph, relationText } from "../../people/kin";
+import { anchorFor, graph, relationRoot, relationText, type Relation } from "../../people/kin";
+import type { Ring, RingRow } from "../../people/rings";
+import { tierLabel } from "../../people/tier";
 import {
-  displayName, type Decision, type KidsPolicy, type KidsRule, type Override, type Party, type PeopleData, type Person, type Side,
+  displayName, type Decision, type KidsPolicy, type KidsRule, type KnownBy, type Override, type Party, type PeopleData, type Person, type Side,
 } from "../../people/types";
 import type { VenueRow } from "../../plan/types";
 import type { Patch } from "../data";
@@ -21,12 +23,10 @@ export const nextDecision = (cur: Decision, tapped: Decision): Decision => (cur 
 
 export const nextRank = (parties: Party[]) => 1 + Math.max(0, ...parties.filter((x) => x.invite === "ifroom").map((x) => x.rank ?? 0));
 
-export function decisionEdit(party: Party, parties: Party[], tapped: Decision): { patch: Patch; label: string } {
+export function decisionEdit(party: Party, _parties: Party[], tapped: Decision): { patch: Patch; label: string } {
   const next = nextDecision(party.invite, tapped);
-  const row: Record<string, unknown> = { invite: next };
-  if (next === "ifroom") row.rank = party.rank ?? nextRank(parties);
-  else if (party.rank != null) row.rank = null;
-  return { patch: { table: "parties", id: party.id, row }, label: `${party.name} → ${DECISION_LABEL[next]}` };
+  // rank is the order inside a ring / friend tier (DESIGN-v5 §1): a decision never touches it
+  return { patch: { table: "parties", id: party.id, row: { invite: next } }, label: `${party.name} → ${DECISION_LABEL[next]}` };
 }
 
 export const kidsEdit = (party: Party, rule: KidsRule) => ({
@@ -52,66 +52,6 @@ export function moveRank(ranked: Party[], id: string, dir: -1 | 1): Patch[] {
   return order.flatMap<Patch>((x, k) => (x.rank === k + 1 ? [] : [{ table: "parties" as const, id: x.id, row: { rank: k + 1 } }]));
 }
 
-// ---------- party rows, filters, search ----------
-export interface PartyRow {
-  party: Party;
-  members: Person[];
-  sides: Set<Side>;
-  branch: string | null;
-  hasKids: boolean;
-  friend: boolean;
-}
-
-export function partyRows(d: PeopleData): PartyRow[] {
-  const by = new Map<string, Person[]>();
-  for (const p of d.people) if (p.party_id) {
-    if (!by.has(p.party_id)) by.set(p.party_id, []);
-    by.get(p.party_id)!.push(p);
-  }
-  return d.parties.map((party) => {
-    const members = (by.get(party.id) ?? []).slice().sort(
-      (a, b) => (a.gen ?? 0) - (b.gen ?? 0) || Number(a.age === "child") - Number(b.age === "child") || (a.sort ?? 0) - (b.sort ?? 0) || a.first.localeCompare(b.first));
-    return {
-      party, members, sides: new Set(members.map((m) => m.side)), branch: members.find((m) => m.branch)?.branch ?? null,
-      hasKids: members.some((m) => m.age === "child" && !m.deceased && !m.placeholder),
-      friend: members.some((m) => m.kind === "friend"),
-    };
-  }).sort((a, b) => a.party.name.localeCompare(b.party.name));
-}
-
-export type FilterKey = "undecided" | "ifroom" | "talk" | "invited" | "no" | "kids" | "mark" | "angela" | "friends";
-export const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: "undecided", label: "Undecided" }, { key: "ifroom", label: "If room" }, { key: "talk", label: "Talk about" },
-  { key: "invited", label: "Invited" }, { key: "no", label: "Not inviting" }, { key: "kids", label: "Has kids" },
-  { key: "mark", label: "Mark's side" }, { key: "angela", label: "Angela's side" }, { key: "friends", label: "Friends" },
-];
-const TEST: Record<FilterKey, (r: PartyRow) => boolean> = {
-  undecided: (r) => r.party.invite === "undecided", ifroom: (r) => r.party.invite === "ifroom", invited: (r) => r.party.invite === "invite",
-  no: (r) => r.party.invite === "no", talk: (r) => r.party.talk, kids: (r) => r.hasKids,
-  mark: (r) => r.sides.has("Mark") || r.sides.has("Both"), angela: (r) => r.sides.has("Angela") || r.sides.has("Both"), friends: (r) => r.friend,
-};
-/** Chips in one group combine with OR; groups combine with AND. */
-const GROUPS: FilterKey[][] = [["undecided", "ifroom", "invited", "no"], ["talk", "kids"], ["mark", "angela", "friends"]];
-
-export function matchesFilters(r: PartyRow, active: ReadonlySet<FilterKey>): boolean {
-  for (const g of GROUPS) {
-    const on = g.filter((k) => active.has(k));
-    if (on.length && !on.some((k) => TEST[k](r))) return false;
-  }
-  return true;
-}
-export function filterCounts(rows: PartyRow[]): Record<FilterKey, number> {
-  const out = {} as Record<FilterKey, number>;
-  for (const f of FILTERS) out[f.key] = rows.filter(TEST[f.key]).length;
-  return out;
-}
-export function matchesSearch(r: PartyRow, q: string): boolean {
-  const s = q.trim().toLowerCase();
-  if (!s) return true;
-  const hay = [r.party.name, r.branch ?? "", ...r.members.flatMap((m) => [displayName(m), m.first, m.last ?? "", m.nick ?? ""])];
-  return hay.some((h) => h.toLowerCase().includes(s));
-}
-
 export function bloomFor(p: Person, c: InviteCtx): BloomState {
   if (p.kind === "couple") return "couple";
   if (p.placeholder) return "placeholder";
@@ -124,12 +64,6 @@ export function relationFinder(people: Person[]) {
   const g = graph(people);
   const anchors: Record<Side, string | undefined> = { Mark: anchorFor(people, "Mark"), Angela: anchorFor(people, "Angela"), Both: anchorFor(people, "Mark") };
   return (p: Person) => relationText(g, anchors[p.side], p);
-}
-
-export function sideText(r: PartyRow): string {
-  const s = [...r.sides];
-  const side = s.length === 1 && s[0] !== "Both" ? `${s[0]}'s side` : s.length ? "Both sides" : "";
-  return [side, r.branch].filter(Boolean).join(" · ");
 }
 
 // ---------- capacity ----------
@@ -183,6 +117,7 @@ export function describeAudit(e: AuditEntry, names: { parties: Map<string, strin
   const a = (e.after ?? {}) as Row;
   const b = (e.before ?? {}) as Row;
   if (e.tbl === "params") {
+    if (e.row_id === "branchNames") return "Branch renamed";
     if (e.row_id !== "kidsPolicy" || !a.value) return null;
     return `Kids policy → ${POLICY_LABEL[String(a.value) as KidsPolicy] ?? String(a.value)}`;
   }
@@ -195,6 +130,7 @@ export function describeAudit(e: AuditEntry, names: { parties: Map<string, strin
     if (a.kids !== b.kids && a.kids) parts.push(`kids ${KIDS_LABEL[a.kids as KidsRule] ?? String(a.kids)}`);
     if (Boolean(a.talk) !== Boolean(b.talk)) parts.push(a.talk ? "talk about" : "talk-about cleared");
     if ((a.talk_note ?? null) !== (b.talk_note ?? null)) parts.push("note updated");
+    if ("tier" in a && (a.tier ?? null) !== (b.tier ?? null)) parts.push(a.tier == null ? "ring automatic" : `ring ${String(a.tier)}`);
     if ((a.rank ?? null) !== (b.rank ?? null) && a.rank != null && b.rank != null) parts.push(`rank ${b.rank} → ${a.rank}`);
     return parts.length ? `${name} → ${parts.join(", ")}` : null;
   }
@@ -289,23 +225,6 @@ export function personOps(a: {
   return ops;
 }
 
-/** Garden "Set parents": family, gen >= -1, no parents, not one of the couple's own parents, not a tree-only placeholder. */
-export function unlinkedParents(people: Person[]): Set<string> {
-  const coupleParents = new Set(people.filter((p) => p.kind === "couple").flatMap((p) => p.parent_ids));
-  const byId = new Map(people.map((p) => [p.id, p]));
-  // married-in relatives (their partner is the linked one) are not "missing parents"
-  const marriedIn = (p: Person) => !!p.partner_id && (byId.get(p.partner_id)?.parent_ids.length ?? 0) > 0;
-  return new Set(people.filter((p) => p.kind === "family" && !p.placeholder && (p.gen ?? 0) >= -1 && p.parent_ids.length === 0 && !coupleParents.has(p.id) && !marriedIn(p)).map((p) => p.id));
-}
-
-export function genLabel(gen: number): string {
-  if (gen === -2) return "Grandparents";
-  if (gen === -1) return "Parents, aunts & uncles";
-  if (gen === 0) return "Siblings & cousins";
-  if (gen === 1) return "Nieces, nephews & kids";
-  return `Generation ${gen}`;
-}
-
 // ---------- envelopes + export ----------
 export interface Envelope { party: Party; names: string[]; heads: number }
 export function envelopes(d: PeopleData, ctx: InviteCtx): { invited: Envelope[]; ifroom: Envelope[] } {
@@ -347,3 +266,173 @@ export function exportSheets(d: PeopleData, ctx: InviteCtx) {
 }
 
 export const exportName = (ext: string, now = new Date()) => `wedding-guests-${now.toISOString().slice(0, 10)}.${ext}`;
+
+// ---------- rings: filters, row text ----------
+export type SideFilter = "all" | "Mark" | "Angela" | "friends";
+export interface RowFilter { undecidedOnly: boolean; side: SideFilter; q: string }
+export const NO_FILTER: RowFilter = { undecidedOnly: false, side: "all", q: "" };
+
+export function matchesRow(r: RingRow, f: RowFilter): boolean {
+  if (f.undecidedOnly && r.party.invite !== "undecided") return false;
+  if (f.side === "friends" && !r.friend) return false;
+  if ((f.side === "Mark" || f.side === "Angela") && (r.friend || !r.members.some((m) => m.side === f.side || m.side === "Both"))) return false;
+  const s = f.q.trim().toLowerCase();
+  if (!s) return true;
+  const hay = [r.party.name, r.party.circle ?? "", ...r.members.flatMap((m) => [displayName(m), m.first, m.last ?? "", m.nick ?? "", m.branch ?? ""])];
+  return hay.some((h) => h.toLowerCase().includes(s));
+}
+
+const CLOSE: Partial<Record<Relation, number>> = {
+  self: 1, partner: 1, parent: 1, sibling: 1, child: 1, "step-child": 1, grandparent: 2, "aunt/uncle": 2, "niece/nephew": 2, grandchild: 2, cousin: 3,
+};
+
+/** Friends: "College · known by Mark". */
+export function friendMeta(party: Party, members: Person[]): string {
+  const circle = party.circle ?? members.find((m) => m.circle)?.circle ?? null;
+  return [circle, party.known_by ? `known by ${party.known_by === "Both" ? "both" : party.known_by}` : null].filter(Boolean).join(" · ") || "friend";
+}
+
+/** "brother", "aunt", "cousin": the relation of the household's closest living member; friends: circle + known by. */
+export function relationSummary(r: Pick<RingRow, "members" | "party" | "friend">, rel: (p: Person) => string): string {
+  if (r.friend) return friendMeta(r.party, r.members);
+  const m = r.members.filter((p) => !p.deceased && p.kind !== "couple");
+  if (!m.length) return "";
+  const score = (p: Person) => CLOSE[relationRoot(rel(p)) ?? "self"] ?? (relationRoot(rel(p)) ? 4 : 9);
+  const best = m.reduce((a, b) => (score(b) < score(a) ? b : a));
+  return rel(best);
+}
+
+export const hasKids = (r: Pick<RingRow, "members" | "party">) =>
+  (r.party.unnamed_kids ?? 0) > 0 || r.members.some((m) => m.age === "child" && !m.deceased && !m.placeholder);
+
+/** "2 + 3 kids", "2", "—" when nobody comes. */
+export function seatsText(r: Pick<RingRow, "seats">): string {
+  const a = r.seats.adults;
+  const k = r.seats.kids;
+  if (!a && !k) return "—";
+  return k ? `${a} + ${k} kid${k === 1 ? "" : "s"}` : String(a);
+}
+
+export const KIDS_RULE_TEXT: Record<KidsRule, string> = { policy: "Follow policy", in: "Kids in", out: "Kids out" };
+
+// ---------- rings: edits ----------
+/** One edit for every undecided household in a ring. */
+export function inviteAllEdit(ring: Pick<Ring, "label" | "rows">): { patches: Patch[]; label: string } {
+  const rows = ring.rows.filter((r) => r.party.invite === "undecided");
+  return {
+    patches: rows.map((r) => ({ table: "parties" as const, id: r.party.id, row: { invite: "invite" } })),
+    label: `${ring.label}: invited ${rows.length} household${rows.length === 1 ? "" : "s"}`,
+  };
+}
+
+/** Set a household's ring; null = back to automatic. */
+export const tierEdit = (party: Party, tier: number | null, friend: boolean) => ({
+  patch: { table: "parties", id: party.id, row: { tier } } as Patch,
+  label: tier == null ? `${party.name} → ring automatic` : `${party.name} → ${tierLabel(tier, friend)}`,
+});
+
+/** Rename a branch: merges the whole map. Empty name = back to the default. */
+export function branchEdit(names: Record<string, string>, raw: string, name: string): { patch: Patch; label: string } {
+  const next = { ...names };
+  const t = name.trim().slice(0, 60);
+  if (t) next[raw] = t; else delete next[raw];
+  return { patch: { table: "params", id: "branchNames", row: { value: next } }, label: `Branch renamed → ${t || "default name"}` };
+}
+
+// ---------- room check ----------
+export interface RoomCheck {
+  cap: number;
+  invited: number;
+  ifroom: number;
+  undecided: number;
+  /** invited + ifroom + undecided kids sent to the kids' room (0 when the venue has none) */
+  kidsUp: number;
+  /** bar scale = max(cap, total) */
+  scale: number;
+  over: number;
+}
+export function roomCheck(rings: Ring[], cap: number, hasKidsRoom: boolean): RoomCheck {
+  const out = { invited: 0, ifroom: 0, undecided: 0, kidsUp: 0 };
+  for (const r of rings) for (const row of r.rows) for (const k of ["invited", "ifroom", "undecided"] as const) {
+    const t = row.tally[k];
+    out[k] += t.adults + (hasKidsRoom ? 0 : t.kids);
+    if (hasKidsRoom) out.kidsUp += t.kids;
+  }
+  const total = out.invited + out.ifroom + out.undecided;
+  return { cap, ...out, scale: Math.max(cap, total, 1), over: Math.max(0, out.invited - cap) };
+}
+
+// ---------- household sheet ----------
+export interface HouseholdDraft {
+  name: string; invite: Decision; tier: number | null; kids: KidsRule; unnamed: number; talk: boolean; talk_note: string;
+  circle: string; known_by: KnownBy | ""; reciprocal: boolean;
+}
+export const householdDraft = (p: Party): HouseholdDraft => ({
+  name: p.name, invite: p.invite, tier: p.tier ?? null, kids: p.kids, unnamed: p.unnamed_kids ?? 0, talk: p.talk, talk_note: p.talk_note ?? "",
+  circle: p.circle ?? "", known_by: p.known_by ?? "", reciprocal: !!p.reciprocal,
+});
+export const clampKids = (n: number) => Math.max(0, Math.min(20, Math.round(Number.isFinite(n) ? n : 0)));
+
+export function householdIssues(d: HouseholdDraft): string[] {
+  const out: string[] = [];
+  if (!d.name.trim()) out.push("Household name is required.");
+  if (d.unnamed < 0 || d.unnamed > 20) out.push("Unnamed kids must be 0–20.");
+  return out;
+}
+
+/** One patch with only the changed fields; null when nothing changed. Friend-only fields are written only for friends. */
+export function householdPatch(d: HouseholdDraft, p: Party, friend: boolean): { patch: Patch; label: string } | null {
+  const cur = householdDraft(p);
+  const row: Record<string, unknown> = {};
+  const nn = (s: string) => s.trim() || null;
+  if (d.name.trim() !== cur.name) row.name = d.name.trim();
+  if (d.invite !== cur.invite) row.invite = d.invite;
+  if (d.tier !== cur.tier) row.tier = d.tier;
+  if (d.kids !== cur.kids) row.kids = d.kids;
+  if (d.unnamed !== cur.unnamed) row.unnamed_kids = d.unnamed;
+  if (d.talk !== cur.talk) row.talk = d.talk;
+  if ((nn(d.talk_note) ?? "") !== (nn(cur.talk_note) ?? "")) row.talk_note = nn(d.talk_note);
+  if (friend) {
+    if ((nn(d.circle) ?? "") !== (nn(cur.circle) ?? "")) row.circle = nn(d.circle);
+    if (d.known_by !== cur.known_by) row.known_by = d.known_by || null;
+    if (d.reciprocal !== cur.reciprocal) row.reciprocal = d.reciprocal;
+  }
+  if (!Object.keys(row).length) return null;
+  return { patch: { table: "parties", id: p.id, row }, label: `${d.name.trim() || p.name} updated` };
+}
+
+// ---------- friends ----------
+export interface FriendTierList { tier: number; label: string; rows: RingRow[] }
+export function friendTiers(rings: Ring[], labels: Record<number, string>): FriendTierList[] {
+  const rows = rings.find((r) => r.friend)?.rows ?? [];
+  return [1, 2, 3].map((tier) => ({
+    tier, label: labels[tier],
+    rows: rows.filter((r) => r.tier === tier).sort((a, b) => (a.party.rank ?? 1e9) - (b.party.rank ?? 1e9) || a.party.name.localeCompare(b.party.name)),
+  }));
+}
+
+export interface QuickFriend { first: string; partner: string; plusOne: boolean; circle: string; known_by: KnownBy; tier: number }
+export const quickFriendIssues = (f: QuickFriend) => (f.first.trim() ? [] : ["First name is required."]);
+export const quickFriendName = (f: QuickFriend) => {
+  const a = f.first.trim();
+  const b = f.partner.trim();
+  return b ? `${a} & ${b}` : f.plusOne ? `${a} + guest` : a;
+};
+
+/** One save: friend household + 1–2 people (tmp ids). Rank = last in its tier. */
+export function quickFriendOps(f: QuickFriend, tierParties: Party[]): Op[] {
+  const circle = f.circle.trim() || null;
+  const person = (id: string, first: string, extra: Record<string, unknown>) => ({
+    table: "people" as const, op: "create" as const,
+    row: { id, first, side: f.known_by, kind: "friend", party_id: "tmp:hh", age: "adult", circle, placeholder: false, deceased: false, rsvp: "none", local: "unknown", parent_ids: [], ...extra },
+  });
+  const ops: Op[] = [
+    { table: "parties", op: "create", row: {
+      id: "tmp:hh", name: quickFriendName(f), invite: "undecided", kids: "policy", talk: false, tier: f.tier, circle, known_by: f.known_by, reciprocal: false,
+      rank: 1 + Math.max(0, ...tierParties.map((x) => x.rank ?? 0)),
+    } },
+    person("tmp:p1", f.first.trim(), { plus_one: !f.partner.trim() && f.plusOne }),
+  ];
+  if (f.partner.trim()) ops.push(person("tmp:p2", f.partner.trim(), { partner_id: "tmp:p1", plus_one: false }));
+  return ops;
+}
