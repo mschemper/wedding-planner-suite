@@ -1,18 +1,18 @@
-// Quotes (per venue) and Prices (shared personal-cost parameters). DESIGN-v3 §5.
+// Quotes log for one venue (DESIGN-v3 §5, carried into Venue detail).
 import { useMemo, useState } from "react";
 import type { Op } from "../../api/types";
 import { computeBudget, defaultOpts } from "../../engine/compute";
 import type { Quote, Scenario } from "../../engine/types";
 import { SaveError } from "../SaveError";
 import { useData, type SaveResult } from "../data";
+import { Button, Chip, EmptyState, type ChipTone } from "../kit/kit";
 import { money } from "../format";
-import { PricesForm } from "./PricesForm";
 import { ALL_IN, QuoteForm } from "./QuoteForm";
 import "./quotes.css";
 
 type VQuote = Quote & { version: number; updated_by?: string };
 
-const chipOf = (s: Quote["status"]) => (s === "accepted" ? "teal" : s === "received" ? "mustard" : "");
+const toneOf = (s: Quote["status"]): ChipTone => (s === "accepted" ? "euc" : s === "received" ? "gold" : "plain");
 
 function scopeText(q: Quote) {
   const e = Object.entries(q.options ?? {});
@@ -38,8 +38,8 @@ function QuoteItem({ sc, q, applied, readOnly }: { sc: Scenario; q: VQuote; appl
       <div className="q-item-head">
         <strong>{q.item_desc === ALL_IN ? "All-in total" : q.item_desc}</strong>
         <span className="q-amt">{money(q.amount)}{q.basis === "perGuest" ? " per guest" : ""}</span>
-        <span className={`chip ${chipOf(q.status)}`}>{q.status}</span>
-        {q.includes_tax && <span className="chip">incl. tax</span>}
+        <Chip tone={toneOf(q.status)}>{q.status}</Chip>
+        {q.includes_tax && <Chip>incl. tax</Chip>}
       </div>
       <div className="q-meta">
         {[q.vendor, q.received_on && `received ${q.received_on}`, scope && `only ${scope}`, q.updated_by && `by ${q.updated_by}`].filter(Boolean).join(" · ")}
@@ -50,13 +50,13 @@ function QuoteItem({ sc, q, applied, readOnly }: { sc: Scenario; q: VQuote; appl
       {!readOnly && (
         <div className="q-actions">
           {mode === "view" && <>
-            <button className="link-btn" onClick={() => setMode("edit")}>Edit</button>
-            <button className="link-btn" onClick={() => setMode("del")}>Delete</button>
+            <Button kind="quiet" onClick={() => setMode("edit")}>Edit</Button>
+            <Button kind="quiet" onClick={() => setMode("del")}>Delete</Button>
           </>}
           {mode === "del" && <>
             <span className="q-meta">Delete this quote?</span>
-            <button className="link-btn" disabled={busy} onClick={() => void del()}>Yes, delete</button>
-            <button className="link-btn" onClick={() => setMode("view")}>Keep</button>
+            <Button kind="danger" disabled={busy} onClick={() => void del()}>Yes, delete</Button>
+            <Button kind="quiet" onClick={() => setMode("view")}>Keep</Button>
           </>}
         </div>
       )}
@@ -65,63 +65,25 @@ function QuoteItem({ sc, q, applied, readOnly }: { sc: Scenario; q: VQuote; appl
   );
 }
 
-function VenueQuotes({ sc, quotes, readOnly }: { sc: Scenario; quotes: VQuote[]; readOnly: boolean }) {
+/** Quotes log for one venue: list + add. Offline: read-only, hidden when empty. */
+export function QuotesLog({ sc }: { sc: Scenario }) {
+  const { raw, offline } = useData();
   const [adding, setAdding] = useState(false);
-  const mine = quotes.filter((q) => q.scenario_id === sc.id);
+  const all = (raw?.quotes ?? []) as VQuote[];
+  const mine = useMemo(() => all.filter((q) => q.scenario_id === sc.id), [all, sc.id]);
   const unmatched = useMemo(
     () => new Set(computeBudget(sc, sc.def, defaultOpts(sc), { quotes: mine }).unmatchedQuotes?.map((q) => q.id)),
     [sc, mine],
   );
-  if (readOnly && !mine.length) return null;
+  if (offline && !mine.length) return <EmptyState>No quotes in the offline copy.</EmptyState>;
   return (
-    <details className="q-venue">
-      <summary><span>{sc.name}</span><span className="chip">{mine.length} quote{mine.length === 1 ? "" : "s"}</span></summary>
-      <div className="q-venue-body">
-        {mine.map((q) => <QuoteItem key={`${q.id}:${q.version}`} sc={sc} q={q} applied={!unmatched.has(q.id)} readOnly={readOnly} />)}
-        {!mine.length && <p className="q-meta">No quotes yet.</p>}
-        {!readOnly && (adding
-          ? <QuoteForm scenario={sc} onDone={() => setAdding(false)} onCancel={() => setAdding(false)} />
-          : <button className="link-btn" onClick={() => setAdding(true)}>+ Add quote</button>)}
-      </div>
-    </details>
-  );
-}
-
-export function QuotesScreen() {
-  const { scenarios, raw, offline } = useData();
-  const [tab, setTab] = useState<"quotes" | "prices">("quotes");
-  const quotes = (raw?.quotes ?? []) as VQuote[];
-  return (
-    <section className="q-wrap">
-      <div className="q-tabs" role="group" aria-label="Quotes and prices">
-        <button className="q-tab" aria-pressed={tab === "quotes"} onClick={() => setTab("quotes")}>Quotes</button>
-        <button className="q-tab" aria-pressed={tab === "prices"} onClick={() => setTab("prices")}>Prices</button>
-      </div>
-      {offline && <div className="flag">Read-only offline copy. Edit quotes and prices in the online planner.</div>}
-      {tab === "quotes" ? (
-        <div>
-          <h2>Quotes</h2>
-          <p className="q-meta">A received or accepted quote replaces the model's amount for that line (accepted wins, then the latest). Tax lines recompute.</p>
-          {offline && !quotes.length && <p className="q-meta">No quotes in the offline copy.</p>}
-          {scenarios.map((sc) => <VenueQuotes key={sc.id} sc={sc} quotes={quotes} readOnly={offline} />)}
-        </div>
-      ) : (
-        <div className="panel">
-          <h2>Prices</h2>
-          {offline
-            ? <PricesReadOnly />
-            : <PricesForm />}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function PricesReadOnly() {
-  const { params } = useData();
-  return (
-    <ul className="q-meta">
-      {Object.entries(params).map(([k, v]) => <li key={k}>{k}: {Array.isArray(v) ? v.map(([g, a]) => `${g}: ${money(a)}`).join(", ") : String(v)}</li>)}
-    </ul>
+    <div className="q-venue-body">
+      <p className="q-meta">A received or accepted quote replaces the model's amount for that line (accepted wins, then the latest). Tax lines recompute.</p>
+      {mine.map((q) => <QuoteItem key={`${q.id}:${q.version}`} sc={sc} q={q} applied={!unmatched.has(q.id)} readOnly={offline} />)}
+      {!mine.length && <EmptyState>No quotes yet.</EmptyState>}
+      {!offline && (adding
+        ? <QuoteForm scenario={sc} onDone={() => setAdding(false)} onCancel={() => setAdding(false)} />
+        : <Button onClick={() => setAdding(true)}>Add quote</Button>)}
+    </div>
   );
 }

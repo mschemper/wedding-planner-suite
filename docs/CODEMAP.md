@@ -7,28 +7,35 @@ Organised by the thing you're changing, not by folder.
 | A venue's price or line item | `src/data/scenarios.ts` | `src/data/golden.ts`, `tests/golden.test.ts`; HISTORY entry |
 | A new venue | `scenarios.ts` (next id), `golden.ts` | DATA_MODEL "Budget" |
 | A pricing rule (new line type, tax, contingency, warnings) | `src/engine/types.ts`, `src/engine/compute.ts` | `tests/engine.test.ts` |
-| Guest schema / columns | `src/guests/schema.ts`, `validate.ts`, `data/fixtures/guests.sample.json` | DATA_MODEL "Guests"; `tests/guests.test.ts` |
-| Attendance rates | `src/guests/attendance.ts` (`ACCEPTANCE`) | Reconciled Master §2.3; `tests/guests.test.ts` |
-| Workbook import | `scripts/import-guests.ts`, `src/guests/parse.ts` | run against `data/private/guests.xlsx` |
-| Real vs sample data (offline build only) | `src/guests/load.ts`, `vite.config.ts` `privateGuests` | — |
-| Home grid, best value, settings | `src/ui/App.tsx` `App`, `SettingsBar`, `GuestListPanel` | `npm run dev` |
-| Detail page, compare | `src/ui/App.tsx` `DetailView` | `npm run dev` |
-| Colours, type, layout | `src/ui/styles.css` (`:root` tokens) | AGENTS "Design rules" |
 | Money formatting | `src/ui/format.ts` | — |
 | Personal costs (dress, photo, band, favors, florals base) | `src/data/params.ts` | golden must stay green |
 | A venue's season calendar | `scenarios.ts` `seasons`/`docSeason`/`closedSeasons`/`seasonMinGuests`/`seasonSource` | `tests/engine.test.ts` "seasons"; season-dependent golden rows carry a date |
-| Remembered settings (guests, date, contingency, open venue) | `src/ui/prefs.ts` (localStorage, try/catch) | — |
 | Compare at matching bar tier | `src/engine/compute.ts` `matchOptions` | `tests/engine.test.ts` |
 | Build output | `vite.config.ts`, `index.html` | `npm run build` → `dist/` (hosted); `npm run build:offline` → `dist-offline/index.html` |
 | API route, auth, save rules | `worker/api.ts`, `worker/auth.ts`, `worker/write.ts` | `tests/worker.test.ts` |
-| D1 schema / columns | `migrations/NNNN_*.sql` (new file), `worker/db.ts` TABLES + `normalize` | `tests/worker.test.ts` |
-| API contract / client | `src/api/types.ts`, `src/api/client.ts` | — |
-| Data in the UI (load, save, offline) | `src/ui/data.tsx` (`useData`), `src/ui/SaveError.tsx` | — |
-| Tabs / shell | `src/ui/App.tsx`, `src/ui/nav.tsx` | `npm run dev` |
-| Guests screen, xlsx export | `src/ui/guests/*` | `tests/guests-ops.test.ts` |
 | Quote overrides in the engine | `src/engine/compute.ts` | `tests/engine-quotes.test.ts` |
-| Quotes & Prices screens | `src/ui/quotes/*` | — |
 | Stored price params | `src/data/params.ts` `parseParamValue`/`mergeParams` | — |
-| D1 seed | `scripts/seed-d1.ts`, `worker/seed.ts` | DESIGN-v3 §7 |
 | Cloudflare config | `wrangler.jsonc` | `npm run deploy:dry` |
 | Agent permissions | `.claude/settings.json` | — |
+| People model, enums | `src/people/types.ts` | DATA_MODEL "People" |
+| Who is invited (household decision, kids policy, overrides) | `src/people/invite.ts` | `tests/people.test.ts` |
+| Headcount, acceptance rates, capacity cutoff | `src/people/headcount.ts` | `tests/people.test.ts` |
+| Relationship words, tree grouping, "Add relative" defaults | `src/people/kin.ts`, `src/people/garden.ts` | `tests/people.test.ts` |
+| People validation (loops, partners, households) | `src/people/validate.ts` (also run by the Worker) | `tests/people.test.ts`, `tests/worker.test.ts` |
+| Workbook import | `src/people/fromWorkbook.ts`, `scripts/import-v4.ts` | DESIGN-v4 §5; run against `data/private/guests-v4.xlsx` |
+| Tasks grouping, paste format | `src/plan/tasks.ts` | `tests/plan.test.ts`; `docs/skills/email-sweep.md` |
+| Must-have fit score | `src/plan/fit.ts` | `tests/plan.test.ts` |
+| Venue summary (total, windows, capacity, fit) | `src/plan/venueSummary.ts`, `src/ui/compare.ts` | `tests/plan.test.ts` |
+| Seeded venues / must-haves / fit / tasks | `src/data/seed-v4.ts` | `tests/worker.test.ts` |
+| Settings (date windows, held date, kids policy) | `src/data/params.ts` `Settings` | `tests/plan.test.ts` |
+| D1 schema / columns | `migrations/NNNN_*.sql` (new file), `worker/db.ts` `SPECS` | `tests/worker.test.ts` |
+| Save rules (ids, partner mirror, deletes) | `worker/write.ts` | `tests/worker.test.ts` |
+| API contract / client | `src/api/types.ts`, `src/api/client.ts` | — |
+| Data in the UI, one-tap edit + Undo | `src/ui/data.tsx` (`useData`, `edit`, `useAudit`) | — |
+| Shell, tabs, theme toggle | `src/ui/App.tsx`, `src/ui/nav.tsx`, `src/ui/prefs.ts`, `src/ui/usePrefs.tsx` | `npm run dev` |
+| Colours, type, shared components | `src/ui/styles.css` (tokens), `src/ui/kit/kit.tsx`, `src/ui/garden/motifs.tsx` | `tests/contrast.test.ts`; AGENTS "Design rules" |
+| Today tab | `src/ui/today/*` | `tests/plan-ui.test.ts` |
+| Venues tab (shortlist, fit matrix, detail, quotes, assumptions) | `src/ui/venues/*` | `tests/venues-ui.test.ts` |
+| People tab (Decide, garden, friends, envelopes, person sheet) | `src/ui/people/*` | `tests/people-ui.test.ts` |
+| Plan tab (tasks, paste, must-haves) | `src/ui/plan/*` | `tests/plan-ui.test.ts` |
+| D1 seed | `scripts/seed-v4.ts`, `worker/seed.ts` | DESIGN-v4 §7.5 |

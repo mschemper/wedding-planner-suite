@@ -22,7 +22,8 @@ export type SaveResult =
 export interface Patch {
   table: TableName;
   id: string;
-  row: Record<string, unknown>;
+  /** null = delete the row (only used by Undo of a newly created params row) */
+  row: Record<string, unknown> | null;
 }
 
 export interface UndoState {
@@ -129,18 +130,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     for (const p of patches) {
       const cur = findRow(p.table, p.id);
       if (!cur) {
-        if (p.table === "params") { ops.push({ table: "params", op: "create", row: { key: p.id, ...p.row } }); continue; }
+        if (p.table === "params" && p.row) { ops.push({ table: "params", op: "create", row: { key: p.id, ...p.row } }); continue; }
+        if (!p.row) continue;
         return `${p.id} no longer exists — reload`;
       }
-      ops.push({ table: p.table, op: "update", id: p.id, version: Number(cur.version), row: p.row });
+      if (!p.row) ops.push({ table: p.table, op: "delete", id: p.id, version: Number(cur.version) });
+      else ops.push({ table: p.table, op: "update", id: p.id, version: Number(cur.version), row: p.row });
     }
     return ops;
   }, [findRow]);
 
   const edit = useCallback(async (patches: Patch[], label: string): Promise<SaveResult> => {
     const inverse: Patch[] = patches.map((p) => {
-      const cur = findRow(p.table, p.id) ?? {};
-      return { table: p.table, id: p.id, row: Object.fromEntries(Object.keys(p.row).map((k) => [k, cur[k] ?? null])) };
+      const cur = findRow(p.table, p.id);
+      if (!cur) return { table: p.table, id: p.id, row: null };
+      return { table: p.table, id: p.id, row: Object.fromEntries(Object.keys(p.row ?? {}).map((k) => [k, cur[k] ?? null])) };
     });
     const ops = toOps(patches);
     if (typeof ops === "string") return { ok: false, kind: "not_found", message: ops };

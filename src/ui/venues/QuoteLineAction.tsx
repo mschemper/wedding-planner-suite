@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { BudgetRow, Options, Scenario } from "../../engine/types";
 import { useData } from "../data";
 import { money, signedMoney } from "../format";
+import { Chip } from "../kit/kit";
 import { QuoteForm } from "./QuoteForm";
 import "./quotes.css";
 
@@ -31,7 +32,7 @@ export function QuoteLineAction({ scenario, row, options }: QuoteLineActionProps
     const title = v == null ? "Priced from a vendor quote" : `Vendor quote ${signedMoney(v)} versus the model estimate of ${money(row.estimate!)}`;
     return (
       <span title={title}>
-        <span className="chip teal">quote</span>
+        <Chip tone="euc">quote</Chip>
         {v != null && v !== 0 && <span className="q-var"> {signedMoney(v)}</span>}
       </span>
     );

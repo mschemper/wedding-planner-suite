@@ -5,6 +5,7 @@ import { DEFAULT_PARAMS, PARAM_KEYS, parseParamValue, type ParamKey } from "../.
 import { SaveError } from "../SaveError";
 import { useData, type SaveResult } from "../data";
 import { money } from "../format";
+import { Chip } from "../kit/kit";
 
 const LABELS: Record<ParamKey, string> = {
   photography: "Photography ($)",
@@ -92,7 +93,7 @@ export function PricesForm() {
         {PARAM_KEYS.filter((k) => k !== "floralsBase").map((k) => (
           <div className="p-field" key={k}>
             <label>
-              <span>{LABELS[k]} {rowOf(k) && <span className="chip mustard">changed</span>}</span>
+              <span>{LABELS[k]} {rowOf(k) && <Chip tone="gold">changed</Chip>}</span>
               <input inputMode="decimal" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} onKeyDown={(e) => e.key === "Enter" && void onSave()} />
             </label>
             <div className="p-hint">Doc value: {hint(k)}</div>
@@ -101,7 +102,7 @@ export function PricesForm() {
         ))}
       </div>
       <div className="p-field">
-        <span className="panel-label">{LABELS.floralsBase} {rowOf("floralsBase") && <span className="chip mustard">changed</span>}</span>
+        <span className="vn-label">{LABELS.floralsBase} {rowOf("floralsBase") && <Chip tone="gold">changed</Chip>}</span>
         {pairs.map(([g, a], i) => (
           <div className="p-pairs" key={i}>
             <label>Guests<input inputMode="numeric" value={g} onChange={(e) => setPairs(pairs.map((p, j) => (j === i ? [e.target.value, p[1]] : p)))} /></label>

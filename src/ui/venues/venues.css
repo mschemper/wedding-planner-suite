@@ -1,0 +1,111 @@
+/* Venues tab. Tokens only (src/ui/styles.css); own classes are vn-*. */
+.vn-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.vn-top + .k-card, .vn-detail-head + .k-card { margin-top: 0; }
+.vn-h2 { font-size: 30px; }
+.vn-h3 { font-size: 22px; margin: 18px 0 8px; }
+.vn-meta { font-size: 13px; color: var(--muted); }
+.vn-bad { color: var(--peony-ink); font-weight: 600; }
+.vn-label { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.vn-gap { margin-top: 10px; }
+.vn-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.vn-chips .k-filter { min-height: 44px; }
+.vn-plain { list-style: none; display: grid; gap: 4px; font-size: 14px; }
+.vn-foot { margin-top: 20px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.vn-wide { width: 100%; }
+.k-card + .vn-archive, .vn-archive + .vn-foot { margin-top: 16px; }
+
+/* compare bar */
+.vn-bar-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 860px) { .vn-bar-grid { grid-template-columns: auto 1fr auto; align-items: start; } }
+.vn-inline { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); margin-top: 8px; flex-wrap: wrap; }
+.vn-inline .k-input { width: auto; min-width: 150px; }
+.vn-bar .vn-meta { margin-top: 10px; }
+.vn-picker { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.vn-exact { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.vn-exact .k-input { width: 96px; }
+
+/* shortlist */
+.vn-cards { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .vn-cards { grid-template-columns: 1fr 1fr; } }
+.vn-table-wrap { display: none; overflow-x: auto; }
+@media (min-width: 860px) { .vn-cards { display: none; } .vn-table-wrap { display: block; } }
+.vn-card { border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; background: var(--ground); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.vn-dim { border-style: dashed; border-color: var(--peony); }
+.vn-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.vn-title { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.vn-open { min-height: 44px; border: 0; background: none; padding: 0; text-align: left; font-family: var(--serif); font-size: 21px; font-weight: 700; color: var(--ink); text-decoration: underline; text-decoration-color: var(--sage); text-underline-offset: 4px; }
+.vn-total { font-family: var(--serif); font-size: 30px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.vn-await { font-size: 20px; font-style: italic; color: var(--gold-ink); }
+.vn-facts { display: grid; gap: 10px; font-size: 14px; }
+.vn-facts dt { font-size: 13px; font-weight: 600; color: var(--muted); }
+.vn-facts dd { margin: 0; overflow-wrap: anywhere; }
+.vn-fitbar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 4px 0; min-width: 80px; }
+.vn-fitbar i { display: block; height: 100%; background: var(--euc); border-radius: 999px; }
+.vn-contact { display: grid; gap: 2px; }
+.vn-contact a { display: inline-flex; align-items: center; min-height: 32px; }
+.vn-notes summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; color: var(--euc-ink); font-weight: 600; }
+.vn-notes p { font-size: 14px; margin-top: 4px; }
+.vn-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 640px; font-size: 14px; }
+.vn-table th, .vn-table td { padding: 10px 12px; text-align: left; vertical-align: top; border-top: 1px solid var(--line); }
+.vn-table thead th, .vn-table thead td { border-top: 0; }
+.vn-table tbody th { width: 150px; font-weight: 600; color: var(--muted); font-size: 14px; }
+.vn-table thead th { min-width: 190px; font-weight: 400; }
+.vn-table thead th .k-chip { margin-top: 4px; }
+.vn-table .flag { margin-top: 0; margin-bottom: 6px; }
+
+/* fit matrix */
+.vn-matrix-wrap { display: block; }
+.vn-matrix { min-width: 560px; }
+.vn-matrix tbody th { width: auto; color: var(--ink); min-width: 160px; position: sticky; left: 0; background: var(--card); z-index: 1; }
+.vn-matrix thead th { min-width: 120px; font-weight: 600; }
+.vn-cell { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.vn-cell-note { display: none; margin-top: 4px; max-width: 220px; overflow-wrap: anywhere; }
+@media (min-width: 860px) { .vn-cell-note { display: block; } }
+.vn-note-btn { min-height: 44px; min-width: 44px; padding: 0 8px; border: 0; background: none; color: var(--euc-ink); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.vn-total-row th, .vn-total-row td { border-top: 2px solid var(--line); }
+
+/* archive */
+.vn-archive { padding: 4px 20px 16px; }
+.vn-archive-sum { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-family: var(--serif); font-size: 22px; font-weight: 700; }
+.vn-archive-grid { display: grid; gap: 12px; grid-template-columns: 1fr; margin-top: 8px; }
+@media (min-width: 640px) { .vn-archive-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 860px) { .vn-archive-grid { grid-template-columns: repeat(3, 1fr); } }
+.vn-mini { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; background: var(--ground); min-width: 0; }
+.vn-mini .vn-open { font-size: 18px; }
+.vn-mini-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+
+/* assumptions */
+.vn-settings { display: grid; gap: 12px; }
+.vn-row { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+.vn-win { border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 12px; display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.vn-win legend { padding: 0 6px; font-weight: 600; }
+.vn-win .k-field:first-of-type, .vn-win .k-btn { grid-column: 1 / -1; }
+
+/* detail */
+.vn-detail-head { margin-top: 8px; }
+.vn-desc { margin: 10px 0; font-size: 15px; line-height: 1.55; }
+.vn-head-row { display: flex; gap: 14px; align-items: end; flex-wrap: wrap; margin-bottom: 8px; }
+.k-card + .k-card.vn-detail-head, .vn-detail-head ~ .k-card { margin-top: 16px; }
+.vn-form { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .vn-form { grid-template-columns: 1fr 1fr; } }
+.vn-form-foot { grid-column: 1 / -1; display: grid; gap: 8px; justify-items: start; }
+.vn-mh { list-style: none; display: grid; gap: 8px; }
+.vn-mh li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vn-mh-text { display: grid; flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.vn-panel { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--ground); }
+.vn-budget .detail-content { padding: 0; }
+.vn-budget .desc { display: none; }
+.vn-budget .total-banner { background: var(--ground); color: var(--ink); border: 1px solid var(--line); }
+.vn-budget .total-banner-amount { color: var(--euc-ink); }
+.vn-budget .total-banner-label, .vn-budget .total-banner-text { opacity: 1; color: var(--muted); }
+.vn-budget .total-banner .good { color: var(--euc-ink); }
+.vn-budget .total-banner .bad { color: var(--peony-ink); }
+.vn-budget .budget-total { background: var(--ground); color: var(--ink); border-top: 2px solid var(--line); }
+.vn-budget .budget-total span:last-child { color: var(--euc-ink); }
+.vn-budget .extrap { color: var(--gold-ink); }
+.vn-budget .budget-header { background: var(--ground); color: var(--muted); }
+.vn-budget .budget-cat-header { background: color-mix(in srgb, var(--sage) 22%, transparent); color: var(--euc-ink); }
+.vn-budget .budget-row.odd { background: var(--ground); }
+.vn-budget .cmp-label select { min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); padding: 4px 8px; }
+.vn-budget .compare-box { background: var(--ground); }
+.vn-budget .layout { margin-top: 14px; }

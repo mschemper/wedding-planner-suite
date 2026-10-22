@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { computeBudget, type ComputeOptions, defaultOpts, diffByCategory, guestStops, matchOptions, snapGuests } from "../../engine/compute";
 import type { Budget, Options, Scenario } from "../../engine/types";
+import { FilterChip } from "../kit/kit";
 import { money, signedMoney } from "../format";
 import { QuoteLineAction } from "./QuoteLineAction";
 
@@ -27,27 +28,15 @@ export function GuestPicker({ stops, value, onChange, min, max }: { stops: numbe
     else setDraft(String(value));
   };
   return (
-    <div className="picker">
-      <div className="toggle-group" role="group" aria-label="Guest count">
-        {stops.map((g) => (
-          <button key={g} className={`toggle-btn ${g === value ? "active" : ""}`} aria-pressed={g === value} onClick={() => onChange(g)}>{g}</button>
-        ))}
+    <div className="vn-picker">
+      <div className="vn-chips" role="group" aria-label="Guest count">
+        {stops.map((g) => <FilterChip key={g} on={g === value} onClick={() => onChange(g)}>{g}</FilterChip>)}
       </div>
-      <label className="custom">
+      <label className="vn-exact">
         or exactly
-        <input type="number" inputMode="numeric" min={min} max={max} value={draft}
+        <input className="k-input" type="number" inputMode="numeric" min={min} max={max} value={draft}
           onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === "Enter" && commit()} />
       </label>
-    </div>
-  );
-}
-
-export function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="stat">
-      <div className="stat-label">{label}</div>
-      <div className="stat-value">{value}</div>
-      {sub && <div className="stat-sub">{sub}</div>}
     </div>
   );
 }
@@ -57,11 +46,9 @@ function OptionToggles({ sc, opts, onChange }: { sc: Scenario; opts: Options; on
     <>
       {sc.options.map((o) => (
         <div key={o.key} style={{ marginTop: 14 }}>
-          <div className="panel-label" id={`opt-${o.key}`}>{o.label}</div>
-          <div className="toggle-group" role="group" aria-labelledby={`opt-${o.key}`}>
-            {o.choices.map((c) => (
-              <button key={c} className={`toggle-btn ${opts[o.key] === c ? "active teal" : ""}`} aria-pressed={opts[o.key] === c} onClick={() => onChange({ ...opts, [o.key]: c })}>{c}</button>
-            ))}
+          <div className="vn-label" id={`opt-${o.key}`}>{o.label}</div>
+          <div className="vn-chips" role="group" aria-labelledby={`opt-${o.key}`}>
+            {o.choices.map((c) => <FilterChip key={c} on={opts[o.key] === c} onClick={() => onChange({ ...opts, [o.key]: c })}>{c}</FilterChip>)}
           </div>
         </div>
       ))}
@@ -69,11 +56,10 @@ function OptionToggles({ sc, opts, onChange }: { sc: Scenario; opts: Options; on
   );
 }
 
-export function DetailView({ sc, scenarios, initialGuests, settings, onBack }: { sc: Scenario; scenarios: Scenario[]; initialGuests: number; settings: ComputeOptions; onBack: () => void }) {
+export function DetailView({ sc, scenarios, initialGuests, settings }: { sc: Scenario; scenarios: Scenario[]; initialGuests: number; settings: ComputeOptions }) {
   const [guests, setGuests] = useState(() => (initialGuests >= sc.min && initialGuests <= sc.max ? initialGuests : snapGuests(sc, initialGuests)));
   const [opts, setOpts] = useState<Options>(() => defaultOpts(sc));
   const [compareId, setCompareId] = useState(sc.id === 2 ? 1 : 2);
-  useEffect(() => window.scrollTo(0, 0), []);
 
   const budget = useMemo(() => computeBudget(sc, guests, opts, settings), [sc, guests, opts, settings]);
   const cmpSc = scenarios.find((x) => x.id === compareId) ?? scenarios.find((x) => x.id !== sc.id) ?? sc;
@@ -88,14 +74,8 @@ export function DetailView({ sc, scenarios, initialGuests, settings, onBack }: {
 
   return (
     <>
-      <button className="back-btn" onClick={onBack}>← All scenarios</button>
-      <article className="detail-card">
-        <div className={`detail-header kind-${sc.benchmark ? "bench" : sc.baseline ? "base" : sc.kind}`}>
-          <div className="detail-header-text">
-            <h2>{sc.name}</h2>
-            <p>{sc.location} · confidence {sc.confidence}%{budget.season ? ` · ${budget.season} season on ${fmtDate(settings.date ?? "")}` : ""}</p>
-          </div>
-        </div>
+      <article className="vn-budget">
+        <p className="vn-meta">Confidence {sc.confidence}%{budget.season ? ` · ${budget.season} season on ${fmtDate(settings.date ?? "")}` : ""}{settings.contingency ? ` · ${Math.round(settings.contingency * 1000) / 10}% contingency` : ""}</p>
         <div className="detail-content">
           <p className="desc">{sc.desc}</p>
           {sc.flag && <div className="flag"><strong>Planner's note · </strong>{sc.flag}</div>}
@@ -103,8 +83,8 @@ export function DetailView({ sc, scenarios, initialGuests, settings, onBack }: {
           {sc.seasonSource && <div className="flag"><strong>Season source · </strong>{sc.seasonSource}</div>}
           {budget.warnings.map((w) => <div key={w} className="flag warn" role="status"><strong>Check · </strong>{w}</div>)}
 
-          <div className="panel" style={{ marginTop: 18 }}>
-            <div className="panel-label">Guest count</div>
+          <div className="vn-panel">
+            <div className="vn-label">Guest count</div>
             <GuestPicker stops={guestStops(sc.min, sc.max)} value={guests} onChange={setGuests} min={sc.min} max={sc.max} />
             <OptionToggles sc={sc} opts={opts} onChange={setOpts} />
           </div>
