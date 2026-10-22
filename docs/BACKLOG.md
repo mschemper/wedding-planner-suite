@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 21 Oct 2026 (v3 built: F2 seasons, F3 params, F4 compare tier, F5 saved state, F10 mobile and B1 a11y shipped; F6/F9 folded into P1/P2). Before: 20 Oct 2026 (v2).
+Last reviewed: 21 Oct 2026 (P1 part 2 built; B3 shipped). Before: 21 Oct 2026 (v3 built: F2 seasons, F3 params, F4 compare tier, F5 saved state, F10 mobile and B1 a11y shipped; F6/F9 folded into P1/P2). Before: 20 Oct 2026 (v2).
 
 ---
 
@@ -18,8 +18,14 @@ Each answer replaces an estimate in `src/data/scenarios.ts` → golden + HISTORY
 
 ## Requested / planned (features)
 
-### P1. v3 part 2 — go online with editors — L (Mark: "go", 21 Oct; one release with part 1)
-Everything in docs/DESIGN-v3.md: Workers + Static Assets, D1, Access, save API, Guests screen (was F6), Quotes & Prices screens (was F9 + params), engine quote overrides, xlsx export, offline build. Build session, then deploy session.
+### P1. v3 deploy — M (build done 21 Oct; this is the separate deploy session)
+DESIGN-v3 §7 in order: wrangler login (Mark) → D1 create + migrations → deploy (no seed) → Access (Mark clicks) → vars + redeploy → verify the API refuses without Access → seed → Mark + Angela check. Then tag v3, CHANGELOG date, USAGE row.
+
+### F12. Guests panel: warn before discarding unsaved edits — XS (integration review #7)
+Opening another household or pressing Escape drops a dirty draft silently. Confirm when `buildOps(...)` is non-empty.
+
+### F13. Quotes screen: "not applied" uses default guests/options/no date — S (integration review #6)
+Show applicability at the Budget tab's current date/guests instead, or per quote "applies at …".
 
 ### F1. Rockwell on the River as scenario 17 — S (needs the tour answers in STATE "Open quotes" #6)
 
@@ -35,9 +41,6 @@ The Park District lists $3,679 for the weekend 11-hour package; the doc itemises
 ---
 
 ## Bugs / debt
-
-### B3. Dev server serves data/private (REVIEW-v3 R18) — XS, in P1
-Add `server.fs.deny` for `data/private/**`. The hosted build must not bundle `data/private` (DESIGN-v3 §2).
 
 ### B4. Attendance doesn't count the couple, vendors or a plus-one rate (REVIEW-v3 R15) — S
 Decide with Mark whether to add them.

@@ -57,6 +57,7 @@ export function PricesForm() {
   }
 
   async function onSave() {
+    if (busy) return;
     const e: Record<string, string> = {};
     const ops: Op[] = [];
     for (const k of PARAM_KEYS) {

@@ -39,6 +39,6 @@ export function QuoteLineAction({ scenario, row, options }: QuoteLineActionProps
   if (offline) return null;
   if (!open) return <button className="link-btn" onClick={() => setOpen(true)} aria-label={`Add quote for ${row.desc}`}>+ quote</button>;
   return (
-    <QuoteForm compact scenario={scenario} preset={{ item_desc: row.desc, options: pickOptions(scenario, row, options) }} onDone={() => setOpen(false)} onCancel={() => setOpen(false)} />
+    <QuoteForm key={JSON.stringify(options)} compact scenario={scenario} preset={{ item_desc: row.desc, options: pickOptions(scenario, row, options) }} onDone={() => setOpen(false)} onCancel={() => setOpen(false)} />
   );
 }

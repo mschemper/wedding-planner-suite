@@ -1,5 +1,30 @@
 # Changelog
 
+## v3 (UNRELEASED, part 2 of 2) - Online editors on Cloudflare (built 21 Oct 2026; not deployed)
+
+Mark's request, 21 Oct 2026: build DESIGN-v3 (Workers + Static Assets + D1 + Access, guest editor, quotes & prices editor); deploy in a separate session. Mark picked Guests layout A (list + side panel).
+
+**Tabs**: Budget · Guests · Quotes & prices, sticky at the top, working at 390 px.
+
+**Guests**
+  * Households grouped by family side, filters (side, adult/child, locality, status, priority, exceptions), search, a forecast strip with "Price at …".
+  * Side panel: edit a household and its people, add/remove people and households, partner/parent pickers, problems shown next to the person. Full screen on a phone.
+  * Friend groups edited the same way. Export to xlsx (same sheets as the workbook).
+
+**Quotes & prices**
+  * Log vendor quotes per venue (requested / received / accepted). Received or accepted quotes replace the estimate on that budget line, tax recomputed; the line shows "quote" and the difference from the estimate. An all-in quote replaces a venue's whole budget.
+  * "+ quote" on any budget line.
+  * Prices: edit the personal costs (dress, photo, band, favors, florals …); every venue reprices. "Reset to doc values".
+
+**Saving and safety**
+  * Saves go to a database (Cloudflare D1). If Angela changed the same row first, the save is refused with her name and a Reload, never silently overwritten.
+  * A save that would break the guest list (unknown partner, missing household) is refused with the reason.
+  * Login via Cloudflare Access (email code) for Mark and Angela only; the server checks it again on every request.
+  * Every change is logged (who, when, before/after; last 1,000).
+  * The offline single-file page still works (read-only) as `dist-offline/index.html`.
+
+**Fixes**: the dev server no longer serves `data/private` (B3). All dependencies pinned to exact versions.
+
 ## v3 (UNRELEASED, part 1 of 2) - Venue seasons, review fixes, mobile (built 21 Oct 2026)
 
 Ships together with part 2 (Cloudflare hosting, login, guest and quotes/prices editors) as ONE release (Mark, 21 Oct 2026). Plan: docs/DESIGN-v3.md.

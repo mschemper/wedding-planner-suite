@@ -23,7 +23,8 @@ export function App() {
   const nav = useMemo<Nav>(
     () => ({
       tab: prefs.tab,
-      setTab: (tab) => set({ tab }),
+      // leaving Budget closes the open venue: DetailView keeps guests/options locally and would come back reset
+      setTab: (tab) => set(tab === "budget" ? { tab } : { tab, selected: null }),
       priceAt: (g) => set({ guests: clamp(Math.round(g), 20, 300), selected: null, tab: "budget" }),
     }),
     [prefs.tab, set],
@@ -34,11 +35,11 @@ export function App() {
     const next = e.key === "ArrowRight" ? (i + 1) % TABS.length : e.key === "ArrowLeft" ? (i + TABS.length - 1) % TABS.length : e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : -1;
     if (next < 0) return;
     e.preventDefault();
-    set({ tab: TABS[next].id });
+    nav.setTab(TABS[next].id);
     tabRefs.current[TABS[next].id]?.focus();
   };
 
-  const signIn = (data.error ?? "").toLowerCase().includes("sign");
+  const signIn = data.errorKind === "unauthorized";
 
   return (
     <NavContext.Provider value={nav}>
@@ -54,7 +55,7 @@ export function App() {
           <div className="tabs" role="tablist" aria-label="Sections" onKeyDown={onKey}>
             {TABS.map((t) => (
               <button key={t.id} ref={(el) => { tabRefs.current[t.id] = el; }} role="tab" id={`tab-${t.id}`} aria-selected={prefs.tab === t.id}
-                aria-controls="tabpanel" tabIndex={prefs.tab === t.id ? 0 : -1} className={`tab ${prefs.tab === t.id ? "active" : ""}`} onClick={() => set({ tab: t.id })}>
+                aria-controls="tabpanel" tabIndex={prefs.tab === t.id ? 0 : -1} className={`tab ${prefs.tab === t.id ? "active" : ""}`} onClick={() => nav.setTab(t.id)}>
                 <span className="tab-long">{t.label}</span><span className="tab-short">{t.short}</span>
               </button>
             ))}
@@ -69,9 +70,9 @@ export function App() {
           </p>
         )}
         {data.status === "loading" && <p className="status-line" role="status">Loading your plan…</p>}
-        {data.status === "error" && (
+        {data.error && (data.status === "error" || data.status === "ready") && (
           <div className="flag warn" role="alert">
-            <strong>Could not load · </strong>{data.error}
+            <strong>{data.status === "ready" ? "Could not refresh · " : "Could not load · "}</strong>{data.error}
             <div><button className="link-btn" onClick={() => (signIn ? window.location.reload() : void data.reload())}>Reload</button></div>
           </div>
         )}

@@ -2,7 +2,7 @@
 
 Mark, 21 Oct 2026: "go the cloudflare + database route … consolidate updates into a single release on the new platform." Choices made in the same question round: **everything pending** goes into v3 (the refinements already committed, plus hosting, login, the guest editor, and the quotes/prices editor). He has an **existing Cloudflare account**. The address is a free **\*.workers.dev**. The build happens in a **fresh Claude Code session on the PC**.
 
-Status: part 1 committed (CHANGELOG v3). Part 2 round 1 (Worker, D1, API, data layer) built; round 2 (screens) in progress. Nothing is deployed.
+Status: part 1 committed (CHANGELOG v3). Part 2 built and committed (21 Oct 2026). Nothing is deployed: §7 is the next session.
 
 ## 1. Platform (product choice)
 

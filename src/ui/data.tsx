@@ -17,8 +17,10 @@ export type SaveResult =
 
 export interface DataCtx {
   status: "loading" | "ready" | "error";
-  /** set when status = "error" (load failed) */
+  /** last load/reload failure; status stays "ready" when data was already loaded (open drafts survive) */
   error?: string;
+  /** "unauthorized" → the Access session expired: reload the whole page */
+  errorKind?: ApiErrorBody["error"];
   offline: boolean;
   /** offline build without data/private → synthetic names */
   sample: boolean;
@@ -51,7 +53,7 @@ const EMPTY: GuestData = { households: [], individuals: [], friends: [] };
 export function DataProvider({ children }: { children: ReactNode }) {
   const [raw, setRaw] = useState<ApiData | null>(null);
   const [status, setStatus] = useState<DataCtx["status"]>(OFFLINE ? "ready" : "loading");
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<{ message: string; kind?: ApiErrorBody["error"] }>();
 
   const reload = useCallback(async () => {
     if (OFFLINE) return;
@@ -60,8 +62,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setStatus("ready");
       setError(undefined);
     } catch (e) {
-      setStatus("error");
-      setError(e instanceof ApiFailure ? e.body.message : String(e));
+      setStatus((s) => (s === "ready" ? "ready" : "error"));
+      setError(e instanceof ApiFailure ? { message: e.body.message, kind: e.body.error } : { message: String(e) });
     }
   }, []);
   useEffect(() => void reload(), [reload]);
@@ -83,7 +85,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const params = OFFLINE ? DEFAULT_PARAMS : mergeParams(paramRows);
     const guests: GuestData = OFFLINE ? GUESTS : raw ? { households: raw.households, individuals: raw.individuals, friends: raw.friends } : EMPTY;
     return {
-      status, error, offline: OFFLINE, sample: OFFLINE && GUESTS_ARE_SAMPLE, me: raw?.me ?? "", raw,
+      status, error: error?.message, errorKind: error?.kind, offline: OFFLINE, sample: OFFLINE && GUESTS_ARE_SAMPLE, me: raw?.me ?? "", raw,
       guests, quotes: raw?.quotes ?? [], paramRows, params, scenarios: buildScenarios(params), save, reload,
     };
   }, [raw, status, error, save, reload]);

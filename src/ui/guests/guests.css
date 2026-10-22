@@ -17,7 +17,7 @@
 .gs-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
 .gs-list { min-width: 0; }
 .gs-group { margin-bottom: 14px; }
-.gs-group-head { font-family: var(--serif); font-size: 16px; font-weight: 800; color: var(--teal); margin: 0 0 6px; }
+.gs-group-head { font-family: var(--serif); font-size: 16px; font-weight: 800; color: var(--teal-ink); margin: 0 0 6px; }
 .gs-row-btn { width: 100%; min-height: 44px; display: flex; justify-content: space-between; align-items: center; gap: 10px; text-align: left; padding: 8px 14px; margin-bottom: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--charcoal); font-size: 14.5px; }
 .gs-row-btn.sel { border-color: var(--teal); background: var(--cream); box-shadow: inset 4px 0 0 var(--teal); }
 .gs-name { font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
@@ -52,7 +52,7 @@
 
 @media (min-width: 901px) {
   .gs-wrap { grid-template-columns: minmax(0, 1fr) minmax(360px, 440px); }
-  .gs-panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+  .gs-panel { position: sticky; top: 124px; max-height: calc(100vh - 136px); overflow: auto; }
   .gs-panel-empty { display: block; border: 1px dashed var(--line); border-radius: 16px; padding: 18px; }
   .gs-fields { grid-template-columns: 1fr 1fr; }
   .gs-field.wide { grid-column: 1 / -1; }

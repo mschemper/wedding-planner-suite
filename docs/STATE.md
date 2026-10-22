@@ -2,16 +2,16 @@
 
 **Read this first in a new session** (after AGENTS.md). It is the one file that says what is true right now. What isn't done yet is in `docs/BACKLOG.md`, how things got this way is in `docs/HISTORY.md`, and which files a change touches is in `docs/CODEMAP.md`. Update this at the end of any session that changes it.
 
-Last updated: 21 October 2026 (v3 part 1 committed; part 2 = Cloudflare build, not started).
+Last updated: 21 October 2026 (v3 part 2 built and committed; deploy = next session).
 
 ## Version
 
 | | |
 |---|---|
 | Released | **v2** (tag `v2`) |
-| In progress | **v3** (package.json 3.0.0, untagged). Part 1 committed (seasons, fixes, mobile). Part 2 = docs/DESIGN-v3.md. Tag only when deployed and verified. |
+| In progress | **v3** (package.json 3.0.0, untagged). Part 1 + part 2 built and committed (Worker API, D1 schema, Access check, Guests / Quotes & Prices screens, tabs). **Next: deploy session** (DESIGN-v3 §7). Tag only when deployed and verified. |
 | Previous | v1 = single-file HTML Budget Studio in the claude.ai project "Wedding Planner Suite" (with the Reconciled Master .docx and the guest workbook) |
-| Output | `dist\index.html`, built locally; Mark opens it from disk |
+| Output | Until deploy: `dist-offline\index.html` (`npm run build:offline`), opened from disk, read-only. Hosted build: `dist/` (Worker assets). |
 
 ## The wedding (facts that drive the model)
 
@@ -51,15 +51,18 @@ Last updated: 21 October 2026 (v3 part 1 committed; part 2 = Cloudflare build, n
 
 ## Environment
 
-- PC: Windows, repo at `C:\Users\msche\Documents\Projects\wedding-planner-suite`. **Node on the PC is unverified** (built and tested in a cloud container on Node 22).
+- PC: Windows 10, repo at `C:\Users\msche\Documents\Projects\wedding-planner-suite`. Node 24.18, npm 11.16 (verified 21 Oct 2026). Git identity set repo-locally (Mark).
+- Pinned: wrangler 4.151.3, jose 6.2.13, vite 5.4.21, vitest 2.1.9 (all deps exact).
+- **workerd 2026-10-19 crashes on this PC** → no `wrangler dev`; tests and `npm run dev` run the Worker in Node (HISTORY v3). `wrangler deploy` bundling works: dry run OK, 90 KiB.
 - Node missing, native: `winget install OpenJS.NodeJS.LTS`, then reopen the terminal. WSL: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`.
 - GitHub remote: **none yet** (docs/GIT.md).
 
 ## Platform
 
 - **Chosen (Mark, 21 Oct): Cloudflare Workers + Static Assets + D1 + Access**, free *.workers.dev, on his **existing Cloudflare account**. docs/DESIGN-v3.md.
-- Not deployed. Account name, team domain, free-plan seat count, Worker URL: fill in at the deploy session.
-- Until v3 deploys, `dist/index.html` from disk is the app.
+- Not deployed. Account name, team domain, free-plan seat count, Worker URL, D1 database_id: fill in at the deploy session.
+- `wrangler.jsonc`: Worker `wedding-planner`, D1 `wedding-planner` (placeholder id), `preview_urls: false`, vars ACCESS_TEAM_DOMAIN / ACCESS_AUD / ALLOWED_EMAILS empty (API refuses until set).
+- Until v3 deploys, `dist-offline/index.html` from disk is the app.
 
 ## Standing preferences (Mark)
 

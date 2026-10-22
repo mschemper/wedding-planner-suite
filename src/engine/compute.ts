@@ -110,7 +110,8 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
   }
   const matched = new Set<string>();
   const markMatched = (desc: string) => {
-    for (const q of live) if (q.item_desc === desc) matched.add(q.id);
+    const w = byDesc.get(desc);
+    if (w) matched.add(w.id);
   };
 
   for (const it of sc.items) {
@@ -145,7 +146,8 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
     const estimate = rows.reduce((s, r) => s + (r.quoted ? (r.estimate ?? r.amount) : r.amount), 0);
     rows.length = 0;
     rows.push({ cat: "Venue & site", desc: "Quoted all-in", amount: quoteAmount(allIn, g), extrapolated: false, quoted: true, quoteId: allIn.id, estimate });
-    for (const q of live) if (q.item_desc === "*") matched.add(q.id);
+    matched.clear();
+    matched.add(allIn.id);
   }
   if (co.contingency && co.contingency > 0) {
     const sub = rows.reduce((s, r) => s + r.amount, 0);

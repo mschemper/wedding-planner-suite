@@ -1,5 +1,5 @@
 // Side panel: edit one household (and its people) or one friend group on a local draft; one Save builds the Op[].
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { ENUMS, type GuestData } from "../../guests/schema";
 import { validateGuests, type Issue } from "../../guests/validate";
 import { useData, type SaveResult } from "../data";
@@ -33,7 +33,7 @@ function Input({ name, value, onChange, listId, placeholder }: { name: string; v
 
 function Issues({ list }: { list: Issue[] }) {
   if (!list.length) return null;
-  return <ul className="gs-issues">{list.map((i) => <li key={i.msg} className={i.level}>{i.level === "error" ? "Error" : "Check"}: {i.msg}</li>)}</ul>;
+  return <ul className="gs-issues">{list.map((i) => <li key={`${i.where}|${i.msg}`} className={i.level}>{i.level === "error" ? "Error" : "Check"}: {i.msg}</li>)}</ul>;
 }
 
 function distinct(d: GuestData) {
@@ -54,6 +54,9 @@ export function Panel({ draft, setDraft, onClose, onSaved }: { draft: Draft; set
   const { guests, raw, offline, save } = useData();
   const uid = useId();
   const [saving, setSaving] = useState(false);
+  // focus the heading once per opened draft (Panel is keyed per draft); an inline ref callback re-focused on every keystroke
+  const head = useRef<HTMLHeadingElement>(null);
+  useEffect(() => head.current?.focus({ preventScroll: true }), []);
   const [err, setErr] = useState<Fail | null>(null);
   const [open, setOpen] = useState<Set<string>>(() => new Set(draft.kind === "household" ? draft.people.filter((p) => p.isNew).map((p) => p.id) : []));
   const [confirm, setConfirm] = useState<string | null>(null);
@@ -111,7 +114,7 @@ export function Panel({ draft, setDraft, onClose, onSaved }: { draft: Draft; set
   return (
     <aside className="gs-panel" aria-label={`Edit ${title}`}>
       <div className="gs-panel-head">
-        <h2 tabIndex={-1} ref={(el) => el?.focus({ preventScroll: true })}>{title}</h2>
+        <h2 tabIndex={-1} ref={head}>{title}</h2>
         <button className="gs-btn" onClick={onClose} aria-label="Close panel">Close</button>
       </div>
       {ro && <p className="flag">Read-only offline copy</p>}

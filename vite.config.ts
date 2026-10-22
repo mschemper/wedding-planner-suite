@@ -26,7 +26,7 @@ function privateGuests(offline: boolean): Plugin {
 /** `npm run dev`: /api runs worker/api.ts in Node against .wrangler/dev/db.sqlite (seeded from the synthetic fixture). */
 function devApi(): Plugin {
   type Db = { empty: boolean; raw: { prepare(sql: string): { run(...v: unknown[]): unknown } }; migrate(): unknown };
-  let db: Db | undefined;
+  let ready: Promise<Db> | undefined;
   const body = (req: IncomingMessage) => new Promise<Buffer>((ok) => { const c: Buffer[] = []; req.on("data", (d) => c.push(d)); req.on("end", () => ok(Buffer.concat(c))); });
   return {
     name: "dev-api",
@@ -34,17 +34,18 @@ function devApi(): Plugin {
       server.middlewares.use(async (req, res, next) => {
         if (!req.url?.startsWith("/api/")) return next();
         try {
-          if (!db) {
+          // one init for concurrent first requests (React StrictMode fires two)
+          ready ??= (async () => {
             const { SqliteD1 } = await server.ssrLoadModule("/scripts/d1-sqlite.ts");
+            const { seedRows } = await server.ssrLoadModule("/worker/seed.ts");
             mkdirSync(".wrangler/dev", { recursive: true });
-            db = new SqliteD1(".wrangler/dev/db.sqlite") as Db;
-            const fresh = !(db.raw.prepare("SELECT name FROM sqlite_master WHERE name = 'households'") as unknown as { get(): unknown }).get();
-            if (fresh) db.migrate();
-            if (db.empty) {
-              const { seedRows } = await server.ssrLoadModule("/worker/seed.ts");
-              for (const r of seedRows(fixture, "seed")) db.raw.prepare(r.sql).run(...r.values);
-            }
-          }
+            const d = new SqliteD1(".wrangler/dev/db.sqlite") as Db;
+            const fresh = !(d.raw.prepare("SELECT name FROM sqlite_master WHERE name = 'households'") as unknown as { get(): unknown }).get();
+            if (fresh) d.migrate();
+            if (d.empty) for (const r of seedRows(fixture, "seed")) d.raw.prepare(r.sql).run(...r.values);
+            return d;
+          })();
+          const db = await ready;
           const { handleApi } = await server.ssrLoadModule("/worker/api.ts");
           const headers = new Headers();
           for (const [k, v] of Object.entries(req.headers)) if (typeof v === "string") headers.set(k, v);

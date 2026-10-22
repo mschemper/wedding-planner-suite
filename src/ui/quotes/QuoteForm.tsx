@@ -44,6 +44,7 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
   }
 
   async function submit() {
+    if (busy) return;
     const n = Number(amount.replace(/[$,\s]/g, ""));
     if (!amount.trim() || !Number.isFinite(n) || n < 0) return setErr("Amount must be a number of 0 or more.");
     setErr("");
