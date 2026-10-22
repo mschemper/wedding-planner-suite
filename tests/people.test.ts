@@ -45,7 +45,7 @@ describe("headcount", () => {
     expect(h.invited).toMatchObject({ heads: 12, adults: 11, kids: 1 });
     expect(h.ifroom.heads).toBe(2); // Nettle + Sage (Oak deceased)
     expect(h.undecided.heads).toBe(4); // Hazel, Iris, Rowan + plus-one
-    expect(h.no.heads).toBe(3); // Olive + Daisy + Elm (kids out)
+    expect(h.no.heads).toBe(5); // Olive + Daisy + Elm (kids out) + 2 unnamed kids of H-M4 (kids out under "ours")
     expect(h.ranked.map((r) => r.party.id)).toEqual(["F-3", "H-A3"]);
   });
   it("cutoff: kids skip the main room only where there is a kids' room", () => {

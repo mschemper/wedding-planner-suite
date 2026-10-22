@@ -161,8 +161,16 @@ export function fromWorkbook(g: GuestData): ImportResult {
     parties.push({
       id, name: coupleHouseholds.has(id) ? "Mark & Angela's household" : s(h.PrimaryHouseholdName) || id,
       invite: d, kids: "policy", rank: null, talk: false, talk_note: null, notes: s(h.Notes) || null,
+      tier: null, unnamed_kids: 0, circle: null, known_by: null, reciprocal: false,
     });
   }
+  // placeholder children ("Child 1", …) become a count on the household
+  const isPlaceholderKid = (p: Person) => p.age === "child" && /^Child \d+$/.test(p.first);
+  for (const p of people.filter(isPlaceholderKid)) {
+    const party = parties.find((x) => x.id === p.party_id);
+    if (party) party.unnamed_kids = (party.unnamed_kids ?? 0) + 1;
+  }
+  for (let i = people.length - 1; i >= 0; i--) if (isPlaceholderKid(people[i])) people.splice(i, 1);
   const partyIds = new Set(parties.map((x) => x.id));
   for (const p of people) if (p.party_id && !partyIds.has(p.party_id)) { review.push({ id: p.id, reason: `household ${p.party_id} missing` }); p.party_id = null; }
 
@@ -215,8 +223,8 @@ export function fromWorkbook(g: GuestData): ImportResult {
 function friendRows(f: FriendGroup, people: Person[], decided: Map<string, Decision>, review: ImportResult["review"]): Party[] {
   const id = s(f.FriendGroupID);
   const status = s(f.InviteStatus);
-  const tier = s(f.InviteTier);
-  const { d, rsvp } = status && status !== "TBD" ? decide(status, "") : { d: (tier === "A" ? "invite" : "undecided") as Decision, rsvp: "none" as Rsvp };
+  const tier3 = s(f.InviteTier);
+  const { d, rsvp } = status && status !== "TBD" ? decide(status, "") : { d: (tier3 === "A" ? "invite" : "undecided") as Decision, rsvp: "none" as Rsvp };
   const side: Side = s(f.ConnectionTo) === "Angela" ? "Angela" : s(f.ConnectionTo) === "Mark" ? "Mark" : "Both";
   const name = s(f.GroupName) || s(f.PrimaryContact) || id;
   const m = /^(.+?)\s+(?:and|&)\s+(.+)$/i.exec(name);
@@ -236,5 +244,9 @@ function friendRows(f: FriendGroup, people: Person[], decided: Map<string, Decis
     decided.set(p.id, d);
   });
   const rank = Number(f.Ranking);
-  return [{ id, name, invite: d, kids: "policy", rank: d === "ifroom" && Number.isFinite(rank) ? rank : null, talk: false, talk_note: null, notes: null }];
+  const tier = tier3 === "A" ? 1 : tier3 === "C" ? 3 : 2;
+  return [{
+    id, name, invite: d, kids: "policy", rank: Number.isFinite(rank) ? rank : null, talk: false, talk_note: null, notes: null,
+    tier, unnamed_kids: 0, circle: s(f.FriendCategory) || "Friends", known_by: side, reciprocal: false,
+  }];
 }

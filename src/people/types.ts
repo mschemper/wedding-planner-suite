@@ -9,6 +9,7 @@ export const LOCALS = ["local", "away", "unknown"] as const;
 export const DECISIONS = ["undecided", "invite", "ifroom", "no"] as const;
 export const KIDS_RULES = ["policy", "in", "out"] as const;
 export const KIDS_POLICIES = ["ours", "family", "all"] as const;
+export const KNOWN_BY = ["Mark", "Angela", "Both"] as const;
 
 export type Side = (typeof SIDES)[number];
 export type Kind = (typeof KINDS)[number];
@@ -19,6 +20,7 @@ export type Local = (typeof LOCALS)[number];
 export type Decision = (typeof DECISIONS)[number];
 export type KidsRule = (typeof KIDS_RULES)[number];
 export type KidsPolicy = (typeof KIDS_POLICIES)[number];
+export type KnownBy = (typeof KNOWN_BY)[number];
 
 export interface Person {
   id: string;
@@ -63,6 +65,14 @@ export interface Party {
   talk: boolean;
   talk_note?: string | null;
   notes?: string | null;
+  /** closeness ring: family 1 Inner circle · 2 Close · 3 Extended · 4 Wider; friends 1 Must · 2 Want · 3 Nice to have. null = derived (tier.ts) */
+  tier?: number | null;
+  /** children not yet named (count toward the kids' room when kids come) */
+  unnamed_kids?: number;
+  /** friends: social circle, who knows them, we went to their wedding */
+  circle?: string | null;
+  known_by?: KnownBy | null;
+  reciprocal?: boolean;
 }
 
 export interface PeopleData {

@@ -79,6 +79,22 @@ const ROOTS: [RegExp, RegExp][] = [
   [/^step-child/, /step/i],
 ];
 
+/** Core relation named by a text (derived word or a workbook label), or null. Order matters: "grandparent" before "parent". */
+export function relationRoot(text: string | null | undefined): Relation | null {
+  const t = (text ?? "").toLowerCase();
+  if (!t) return null;
+  if (/grand(mother|father|parent)/.test(t)) return "grandparent";
+  if (/great/.test(t)) return null;
+  if (/niece|nephew/.test(t)) return "niece/nephew";
+  if (/cousin/.test(t)) return "cousin";
+  if (/aunt|uncle/.test(t)) return "aunt/uncle";
+  if (/step/.test(t)) return "step-child";
+  if (/brother|sister|sibling/.test(t)) return "sibling";
+  if (/mother|father|parent|mom|dad/.test(t)) return "parent";
+  if (/son|daughter|child/.test(t)) return "child";
+  return null;
+}
+
 /** Text shown for a person: prefers the stored label when it names the same relation (it may carry gender). */
 export function relationText(g: Graph, anchor: string | undefined, p: Person): string {
   if (p.kind === "couple") return "the couple";
