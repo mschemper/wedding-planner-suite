@@ -4,16 +4,25 @@ import fixture from "../data/fixtures/garden.sample.json";
 import type { AuditEntry } from "../src/api/types";
 import { headcount } from "../src/people/headcount";
 import { inviteCtx } from "../src/people/invite";
-import type { PeopleData, Person } from "../src/people/types";
+import { buildRings, fillPoint } from "../src/people/rings";
+import { FRIEND_TIER_LABEL, tierCtx } from "../src/people/tier";
+import type { Party, PeopleData } from "../src/people/types";
 import {
-  authorName, capacityFor, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, filterCounts, genLabel, jsonExport,
-  matchesFilters, matchesSearch, moveRank, nextDecision, partyRows, personOps, timeAgo, unlinkedParents, type FilterKey,
+  authorName, branchEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
+  householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, personOps, quickFriendIssues,
+  quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
 } from "../src/ui/people/model";
+import { loadPrefs } from "../src/ui/prefs";
 
 const D = fixture as unknown as PeopleData;
 const clone = (): PeopleData => JSON.parse(JSON.stringify(D));
 const party = (id: string) => D.parties.find((x) => x.id === id)!;
 const person = (id: string) => D.people.find((p) => p.id === id)!;
+
+const ctx = inviteCtx(D, "ours");
+const rings = buildRings(D, ctx, tierCtx(D));
+const rows = rings.flatMap((r) => r.rows);
+const rel = relationFinder(D.people);
 
 describe("decisions", () => {
   it("tapping the lit option returns to undecided", () => {
@@ -21,44 +30,163 @@ describe("decisions", () => {
     expect(nextDecision("undecided", "no")).toBe("no");
     expect(nextDecision("invite", "ifroom")).toBe("ifroom");
   });
-  it("ifroom gets the next rank, leaving ifroom clears it", () => {
-    const e = decisionEdit(party("H-M4"), D.parties, "ifroom");
-    expect(e.patch.row).toEqual({ invite: "ifroom", rank: 3 });
+  it("a decision never touches rank (rank = order inside a ring)", () => {
+    const e = decisionEdit({ ...party("H-M4"), rank: 2 }, D.parties, "ifroom");
+    expect(e.patch.row).toEqual({ invite: "ifroom" });
     expect(e.label).toBe(`${party("H-M4").name} → If room`);
-    const out = decisionEdit(party("F-3"), D.parties, "invite");
-    expect(out.patch.row).toEqual({ invite: "invite", rank: null });
+    expect(decisionEdit(party("F-3"), D.parties, "invite").patch.row).toEqual({ invite: "invite" });
     expect(decisionEdit(party("H-C1"), D.parties, "invite").patch.row).toEqual({ invite: "undecided" });
   });
   it("moveRank swaps and renumbers only changed ranks", () => {
     const ranked = [party("F-3"), party("H-A3")];
-    const p = moveRank(ranked, "H-A3", -1);
-    expect(p).toEqual([{ table: "parties", id: "H-A3", row: { rank: 1 } }, { table: "parties", id: "F-3", row: { rank: 2 } }]);
+    expect(moveRank(ranked, "H-A3", -1)).toEqual([{ table: "parties", id: "H-A3", row: { rank: 1 } }, { table: "parties", id: "F-3", row: { rank: 2 } }]);
     expect(moveRank(ranked, "F-3", -1)).toEqual([]);
     const messy = [{ ...party("F-3"), rank: 5 }, { ...party("H-A3"), rank: 9 }];
     expect(moveRank(messy, "F-3", 1).map((x) => x.row?.rank)).toEqual([1, 2]);
   });
 });
 
-describe("filters and search", () => {
-  const rows = partyRows(D);
-  it("counts and combines groups", () => {
-    const c = filterCounts(rows);
-    expect(c.undecided).toBe(D.parties.filter((x) => x.invite === "undecided").length);
-    expect(c.ifroom).toBe(2);
-    const on = (...k: FilterKey[]) => rows.filter((r) => matchesFilters(r, new Set(k))).length;
-    expect(on()).toBe(rows.length);
-    expect(on("undecided", "ifroom")).toBe(c.undecided + c.ifroom);
-    expect(on("undecided", "friends")).toBeLessThanOrEqual(c.undecided);
-  });
-  it("search matches household, member and branch", () => {
+describe("rings: filters and row text", () => {
+  it("filters undecided, side, search", () => {
+    const f = (o: Partial<typeof NO_FILTER>) => rows.filter((r) => matchesRow(r, { ...NO_FILTER, ...o }));
+    expect(f({})).toHaveLength(rows.length);
+    expect(f({ undecidedOnly: true })).toHaveLength(D.parties.filter((x) => x.invite === "undecided" && rows.some((r) => r.party.id === x.id)).length);
+    expect(f({ side: "friends" }).every((r) => r.friend)).toBe(true);
+    expect(f({ side: "Mark" }).some((r) => r.friend)).toBe(false);
     const r = rows.find((x) => x.party.id === "H-M1")!;
-    expect(matchesSearch(r, r.party.name.slice(0, 4).toUpperCase())).toBe(true);
-    expect(matchesSearch(r, r.members[0].first)).toBe(true);
-    expect(matchesSearch(r, "zzzz-nope")).toBe(false);
-    expect(matchesSearch(r, "  ")).toBe(true);
+    expect(f({ q: r.party.name.slice(0, 4).toUpperCase() }).map((x) => x.party.id)).toContain("H-M1");
+    expect(f({ q: "zzzz-nope" })).toHaveLength(0);
   });
-  it("has-kids is true for the couple's child household", () => {
-    expect(rows.find((x) => x.party.id === "H-C1")!.hasKids).toBe(true);
+  it("relation summary uses the closest member; friends show circle + known by", () => {
+    const parents = rows.find((x) => x.party.id === "H-M1")!;
+    expect(relationSummary(parents, rel)).toMatch(/mother|father|parent|mom|dad/i);
+    const fr = { friend: true, members: [], party: { ...party("F-1"), circle: "College", known_by: "Mark" as const } };
+    expect(relationSummary(fr, rel)).toBe("College · known by Mark");
+    expect(relationSummary({ ...fr, party: { ...fr.party, circle: null, known_by: null } }, rel)).toBe("friend");
+  });
+  it("kids and seats text", () => {
+    const kid = rows.find((x) => x.party.id === "H-C1")!;
+    expect(hasKids(kid)).toBe(true);
+    expect(hasKids({ party: party("H-A1"), members: [] })).toBe(false);
+    expect(hasKids({ party: { ...party("H-A1"), unnamed_kids: 2 }, members: [] })).toBe(true);
+    const seats = (a: number, k: number) => seatsText({ seats: { heads: a + k, adults: a, kids: k, expected: 0 } });
+    expect(seats(2, 3)).toBe("2 + 3 kids");
+    expect(seats(2, 1)).toBe("2 + 1 kid");
+    expect(seats(2, 0)).toBe("2");
+    expect(seats(0, 0)).toBe("—");
+  });
+});
+
+describe("ring edits", () => {
+  it("invite all undecided = one patch per undecided household, labelled", () => {
+    const ring = rings.find((r) => r.undecidedRows > 0)!;
+    const e = inviteAllEdit(ring);
+    expect(e.patches).toHaveLength(ring.undecidedRows);
+    expect(e.patches.every((p) => p.table === "parties" && (p.row as { invite: string }).invite === "invite")).toBe(true);
+    expect(e.label).toBe(`${ring.label}: invited ${ring.undecidedRows} household${ring.undecidedRows === 1 ? "" : "s"}`);
+    expect(inviteAllEdit({ label: "X", rows: [] }).patches).toEqual([]);
+  });
+  it("tier edit sets or clears the ring", () => {
+    expect(tierEdit(party("H-M1"), 2, false).patch.row).toEqual({ tier: 2 });
+    expect(tierEdit(party("H-M1"), 2, false).label).toContain("Close family");
+    expect(tierEdit(party("F-1"), null, true).patch.row).toEqual({ tier: null });
+    expect(tierEdit(party("F-1"), 1, true).label).toContain("Must invite");
+  });
+  it("branch rename merges the whole map; empty resets", () => {
+    const e = branchEdit({ a: "A", b: "B" }, "b", "  New name ");
+    expect(e.patch).toEqual({ table: "params", id: "branchNames", row: { value: { a: "A", b: "New name" } } });
+    expect(branchEdit({ a: "A", b: "B" }, "b", " ").patch.row).toEqual({ value: { a: "A" } });
+    expect(branchEdit({}, "x", "y".repeat(80)).patch.row).toEqual({ value: { x: "y".repeat(60) } });
+  });
+});
+
+describe("room check", () => {
+  it("splits main-room seats by decision; kids go upstairs when the venue has a kids' room", () => {
+    const a = roomCheck(rings, 82, true);
+    const b = roomCheck(rings, 82, false);
+    const hc = headcount(D, "ours", ctx);
+    expect(a.invited).toBe(hc.invited.adults);
+    expect(a.ifroom).toBe(hc.ifroom.adults);
+    expect(a.undecided).toBe(hc.undecided.adults);
+    expect(a.kidsUp).toBe(hc.invited.kids + hc.ifroom.kids + hc.undecided.kids);
+    expect(b.kidsUp).toBe(0);
+    expect(b.invited).toBe(hc.invited.heads);
+    expect(roomCheck(rings, 3, true).over).toBe(Math.max(0, a.invited - 3));
+    expect(roomCheck(rings, 3, true).scale).toBeGreaterThanOrEqual(3);
+  });
+  it("fill point names the first household past the cap", () => {
+    expect(fillPoint(rings, 1000, true).party).toBeNull();
+    const f = fillPoint(rings, 2, true);
+    expect(f.party).not.toBeNull();
+    expect(rows.some((r) => r.party.id === f.party)).toBe(true);
+  });
+});
+
+describe("household sheet", () => {
+  const p = party("H-M1");
+  it("unchanged draft = no patch; changes send only changed fields", () => {
+    const d = householdDraft(p);
+    expect(householdPatch(d, p, false)).toBeNull();
+    const e = householdPatch({ ...d, tier: 3, unnamed: 2, talk: true, talk_note: " travel? " }, p, false)!;
+    expect(e.patch).toEqual({ table: "parties", id: "H-M1", row: { tier: 3, unnamed_kids: 2, talk: true, talk_note: "travel?" } });
+    expect(householdPatch({ ...d, tier: null, circle: "x" }, p, false)).toBeNull();
+  });
+  it("friend fields are written only for friends; automatic tier = null", () => {
+    const f = party("F-2");
+    const d = householdDraft(f);
+    const e = householdPatch({ ...d, circle: " College ", known_by: "Both", reciprocal: true }, f, true)!;
+    expect(e.patch.row).toEqual({ circle: "College", known_by: "Both", reciprocal: true });
+    expect(householdPatch({ ...householdDraft({ ...f, tier: 1 }), tier: null }, { ...f, tier: 1 }, true)!.patch.row).toEqual({ tier: null });
+  });
+  it("validates name and unnamed kids", () => {
+    expect(householdIssues({ ...householdDraft(p), name: " " })).toHaveLength(1);
+    expect(householdIssues({ ...householdDraft(p), unnamed: 21 })).toHaveLength(1);
+    expect(clampKids(-3)).toBe(0);
+    expect(clampKids(99)).toBe(20);
+    expect(clampKids(Number.NaN)).toBe(0);
+  });
+});
+
+describe("friends", () => {
+  it("tiers hold friend households only, ordered by rank then name", () => {
+    const t = friendTiers(rings, FRIEND_TIER_LABEL);
+    expect(t.map((x) => x.label)).toEqual(["Must invite", "Want to", "Nice to have"]);
+    const all = t.flatMap((x) => x.rows);
+    expect(all.every((r) => r.friend)).toBe(true);
+    expect(all).toHaveLength(rows.filter((r) => r.friend).length);
+    const sorted = friendTiers(rings.map((r) => (r.friend ? { ...r, rows: r.rows.map((x, i) => ({ ...x, tier: 2, party: { ...x.party, rank: 9 - i } })) } : r)), FRIEND_TIER_LABEL)[1].rows;
+    expect(sorted.map((x) => x.party.rank)).toEqual([...sorted.map((x) => x.party.rank)].sort((a, b) => a! - b!));
+  });
+  it("quick add = one household + 1-2 friends with tmp ids", () => {
+    const tierParties: Party[] = [{ ...party("F-1"), rank: 4 }];
+    const solo = quickFriendOps({ first: " Sam ", partner: "", plusOne: true, circle: " Work ", known_by: "Angela", tier: 1 }, tierParties);
+    expect(solo).toHaveLength(2);
+    expect(solo[0]).toMatchObject({ table: "parties", op: "create", row: { id: "tmp:hh", name: "Sam + guest", invite: "undecided", tier: 1, circle: "Work", known_by: "Angela", rank: 5 } });
+    expect(solo[1]).toMatchObject({ table: "people", op: "create", row: { id: "tmp:p1", first: "Sam", side: "Angela", kind: "friend", party_id: "tmp:hh", plus_one: true } });
+    const pair = quickFriendOps({ first: "Sam", partner: "Alex", plusOne: true, circle: "", known_by: "Both", tier: 2 }, []);
+    expect(pair).toHaveLength(3);
+    expect(pair[0]).toMatchObject({ row: { name: "Sam & Alex", circle: null, rank: 1 } });
+    expect(pair[1]).toMatchObject({ row: { plus_one: false } });
+    expect(pair[2]).toMatchObject({ table: "people", row: { id: "tmp:p2", first: "Alex", partner_id: "tmp:p1", party_id: "tmp:hh", side: "Both" } });
+  });
+  it("quick add validation and name", () => {
+    const f = { first: "", partner: "", plusOne: false, circle: "", known_by: "Both" as const, tier: 2 };
+    expect(quickFriendIssues(f)).toHaveLength(1);
+    expect(quickFriendIssues({ ...f, first: "A" })).toEqual([]);
+    expect(quickFriendName({ ...f, first: "A" })).toBe("A");
+  });
+});
+
+describe("prefs migration", () => {
+  const withStore = (v: unknown) => {
+    (globalThis as unknown as { localStorage: unknown }).localStorage = { getItem: () => JSON.stringify({ peopleView: v }), setItem: () => undefined };
+    try { return loadPrefs().peopleView; } finally { delete (globalThis as unknown as { localStorage?: unknown }).localStorage; }
+  };
+  it("garden to family, envelopes to decide, junk to null", () => {
+    expect(withStore("garden")).toBe("family");
+    expect(withStore("envelopes")).toBe("decide");
+    expect(withStore("friends")).toBe("friends");
+    expect(withStore("nope")).toBeNull();
   });
 });
 
@@ -89,6 +217,8 @@ describe("audit wording", () => {
   it("describes overrides and kids policy", () => {
     expect(describeAudit(entry({ tbl: "people", row_id: "M001", before: { override: null }, after: { override: "no" } }), names)).toBe(`${person("M001").first} → exception: not inviting`);
     expect(describeAudit(entry({ tbl: "params", row_id: "kidsPolicy", after: { value: "family" } }), names)).toBe("Kids policy → Family kids");
+    expect(describeAudit(entry({ tbl: "params", row_id: "branchNames", after: { value: { a: "b" } } }), names)).toBe("Branch renamed");
+    expect(describeAudit(entry({ before: { tier: null }, after: { tier: 2 } }), names)).toBe(`${party("H-M1").name} → ring 2`);
   });
   it("author and time", () => {
     expect(authorName("angela@example.com")).toBe("Angela");
@@ -130,28 +260,7 @@ describe("person ops", () => {
   });
 });
 
-describe("garden helpers", () => {
-  it("unlinked parents excludes couple's parents, placeholders and old generations", () => {
-    const d = clone();
-    const s = unlinkedParents(d.people);
-    for (const id of s) {
-      const p = d.people.find((x) => x.id === id) as Person;
-      expect(p.parent_ids).toEqual([]);
-      expect((p.gen ?? 0) >= -1).toBe(true);
-      expect(p.placeholder).toBe(false);
-    }
-    expect(s.has("G-M-1")).toBe(false);
-    d.people.push({ ...person("M001"), id: "X1", parent_ids: [], gen: -1, party_id: "H-M1" } as Person);
-    expect(unlinkedParents(d.people).has("X1")).toBe(true);
-  });
-  it("row labels", () => {
-    expect(genLabel(-2)).toBe("Grandparents");
-    expect(genLabel(3)).toBe("Generation 3");
-  });
-});
-
 describe("envelopes and export", () => {
-  const ctx = inviteCtx(D, "ours");
   it("invited, then ifroom by rank; heads match headcount", () => {
     const e = envelopes(D, ctx);
     const hc = headcount(D, "ours", ctx);
