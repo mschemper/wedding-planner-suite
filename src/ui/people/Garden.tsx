@@ -67,7 +67,12 @@ export function Garden({ act, onPerson, onAddRelative }: {
   const nodes = useRef(new Map<string, HTMLElement>());
   const active = garden.beds.some((b) => bedKey(b) === chosen) ? chosen : garden.beds[0] ? bedKey(garden.beds[0]) : "";
   const shown = wide ? garden.beds : garden.beds.filter((b) => bedKey(b) === active);
-  const lines = useEdges(box, nodes, garden.edges, `${wide}|${active}|${people.people.length}`);
+  // Lines only inside one bed: cross-bed lines (couple → parents, parents on two sides) crossed the whole garden.
+  const bedEdges = useMemo(() => {
+    const where = new Map(people.people.map((p) => [p.id, p.kind === "couple" ? "couple" : `${p.side}|${p.branch ?? ""}`]));
+    return garden.edges.filter((e) => where.get(e.from) !== "couple" && where.get(e.from) === where.get(e.to));
+  }, [garden.edges, people.people]);
+  const lines = useEdges(box, nodes, bedEdges, `${wide}|${active}|${people.people.length}`);
   const node = nodeId ? people.people.find((p) => p.id === nodeId) : undefined;
   const nodeRow = node?.party_id ? rows.get(node.party_id) : undefined;
 

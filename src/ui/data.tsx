@@ -148,6 +148,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     });
     const ops = toOps(patches);
     if (typeof ops === "string") return { ok: false, kind: "not_found", message: ops };
+    if (!ops.length) return { ok: true, ids: {} };
     const r = await save(ops);
     if (r.ok) setUndo({ label, inverse, at: Date.now() });
     return r;
@@ -156,10 +157,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const undo = useCallback(async (): Promise<SaveResult> => {
     const u = undoState;
     if (!u) return { ok: true, ids: {} };
-    setUndo(null);
     const ops = toOps(u.inverse);
-    if (typeof ops === "string") return { ok: false, kind: "not_found", message: ops };
-    return save(ops);
+    if (typeof ops === "string") { setUndo(null); return { ok: false, kind: "not_found", message: ops }; }
+    const r = ops.length ? await save(ops) : ({ ok: true, ids: {} } as SaveResult);
+    if (r.ok) setUndo(null);
+    return r;
   }, [undoState, toOps, save]);
 
   const value = useMemo<DataCtx>(() => {

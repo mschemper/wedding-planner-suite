@@ -93,7 +93,7 @@ export function TodayScreen() {
         <Button kind="quiet" onClick={allMustHaves}>All must-haves</Button>
       </Card>
 
-      <Card title="Next up" corner className="span-8">
+      <Card title="Next up" corner className="span-6">
         {next.length === 0 ? (
           <EmptyState>{status === "loading" ? "Loading…" : offline ? "Tasks live in the online planner." : "No open tasks. Add one in Plan."}</EmptyState>
         ) : (
@@ -102,7 +102,7 @@ export function TodayScreen() {
         <Button kind="quiet" onClick={() => setTab("plan")}>All tasks</Button>
       </Card>
 
-      <Card title="Shortlist" className="span-12">
+      <Card title="Shortlist" className="span-6">
         {active.length === 0 ? <EmptyState>No venues on the shortlist.</EmptyState> : (
           <div className="td-venues">{active.map((v, i) => <VenueTile key={v.scenario.id} v={v} i={i} onOpen={() => openVenue(v.scenario.id)} />)}</div>
         )}

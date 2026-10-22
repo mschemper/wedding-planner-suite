@@ -1,7 +1,8 @@
 import type { Tab } from "./nav";
 
 // Per-viewer conveniences only (DESIGN-v4 §2 "Prefs"). Storage can be missing or throw (private mode, file://): always fall back.
-export type GuestBasis = "expected" | "ceiling" | "custom";
+/** considered = expected if every undecided / if-room household is invited too (default while deciding) */
+export type GuestBasis = "considered" | "expected" | "ceiling" | "custom";
 export type PeopleView = "decide" | "garden" | "friends" | "envelopes";
 
 export interface Prefs {
@@ -25,7 +26,7 @@ export interface Prefs {
 const KEY = "wps.prefs.v2";
 const OLD_KEY = "wps.prefs.v1";
 export const DEFAULT_PREFS: Prefs = {
-  tab: "today", guestBasis: "expected", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto",
+  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto",
 };
 
 const TABS: Tab[] = ["today", "venues", "people", "plan"];
@@ -43,7 +44,7 @@ export function loadPrefs(): Prefs {
     const p = JSON.parse(raw) as Partial<Prefs>;
     return {
       tab: TABS.includes(p.tab as Tab) ? (p.tab as Tab) : DEFAULT_PREFS.tab,
-      guestBasis: p.guestBasis === "ceiling" || p.guestBasis === "custom" ? p.guestBasis : "expected",
+      guestBasis: p.guestBasis === "ceiling" || p.guestBasis === "custom" || p.guestBasis === "expected" ? p.guestBasis : "considered",
       guests: Number.isFinite(p.guests) ? Number(p.guests) : DEFAULT_PREFS.guests,
       date: typeof p.date === "string" && DAY.test(p.date) ? p.date : null,
       contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : 0,

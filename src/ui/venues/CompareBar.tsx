@@ -20,7 +20,8 @@ export function CompareBar() {
       <div className="vn-bar-grid">
         <div>
           <Segmented<GuestBasis> label="Guest count basis" value={prefs.guestBasis} onChange={(v) => set({ guestBasis: v })} options={[
-            { value: "expected", label: expected > 0 ? `Expected (≈${expected})` : "Expected" },
+            { value: "considered", label: `Incl. undecided (≈${Math.round(hc.invited.expected + hc.ifroom.expected + hc.undecided.expected)})` },
+            { value: "expected", label: expected > 0 ? `Invited only (≈${expected})` : "Invited only" },
             { value: "ceiling", label: hc.invited.heads > 0 ? `Everyone invited (${hc.invited.heads})` : "Everyone invited" },
             { value: "custom", label: "Custom" },
           ]} />

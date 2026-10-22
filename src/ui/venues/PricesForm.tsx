@@ -77,7 +77,7 @@ export function PricesForm() {
     await run(ops, `Saved ${ops.length} change${ops.length === 1 ? "" : "s"}. Every venue is repriced.`);
   }
 
-  const reset = () => run(paramRows.map((r) => ({ table: "params", op: "delete", id: r.key, version: r.version }) as Op), "Back to the doc values.");
+  const reset = () => run(paramRows.filter((r) => (PARAM_KEYS as string[]).includes(r.key)).map((r) => ({ table: "params", op: "delete", id: r.key, version: r.version }) as Op), "Back to the doc values.");
   // re-seed the drafts whenever the stored rows change (after a save, reset or reload)
   const sig = raw ? JSON.stringify(paramRows.map((r) => [r.key, r.version])) : "";
   useEffect(() => {

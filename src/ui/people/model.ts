@@ -292,7 +292,10 @@ export function personOps(a: {
 /** Garden "Set parents": family, gen >= -1, no parents, not one of the couple's own parents, not a tree-only placeholder. */
 export function unlinkedParents(people: Person[]): Set<string> {
   const coupleParents = new Set(people.filter((p) => p.kind === "couple").flatMap((p) => p.parent_ids));
-  return new Set(people.filter((p) => p.kind === "family" && !p.placeholder && (p.gen ?? 0) >= -1 && p.parent_ids.length === 0 && !coupleParents.has(p.id)).map((p) => p.id));
+  const byId = new Map(people.map((p) => [p.id, p]));
+  // married-in relatives (their partner is the linked one) are not "missing parents"
+  const marriedIn = (p: Person) => !!p.partner_id && (byId.get(p.partner_id)?.parent_ids.length ?? 0) > 0;
+  return new Set(people.filter((p) => p.kind === "family" && !p.placeholder && (p.gen ?? 0) >= -1 && p.parent_ids.length === 0 && !coupleParents.has(p.id) && !marriedIn(p)).map((p) => p.id));
 }
 
 export function genLabel(gen: number): string {

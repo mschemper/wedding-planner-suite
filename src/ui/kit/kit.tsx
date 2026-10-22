@@ -1,5 +1,5 @@
 // Shared primitives (DESIGN-v4 §6, lead-owned). Styles in src/ui/styles.css (.k-*). Builders compose these; they do not restyle them.
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Owner, Verdict } from "../../plan/types";
 import { Corner } from "../garden/motifs";
 import { useData } from "../data";
@@ -79,7 +79,7 @@ const VERDICT_ICON: Record<Verdict, string> = { yes: "✓", partly: "◐", no: "
 export function VerdictPicker({ verdict, onCycle, label, disabled }: { verdict: Verdict; onCycle(): void; label: string; disabled?: boolean }) {
   return (
     <button type="button" className={`k-verdict v-${verdict}`} onClick={onCycle} disabled={disabled} aria-label={`${label}: ${VERDICT_TEXT[verdict]}. Tap to change.`}>
-      <span aria-hidden="true">{VERDICT_ICON[verdict]}</span><span className="k-verdict-text">{VERDICT_TEXT[verdict]}</span>
+      <span aria-hidden="true">{VERDICT_ICON[verdict]}</span>{verdict !== "unknown" && <span className="k-verdict-text">{VERDICT_TEXT[verdict]}</span>}
     </button>
   );
 }
@@ -89,14 +89,16 @@ export const verdictText = (v: Verdict) => VERDICT_TEXT[v];
 export function Sheet({ title, open, onClose, children, footer }: { title: string; open: boolean; onClose(): void; children: ReactNode; footer?: ReactNode }) {
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close.current(); };
     window.addEventListener("keydown", onKey);
     return () => { window.removeEventListener("keydown", onKey); prev?.focus?.(); };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="k-sheet-wrap">
@@ -113,16 +115,24 @@ export function Sheet({ title, open, onClose, children, footer }: { title: strin
 /** "Saved · Undo" toast for the last edit() (src/ui/data.tsx). Mounted once in App. Auto-hides after 6 s. */
 export function UndoToast() {
   const { undoState, undo, dismissUndo } = useData();
+  const [failed, setFailed] = useState<string | null>(null);
   useEffect(() => {
     if (!undoState) return;
+    setFailed(null);
     const t = setTimeout(dismissUndo, 6000);
     return () => clearTimeout(t);
   }, [undoState, dismissUndo]);
+  useEffect(() => {
+    if (!failed) return;
+    const t = setTimeout(() => setFailed(null), 8000);
+    return () => clearTimeout(t);
+  }, [failed]);
+  if (failed) return <div className="k-toast" role="alert"><span>Undo failed · {failed}</span><button type="button" className="k-toast-btn" onClick={() => setFailed(null)}>OK</button></div>;
   if (!undoState) return null;
   return (
     <div className="k-toast" role="status">
       <span>{undoState.label}</span>
-      <button type="button" className="k-toast-btn" onClick={() => void undo()}>Undo</button>
+      <button type="button" className="k-toast-btn" onClick={() => void undo().then((r) => { if (!r.ok) { setFailed(r.message); dismissUndo(); } })}>Undo</button>
     </div>
   );
 }

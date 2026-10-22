@@ -41,7 +41,7 @@ describe("effective invite", () => {
 describe("headcount", () => {
   it("splits invited / if room / undecided / no, adults vs kids' room, plus-ones", () => {
     const h = headcount(D, "ours");
-    // invited: H-C1 Sylvie(kid) + H-M1 2 + H-M2 2 adults (kids out) + H-M3 2 + H-A1 2 + H-A2 1 + F-1 2
+    // invited: H-C1 Wren(kid) + H-M1 2 + H-M2 2 adults (kids out) + H-M3 2 + H-A1 2 + H-A2 1 + F-1 2
     expect(h.invited).toMatchObject({ heads: 12, adults: 11, kids: 1 });
     expect(h.ifroom.heads).toBe(2); // Nettle + Sage (Oak deceased)
     expect(h.undecided.heads).toBe(4); // Hazel, Iris, Rowan + plus-one

@@ -29,7 +29,7 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: var(--ground); color: var(--ink); font: 16px/1.5 var(--sans); min-height: 100vh; }
+body { background: var(--ground); color: var(--ink); font: 16px/1.5 var(--sans); min-height: 100vh; font-variant-numeric: lining-nums; }
 h1, h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.15; }
 button, select, input, textarea { font: inherit; color: inherit; }
 button, select { cursor: pointer; }
@@ -82,7 +82,7 @@ a { color: var(--euc-ink); }
 .k-filter { min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--ground); font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
 .k-filter[aria-pressed="true"] { background: var(--euc); border-color: var(--euc); color: var(--on-euc); }
 .k-count { font-size: 12px; font-weight: 600; opacity: .85; }
-.k-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--ground); }
+.k-seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--ground); }
 .k-seg-opt { min-height: 44px; min-width: 44px; padding: 6px 12px; border: 0; border-left: 1px solid var(--line); background: none; font-size: 15px; font-weight: 600; }
 .k-seg-opt:first-child { border-left: 0; }
 .k-seg-sm .k-seg-opt { min-height: 36px; padding: 4px 10px; font-size: 14px; }
@@ -91,7 +91,7 @@ a { color: var(--euc-ink); }
 .k-seg-opt.on.tone-peony { background: var(--peony); color: #fff; }
 .k-seg-opt.on.tone-plain { background: var(--line); color: var(--ink); }
 .k-seg-opt:disabled { cursor: default; opacity: .6; }
-.k-stat-value { font-family: var(--serif); font-size: 34px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.k-stat-value { font-family: var(--sans); font-size: 30px; font-weight: 600; letter-spacing: -.5px; line-height: 1; font-variant-numeric: tabular-nums; }
 .k-stat-label { font-size: 14px; color: var(--muted); }
 .k-stat-sub { font-size: 13px; color: var(--muted); }
 .k-empty { color: var(--muted); font-style: italic; padding: 8px 0; }

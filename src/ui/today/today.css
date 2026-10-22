@@ -1,6 +1,6 @@
 /* Today (mockup docs/mockups/v4-garden.html). Tokens only; classes prefixed td-. */
 .g-grid > .span-12 { grid-column: span 12; }
-.td-big { font-family: var(--serif); font-size: 46px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.td-big { font-family: var(--sans); font-size: 40px; font-weight: 600; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
 .td-muted { color: var(--muted); font-size: 14px; margin-top: 4px; }
 .td-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
 .td-list { padding-left: 18px; margin: 6px 0 4px; }

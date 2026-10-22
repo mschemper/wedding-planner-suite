@@ -33,7 +33,7 @@ export function PeopleScreen() {
   useEffect(() => {
     if (!focus.person) return;
     if (people.people.some((p) => p.id === focus.person)) { open({ mode: "edit", id: focus.person }); clearFocus(); }
-    else if (status === "ready" && people.people.length > 0) clearFocus();
+    else if (status === "ready") clearFocus();
   }, [focus.person, people.people, status, open, clearFocus]);
 
   if (offline) return <Card title="People"><EmptyState>Guest decisions live in the online planner.</EmptyState></Card>;

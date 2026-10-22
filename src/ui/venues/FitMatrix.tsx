@@ -1,5 +1,5 @@
 // Must-have × venue verdict matrix (DESIGN-v4 §1.8, §2). Tap cycles + saves (Undo via edit); "note" opens a Sheet.
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { Button, Card, EmptyState, Field, Sheet, VerdictPicker, verdictText } from "../kit/kit";
 import { SaveError } from "../SaveError";
 import { useData, type SaveResult } from "../data";
@@ -16,9 +16,14 @@ export function useFitEdit() {
     const r = w.kind === "edit" ? await edit(w.patches, label) : await save(w.ops);
     setFail(r.ok ? null : r);
   }, [edit, save]);
-  const cycle = useCallback((scenarioId: number, musthaveId: string, names: string) => {
-    const { next, write } = cycleFitWrite(fit, scenarioId, musthaveId);
-    return run(write, `${names}: ${verdictText(next as Verdict)}`);
+  const busy = useRef(false);
+  const cycle = useCallback(async (scenarioId: number, musthaveId: string, names: string) => {
+    if (busy.current) return;
+    busy.current = true;
+    try {
+      const { next, write } = cycleFitWrite(fit, scenarioId, musthaveId);
+      await run(write, `${names}: ${verdictText(next as Verdict)}`);
+    } finally { busy.current = false; }
   }, [fit, run]);
   const setNote = useCallback((scenarioId: number, musthaveId: string, note: string, names: string) =>
     run(noteWrite(fit, scenarioId, musthaveId, note), `Saved note · ${names}`), [fit, run]);

@@ -17,7 +17,7 @@
 }
 .pp-impact { position: sticky; top: 0; z-index: 5; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
 .pp-stats { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-.pp-stat b { display: block; font-family: var(--serif); font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+.pp-stat b { display: block; font-family: var(--sans); font-weight: 600; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
 .pp-stat span { font-size: 13px; color: var(--muted); }
 .pp-cap { flex: 1 1 260px; min-width: 240px; font-size: 14px; }
 .pp-cap-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; }
