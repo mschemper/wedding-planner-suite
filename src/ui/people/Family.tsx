@@ -39,7 +39,8 @@ function Names({ u }: { u: Unit }) {
 function UnitRow({ u, env, tray }: { u: Unit; env: Env; tray?: boolean }) {
   const lead = u.people.find((p) => !p.placeholder && !p.deceased) ?? u.people[0];
   const party = u.party_id ? env.parties.get(u.party_id) : undefined;
-  const kids = party ? (env.members.get(party.id) ?? []).some((m) => m.age === "child" && !m.deceased) || (party.unnamed_kids ?? 0) > 0 : false;
+  // kids chip only on a grown-up's row (the household's kids rule), not on each child
+  const kids = party && lead.age === "adult" ? (env.members.get(party.id) ?? []).some((m) => m.age === "child" && !m.deceased) || (party.unnamed_kids ?? 0) > 0 : false;
   const relation = lead.placeholder ? "" : env.rel(lead);
   const go = () => (party ? env.onHousehold(party.id) : env.onPerson(lead.id));
   return (
