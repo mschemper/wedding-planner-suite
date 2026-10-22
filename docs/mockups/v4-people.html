@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guest decisions mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#FBF7EF;--card:#FFFDF8;--ink:#2E3A2F;--muted:#5C6B5E;--line:#E3DCCB;--blush:#E8A9A0;--sage:#9DB08A;--marigold:#E3B04B;--euc:#6E8B74;--peony:#C86F7E;--peony-ink:#A4505F;--euc-ink:#4F6B55;--gold-ink:#7A5A12}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--ground:#1F3B2D;--card:#26453A;--ink:#F4EFE4;--muted:#C9D3C4;--line:#3C5E4F;--peony-ink:#F2B7BF;--euc-ink:#B9D3BE;--gold-ink:#F6D98B}}
+:root[data-theme=dark]{--ground:#1F3B2D;--card:#26453A;--ink:#F4EFE4;--muted:#C9D3C4;--line:#3C5E4F;--peony-ink:#F2B7BF;--euc-ink:#B9D3BE;--gold-ink:#F6D98B}
+*{box-sizing:border-box;margin:0}body{background:var(--ground);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700}
+header{text-align:center;padding:22px 16px 8px}h1{font-size:34px}
+nav{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}nav a{padding:7px 15px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px}nav a.on{background:var(--euc);color:#fff}
+.views{display:flex;justify-content:center;gap:4px;margin:12px auto 0;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;width:max-content}
+.views b,.views span{padding:5px 14px;border-radius:999px;font-size:14px}.views b{background:var(--blush);color:#3a2226}
+main{max-width:1100px;margin:0 auto;padding:12px 16px 80px;display:grid;gap:16px}
+@media(min-width:900px){main{grid-template-columns:2fr 1fr}.impact{grid-column:1/-1}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:0 6px 20px rgba(46,58,47,.06)}
+.impact{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center}
+.stat b{font-family:"Cormorant Garamond",Georgia,serif;font-size:30px;display:block;line-height:1}.stat span{font-size:13px;color:var(--muted)}
+.cap{flex:1 1 260px;min-width:240px}.bar{height:12px;border-radius:9px;background:var(--line);position:relative;margin:6px 0 2px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:9px;background:var(--euc)}.bar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--peony)}
+.muted{color:var(--muted);font-size:14px}.small{font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.chip{padding:4px 11px;border-radius:999px;border:1px solid var(--line);font-size:14px;background:var(--ground)}.chip.on{background:var(--euc);color:#fff;border-color:var(--euc)}
+.search{width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--ground);color:var(--ink);font:inherit}
+.party{border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:color-mix(in srgb,var(--sage) 16%,transparent)}
+.phead h3{font-size:20px}.row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px dashed var(--line);flex-wrap:wrap}
+.who{flex:1 1 160px}.who b{font-weight:600}.who small{display:block;color:var(--muted);font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg span{padding:7px 11px;font-size:14px;font-weight:600;min-width:44px;text-align:center;border-left:1px solid var(--line)}.seg span:first-child{border-left:0}
+.seg .y{background:var(--euc);color:#fff}.seg .r{background:var(--marigold);color:#2e2200}.seg .n{background:var(--line)}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--marigold) 30%,transparent);color:var(--gold-ink);font-weight:600}
+.talk{background:color-mix(in srgb,var(--blush) 40%,transparent);color:var(--peony-ink)}
+ol.rank{padding-left:22px}ol.rank li{padding:6px 0;border-bottom:1px dashed var(--line)}ol.rank li.cut{border-bottom:2px solid var(--peony)}
+.cutlabel{font-size:12px;color:var(--peony-ink);font-weight:600;margin:-2px 0 6px 0}
+.log li{list-style:none;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:12px;font-size:14px}
+.toast u{color:var(--twinkle,#F6D98B);margin-left:10px}
+.toggle{position:fixed;right:12px;bottom:64px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 13px Inter}
+</style></head><body>
+<header><h1>People</h1>
+<nav><a href="#">Today</a><a href="#">Venues</a><a class="on" href="#">People</a><a href="#">Plan</a></nav>
+<div class="views"><b>Decide</b><span>Family garden</span><span>Friends</span><span>Envelopes</span></div></header>
+<main>
+<section class="card impact" aria-label="Live impact">
+<div class="stat"><b>74</b><span>invited</span></div>
+<div class="stat"><b>≈ 63</b><span>expected</span></div>
+<div class="stat"><b>62 · 12</b><span>adults · kids' room</span></div>
+<div class="stat"><b>21</b><span>undecided</span></div>
+<div class="cap"><div class="small"><b>Firehouse</b> seats 82 · 62 adults at full yes → <b>20 seats spare</b></div>
+<div class="bar"><i style="width:75.6%"></i><u style="left:100%"></u></div>
+<div class="small muted">Joinery 160 ✓ · River Room needs 100+ on peak Saturdays</div></div>
+</section>
+
+<section class="card">
+<input class="search" placeholder="Search a name, household or branch">
+<div class="chips"><span class="chip on">Undecided (21)</span><span class="chip">If room (9)</span><span class="chip">Talk about (3)</span><span class="chip">Invited</span><span class="chip">Not inviting</span><span class="chip">Kids</span><span class="chip">Mark's side</span><span class="chip">Angela's side</span><span class="chip">Friends</span></div>
+
+<p class="small" style="margin:-2px 0 10px">Kids policy: <span class="seg"><span class="y">Our kids only</span><span>Family kids</span><span>All kids</span></span> <span class="muted">· each household can override</span></p>
+
+<div class="party"><div class="phead"><h3>Cousin household · Mom's side</h3><span class="seg"><span class="y">Invite</span><span>If room</span><span>No</span></span></div>
+<div class="row"><div class="who"><b>Cousin A. &amp; partner</b><small>Mark's cousin · cousin-in-law · local</small></div></div>
+<div class="row"><div class="who"><b>3 kids</b> <span class="tag">kids' room</span><small>Sylvie's party upstairs</small></div><span class="small">Kids:</span><span class="seg"><span>Policy (out)</span><span class="y">In</span><span>Out</span></span></div>
+</div>
+
+<div class="party"><div class="phead"><h3>Great-aunt household · Dad's side</h3><span class="seg"><span>Invite</span><span class="r">If room</span><span>No</span></span></div>
+<div class="row"><div class="who"><b>Great-aunt R.</b> <span class="tag talk">talk about</span><small>Mark's great-aunt · out of town · note: "travel?"</small></div></div>
+</div>
+
+<div class="party"><div class="phead"><h3>Friend couple · Angela</h3><span class="seg"><span>Invite</span><span>If room</span><span>No</span></span></div>
+<div class="row"><div class="who"><b>Friend J. &amp; partner</b><small>Angela's friend · circle: Work · undecided</small></div></div>
+</div>
+<p class="muted small">One tap decides the household and saves instantly, with Undo. Tap a name for "Edit details" (links, notes, local/away, a one-person exception).</p>
+</section>
+
+<aside style="display:grid;gap:16px;align-content:start">
+<section class="card"><h2>If room · ranked</h2>
+<p class="muted small">Drag or ↑↓ to rank. The line shows who fits at the venue you're comparing.</p>
+<ol class="rank"><li>Friend couple (2)</li><li>Cousin household (4)</li><li class="cut">Great-aunt R. (1)</li></ol>
+<div class="cutlabel">— fits Firehouse (82 seated) above this line —</div>
+<ol class="rank" start="4"><li>Neighbors (2)</li><li>Work friends (3)</li></ol></section>
+<section class="card"><h2>Recent decisions</h2><ul class="log">
+<li><b>Angela</b> · Friend couple → Invite · 2 h ago</li>
+<li><b>Mark</b> · Great-aunt R. → If room, talk about · yesterday</li>
+<li><b>Mark</b> · Cousin household → All in · yesterday</li></ul></section>
+</aside>
+</main>
+<div class="toast">Cousin household → All in (4 people) <u>Undo</u></div>
+<button class="toggle" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">Day / dusk</button>
+</body></html>
