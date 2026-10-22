@@ -1,13 +1,16 @@
+import type { Tab } from "./nav";
+
 // Per-viewer conveniences only. Storage can be missing or throw (private mode, file://): always fall back to defaults.
 export interface Prefs {
   guests: number;
   date: string;
   contingency: number;
   selected: number | null;
+  tab: Tab;
 }
 
 const KEY = "wps.prefs.v1";
-export const DEFAULT_PREFS: Prefs = { guests: 75, date: "2027-04-24", contingency: 0, selected: null };
+export const DEFAULT_PREFS: Prefs = { guests: 75, date: "2027-04-24", contingency: 0, selected: null, tab: "budget" };
 
 export function loadPrefs(): Prefs {
   try {
@@ -19,6 +22,7 @@ export function loadPrefs(): Prefs {
       date: typeof p.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : DEFAULT_PREFS.date,
       contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : DEFAULT_PREFS.contingency,
       selected: typeof p.selected === "number" ? p.selected : null,
+      tab: p.tab === "guests" || p.tab === "quotes" ? p.tab : "budget",
     };
   } catch {
     return DEFAULT_PREFS;

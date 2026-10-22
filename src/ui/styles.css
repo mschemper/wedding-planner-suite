@@ -116,3 +116,25 @@ select { padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); 
 
 h3.section-title { font-weight: 800; }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+
+/* v3 shell: sticky tab bar, status lines, quote action in budget rows */
+.shell-bar { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.shell-inner { max-width: 1080px; margin: 0 auto; padding: 10px 16px 0; }
+.shell-inner .header { margin-bottom: 6px; }
+.tabs { display: flex; gap: 4px; }
+.tab { flex: 1 1 0; min-height: 44px; padding: 8px 10px; border: none; border-bottom: 4px solid transparent; background: none; color: var(--ink); font-weight: 800; font-size: 14px; }
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+.tab-short { display: none; }
+.status-line { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink); margin-bottom: 10px; }
+.budget-row .row-action { order: 0; flex: 0 0 auto; }
+.budget-row .row-action:empty { display: none; }
+.budget-row .amts { order: 1; }
+.save-issues { margin-top: 6px; padding-left: 18px; font-size: 12.5px; }
+@media (max-width: 520px) {
+  .shell-inner { padding: 8px 12px 0; }
+  .tab { font-size: 13px; padding: 8px 4px; }
+  .tab-long { display: none; } .tab-short { display: inline; }
+  .tab[id="tab-quotes"] .tab-short::after { content: " & prices"; }
+  .budget-row { flex-wrap: wrap; }
+  .budget-row .row-action { order: 2; flex-basis: 100%; }
+}

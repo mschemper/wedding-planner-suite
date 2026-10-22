@@ -14,7 +14,7 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 
 ## Session start (in order)
 0. Cowork only: repo not mounted -> device_request_folder_access C:\Users\msche\Documents\Projects\wedding-planner-suite.
-1. Verify environment, never assume: `node -v` (>=20), `npm -v`, `git status`. No node_modules -> `npm ci`. Node missing -> tell Mark the one command (docs/STATE.md "Environment"), stop.
+1. Verify environment, never assume: `node -v` (>=22.13; node:sqlite), `npm -v`, `git status`. No node_modules -> `npm ci`. Node missing -> tell Mark the one command (docs/STATE.md "Environment"), stop.
 2. docs/STATE.md -- what is true now.
 3. docs/BACKLOG.md -- open requests + bugs; plan from here. docs/CODEMAP.md -- files per subject.
 4. docs/RELEASE.md -- usage-first sizing (incl. subagents) without asking Mark, then its checklist and traps. Follow both.
@@ -28,14 +28,16 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 - Personal costs only via `src/data/params.ts`. Venue seasons: `Scenario.seasons` from the venue's own page; cite in `seasonSource`; `docSeason` keeps golden on the doc's assumption.
 - Golden rows that depend on season carry a date.
 - Guest column names identical to the workbook. Import only via `npm run import:guests`.
-- Build = Vite + vite-plugin-singlefile -> one file. No CDN, no runtime fetch.
+- Two builds: hosted `dist/` (Worker assets; data only via /api; build fails if data/private is bundled) and offline `dist-offline/index.html` (singlefile, read-only, no CDN, no fetch).
+- Worker: `worker/` pure handler; one save = one D1 batch (`POST /api/write`); never write D1 outside it. Contract `src/api/types.ts`; UI reads only `useData()` (src/ui/data.tsx).
+- New D1 column/table -> new migration file + `worker/db.ts` TABLES + tests/worker.test.ts. Never edit an applied migration.
 - Exact dependency versions. SheetJS from cdn.sheetjs.com tarball (npm `xlsx` frozen at CVE'd 0.18.5).
 
 ## Build and release
-- Gate: `npm run check` (typecheck + tests + build, ~10 s) before any behaviour-changing commit.
-- Dev: `npm run dev`. Engine vs doc: `npm test -- golden`.
+- Gate: `npm run check` (typecheck + tests incl. Worker + both builds, ~15 s) before any behaviour-changing commit.
+- Dev: `npm run dev` (UI + local /api on .wrangler/dev/db.sqlite, synthetic data; delete that folder to reset). Engine vs doc: `npm test -- golden`.
 - Release: docs/RELEASE.md checklist -> bump package.json, `git tag -a vN -m vN`, CHANGELOG + STATE + BACKLOG + USAGE row.
-- Until v3 deploys: hand Mark `dist\index.html`. After: deploy per docs/DESIGN-v3.md §7; deploy → Access → seed, never seed before Access.
+- Until v3 deploys: hand Mark `dist-offline\index.html` (`npm run build:offline`). After: deploy per docs/DESIGN-v3.md §7; deploy → Access → seed, never seed before Access.
 - Cloudflare work: load skills `cloudflare:wrangler`, `cloudflare:workers-best-practices`, `cloudflare:cloudflare-one` (Access) if available. Never ask Mark for an API token in chat; `wrangler login` in his browser.
 - Never print or commit Access AUD/team secrets beyond wrangler vars; never commit `.wrangler/` or `.dev.vars`.
 - Time estimates to Mark: Sonnet subagent ~25-30 min each, even in parallel.
@@ -60,6 +62,8 @@ Planning tools for Mark & Angela's 2027 wedding. Budget Studio: 16 venue scenari
 - Data-point lines extrapolate past the source (≈) -- treat those figures as soft. REVIEW-v2.md F-04.
 - Hooks after an early return crashed v1 -- keep all hooks above returns in src/ui/App.tsx.
 - Controlled number input that rejects keystrokes cannot be typed into -- edit a draft, commit on blur/Enter (REVIEW-v3 R1).
+- workerd crashes on Mark's PC: no `wrangler dev`/`wrangler types`/vitest-pool-workers; Worker runs in Node via scripts/d1-sqlite.ts -- HISTORY.md v3.
+- npm 11 skips postinstall scripts: if a wrangler command needs workerd, `node node_modules/workerd/install.js`.
 - `gitignore` `node_modules/` misses a symlinked node_modules (worktrees) -- pattern is `node_modules`.
 
 ## Environment

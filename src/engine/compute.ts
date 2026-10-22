@@ -76,6 +76,24 @@ export interface ComputeOptions {
   quotes?: Quote[];
 }
 
+/** Quotes that can price this scenario under these option choices: right scenario, received/accepted, options match. */
+export function applicableQuotes(sc: Scenario, quotes: Quote[] | undefined, opts: Options = defaultOpts(sc)): Quote[] {
+  return (quotes ?? []).filter(
+    (q) =>
+      q.scenario_id === sc.id &&
+      (q.status === "received" || q.status === "accepted") &&
+      Object.entries(q.options ?? {}).every(([k, v]) => opts[k] === v),
+  );
+}
+
+/** accepted beats received; then the latest received_on. */
+function better(a: Quote, b: Quote): Quote {
+  if ((a.status === "accepted") !== (b.status === "accepted")) return a.status === "accepted" ? a : b;
+  return (b.received_on ?? "") > (a.received_on ?? "") ? b : a;
+}
+
+const quoteAmount = (q: Quote, g: number) => Math.round(q.basis === "perGuest" ? q.amount * g : q.amount);
+
 export function computeBudget(sc: Scenario, guests: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): Budget {
   const g = Number.isFinite(guests) ? Math.max(0, Math.round(guests)) : 0;
   const season = seasonOf(sc, co.date);
@@ -83,6 +101,17 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
   const rows: BudgetRow[] = [];
   let taxBase = 0;
   const order: (BudgetRow | { pendingIdx: number })[] = [];
+  const live = applicableQuotes(sc, co.quotes, opts);
+  const byDesc = new Map<string, Quote>();
+  let allIn: Quote | undefined;
+  for (const q of live) {
+    if (q.item_desc === "*") allIn = allIn ? better(allIn, q) : q;
+    else byDesc.set(q.item_desc, byDesc.has(q.item_desc) ? better(byDesc.get(q.item_desc)!, q) : q);
+  }
+  const matched = new Set<string>();
+  const markMatched = (desc: string) => {
+    for (const q of live) if (q.item_desc === desc) matched.add(q.id);
+  };
 
   for (const it of sc.items) {
     if (!applies(it.appliesIf, g, opts, season)) continue;
@@ -92,15 +121,31 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
       continue;
     }
     const { v, extrapolated } = itemAmount(it, g);
-    if (it.taxable) taxBase += v;
-    const row: BudgetRow = { cat: it.cat, desc: it.desc, amount: Math.round(v), extrapolated };
+    const q = byDesc.get(it.desc);
+    markMatched(it.desc);
+    const amt = q ? quoteAmount(q, g) : v;
+    if (it.taxable && !(q && q.includes_tax)) taxBase += amt;
+    const row: BudgetRow = q
+      ? { cat: it.cat, desc: it.desc, amount: amt, extrapolated: false, quoted: true, quoteId: q.id, estimate: Math.round(v) }
+      : { cat: it.cat, desc: it.desc, amount: Math.round(v), extrapolated };
     order.push(row);
   }
   for (const o of order) {
     if ("pendingIdx" in o) {
       const p = pending[o.pendingIdx];
-      rows.push({ cat: p.it.cat, desc: p.it.desc, amount: Math.round(p.rate * taxBase), extrapolated: false });
+      const est = Math.round(p.rate * taxBase);
+      const q = byDesc.get(p.it.desc);
+      markMatched(p.it.desc);
+      rows.push(q
+        ? { cat: p.it.cat, desc: p.it.desc, amount: quoteAmount(q, g), extrapolated: false, quoted: true, quoteId: q.id, estimate: est }
+        : { cat: p.it.cat, desc: p.it.desc, amount: est, extrapolated: false });
     } else rows.push(o);
+  }
+  if (allIn) {
+    const estimate = rows.reduce((s, r) => s + (r.quoted ? (r.estimate ?? r.amount) : r.amount), 0);
+    rows.length = 0;
+    rows.push({ cat: "Venue & site", desc: "Quoted all-in", amount: quoteAmount(allIn, g), extrapolated: false, quoted: true, quoteId: allIn.id, estimate });
+    for (const q of live) if (q.item_desc === "*") matched.add(q.id);
   }
   if (co.contingency && co.contingency > 0) {
     const sub = rows.reduce((s, r) => s + r.amount, 0);
@@ -123,7 +168,10 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
   if (!unavailable && seasonMin && g < seasonMin) unavailable = `Needs ${seasonMin}+ guests in ${season} season.`;
   if (unavailable) warnings.unshift(unavailable);
 
-  return { guests: g, rows, byCat, total, perGuest: g ? total / g : 0, season, unavailable, warnings };
+  const unmatchedQuotes = (co.quotes ?? []).filter(
+    (q) => q.scenario_id === sc.id && (q.status === "received" || q.status === "accepted") && !matched.has(q.id),
+  );
+  return { guests: g, rows, byCat, total, perGuest: g ? total / g : 0, season, unavailable, warnings, ...(unmatchedQuotes.length ? { unmatchedQuotes } : {}) };
 }
 
 /** Line-item diff keyed by category; used by the compare panel. */
