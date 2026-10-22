@@ -61,6 +61,6 @@ export class SqliteD1 implements D1Database {
     return this;
   }
   get empty(): boolean {
-    return !this.raw.prepare("SELECT 1 FROM households LIMIT 1").get();
+    return !this.raw.prepare("SELECT 1 FROM people LIMIT 1").get();
   }
 }

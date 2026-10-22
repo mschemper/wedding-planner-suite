@@ -1,126 +1,24 @@
+// Venue budget detail (v3 DetailView, carried into v4 Venues): breakdown, compare, options, quote actions. GuestPicker for custom counts.
 import { useEffect, useMemo, useState } from "react";
 import { computeBudget, type ComputeOptions, defaultOpts, diffByCategory, guestStops, matchOptions, snapGuests } from "../../engine/compute";
 import type { Budget, Options, Scenario } from "../../engine/types";
-import type { GuestData } from "../../guests/schema";
-import { forecastAttendance } from "../../guests/attendance";
 import { money, signedMoney } from "../format";
-import type { Prefs } from "../prefs";
-import { useData } from "../data";
-import { QuoteLineAction } from "../quotes/QuoteLineAction";
+import { QuoteLineAction } from "./QuoteLineAction";
 
-const CONTINGENCIES = [0, 0.05, 0.075, 0.1];
-const HOME_STOPS = guestStops(50, 250);
-const HOME_MIN = 20;
-const HOME_MAX = 300;
-
-const inRange = (s: Scenario, g: number) =>
-  g >= s.min && g <= s.max && !(s.capacity?.hardMax && g > s.capacity.hardMax) && !(s.capacity?.practicalMin && g < s.capacity.practicalMin);
+export const CONTINGENCIES = [0, 0.05, 0.075, 0.1];
+export const HOME_STOPS = guestStops(50, 250);
 
 const fmtDate = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export function BudgetScreen({ prefs, set }: { prefs: Prefs; set: (patch: Partial<Prefs>) => void }) {
-  const { scenarios, quotes, guests: guestData, sample } = useData();
-  const { guests, selected } = prefs;
-  const settings = useMemo(
-    () => ({ date: prefs.date, contingency: prefs.contingency, quotes }),
-    [prefs.date, prefs.contingency, quotes],
-  );
-  const lowestMin = useMemo(() => Math.min(...scenarios.map((s) => s.min)), [scenarios]);
-
-  // All hooks before any early return (v1 crashed here: useMemo after conditional return).
-  const cards = useMemo(
-    () =>
-      scenarios.map((s) => {
-        const ok = inRange(s, guests);
-        const eff = ok ? guests : snapGuests(s, guests);
-        return { s, ok, eff, b: computeBudget(s, eff, defaultOpts(s), settings) };
-      }),
-    [scenarios, guests, settings],
-  );
-  const cheapestId = useMemo(() => {
-    const pool = cards.filter((c) => !c.s.benchmark && c.ok && !c.b.unavailable);
-    return pool.length ? pool.reduce((a, c) => (c.b.total < a.b.total ? c : a)).s.id : null;
-  }, [cards]);
-
-  const selectedSc = selected != null ? scenarios.find((x) => x.id === selected) : undefined;
-  if (selectedSc) {
-    return <DetailView sc={selectedSc} scenarios={scenarios} initialGuests={guests} settings={settings} onBack={() => set({ selected: null })} />;
-  }
-
-  return (
-    <>
-      <div className="intro-card">
-        Pick a guest count and a date to compare every venue on equal footing, then tap a card for its full budget. <strong>◆ Benchmarks</strong> are reference points; <strong>★ Baseline</strong> is the working plan.
-        Figures are Reconciled Master v2.0 (June 2026) estimates, ±10–15% vs. signed contracts.
-      </div>
-
-      <GuestListPanel guests={guestData} sample={sample} onUse={(g) => set({ guests: clamp(g, HOME_MIN, HOME_MAX) })} />
-
-      <section className="panel" aria-label="Comparison settings">
-        <div className="panel-head">
-          <span className="panel-label">Compare all venues at</span>
-          <span className="guest-count">{guests} guests · {fmtDate(prefs.date)}</span>
-        </div>
-        <GuestPicker stops={HOME_STOPS} value={guests} onChange={(g) => set({ guests: g })} min={HOME_MIN} max={HOME_MAX} />
-        {guests < lowestMin && <p className="hint">Every venue's model starts at {lowestMin}+ guests, so all cards are shown at their minimum.</p>}
-        <div className="settings">
-          <label>Wedding date
-            <input type="date" value={prefs.date} min="2027-01-01" max="2027-12-31" onChange={(e) => e.target.value && set({ date: e.target.value })} />
-          </label>
-          <label>Contingency
-            <select value={prefs.contingency} onChange={(e) => set({ contingency: Number(e.target.value) })}>
-              {CONTINGENCIES.map((c) => <option key={c} value={c}>{c ? `${(c * 100).toFixed(1)}%` : "None"}</option>)}
-            </select>
-          </label>
-        </div>
-      </section>
-
-      <div className="grid">
-        {cards.map(({ s, ok, eff, b }) => {
-          const best = s.id === cheapestId;
-          const dim = !ok || !!b.unavailable;
-          const label = `${s.name}, ${money(b.total)} at ${eff} guests${best ? ", best value" : ""}${b.unavailable ? `, ${b.unavailable}` : !ok ? ", outside its guest range" : ""}`;
-          return (
-            <button key={s.id} className={`card ${best ? "best-value" : ""} ${dim ? "dim" : ""}`} onClick={() => set({ selected: s.id })} aria-label={label}>
-              <span className={`card-band kind-${s.benchmark ? "bench" : s.baseline ? "base" : s.kind}`} />
-              <span className="card-content">
-                <span className="chips">
-                  {s.baseline && <span className="chip teal">★ Baseline</span>}
-                  {s.benchmark && <span className="chip mustard">◆ Benchmark</span>}
-                  <span className="chip" title="Source confidence">{s.confidence}%</span>
-                  {b.byCat && quotedCount(b) > 0 && <span className="chip teal">{quotedCount(b)} quoted</span>}
-                  {b.unavailable && <span className="chip burnt">{b.unavailable.startsWith("Closed") ? "Closed this date" : "Not offered"}</span>}
-                  {b.season && !b.unavailable && <span className="chip">{b.season}</span>}
-                </span>
-                <span className="card-title">{s.name}</span>
-                <span className="card-location">{s.location}</span>
-                <span className="spacer" />
-                {best && <span className="chip sage">✦ Best value at {guests}</span>}
-                <span className="card-bottom">
-                  <span className="card-guests">{ok ? `${eff} guests` : `shown at ${eff} (range ${s.capacity?.practicalMin ?? s.min}–${Math.min(s.max, s.capacity?.hardMax ?? s.max)})`}</span>
-                  <span className="card-price">{money(b.total)}</span>
-                </span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <footer className="footer">
-        Reconciled Master v2.0 · Chicago, June 2026. Venue seasons from venue pages (Oct 2026). Benchmarks 14–16 are interpolated from source totals at 75/125/200/250. Dimmed cards can't host this count or this date.
-      </footer>
-    </>
-  );
-}
-
-const quotedCount = (b: Budget) => {
+export const quotedCount = (b: Budget) => {
   let n = 0;
   for (const rows of b.byCat.values()) for (const r of rows) if (r.quoted) n++;
   return n;
 };
 
 /** Typing edits a draft; Enter or blur commits it, clamped. A controlled input that rejected every keystroke could not be typed into (v2 bug). */
-function GuestPicker({ stops, value, onChange, min, max }: { stops: number[]; value: number; onChange: (g: number) => void; min: number; max: number }) {
+export function GuestPicker({ stops, value, onChange, min, max }: { stops: number[]; value: number; onChange: (g: number) => void; min: number; max: number }) {
   const [draft, setDraft] = useState(String(value));
   useEffect(() => setDraft(String(value)), [value]);
   const commit = () => {
@@ -144,28 +42,7 @@ function GuestPicker({ stops, value, onChange, min, max }: { stops: number[]; va
   );
 }
 
-function GuestListPanel({ guests, sample, onUse }: { guests: GuestData; sample: boolean; onUse: (g: number) => void }) {
-  const f = useMemo(() => forecastAttendance(guests), [guests]);
-  return (
-    <section className="panel guest-panel" aria-label="Guest list">
-      <div className="panel-head">
-        <span className="panel-label">From the guest list{sample && <span className="chip burnt" style={{ marginLeft: 8 }}>sample data</span>}</span>
-      </div>
-      <div className="stat-strip">
-        <Stat label="Households" value={String(guests.households.length)} />
-        <Stat label="Invited" value={`${f.invited}`} sub={`${f.adults} adults · ${f.children} kids`} />
-        <Stat label="Expected (local)" value={`~${f.expected}`} sub="§2.3 acceptance rates" />
-      </div>
-      <div className="row-gap">
-        <button className="link-btn" onClick={() => onUse(f.expected)}>Price at expected ({f.expected})</button>
-        <button className="link-btn" onClick={() => onUse(f.ceiling)}>Price at full acceptance ({f.ceiling})</button>
-      </div>
-      {sample && <p className="hint">Run <code>npm run import:guests</code> to load the real workbook (stays local; gitignored).</p>}
-    </section>
-  );
-}
-
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+export function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="stat">
       <div className="stat-label">{label}</div>
@@ -192,7 +69,7 @@ function OptionToggles({ sc, opts, onChange }: { sc: Scenario; opts: Options; on
   );
 }
 
-function DetailView({ sc, scenarios, initialGuests, settings, onBack }: { sc: Scenario; scenarios: Scenario[]; initialGuests: number; settings: ComputeOptions; onBack: () => void }) {
+export function DetailView({ sc, scenarios, initialGuests, settings, onBack }: { sc: Scenario; scenarios: Scenario[]; initialGuests: number; settings: ComputeOptions; onBack: () => void }) {
   const [guests, setGuests] = useState(() => (initialGuests >= sc.min && initialGuests <= sc.max ? initialGuests : snapGuests(sc, initialGuests)));
   const [opts, setOpts] = useState<Options>(() => defaultOpts(sc));
   const [compareId, setCompareId] = useState(sc.id === 2 ? 1 : 2);
