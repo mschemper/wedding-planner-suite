@@ -1,14 +1,14 @@
-// One save = one D1 batch (one transaction). DESIGN-v3 §2: version check → 409, validateGuests on the post-write state → 422,
-// server-allocated ids, partner/parent references cleared on person delete, audit + trim.
-import type { ApiErrorBody, Op, TableName } from "../src/api/types";
-import type { GuestData } from "../src/guests/schema";
-import { validateGuests, type Issue } from "../src/guests/validate";
-import { deleteStmt, guardStmt, GUEST_TABLES, insertStmt, isTable, loadState, normalize, TABLES, updateStmt, type Rec, type State } from "./db";
+// One save = one D1 batch (one transaction). DESIGN-v3 §2 + DESIGN-v4 §3: version check → 409, validatePeople on the post-write
+// state → 422 (only errors this save introduces), server-allocated ids, partner mirroring, refs cleared on person delete, audit + trim.
+import type { ApiErrorBody, Issue, Op, TableName } from "../src/api/types";
+import { mergeSettings } from "../src/data/params";
+import type { PeopleData } from "../src/people/types";
+import { validatePeople } from "../src/people/validate";
+import { deleteStmt, guardStmt, insertStmt, isTable, loadState, normalize, SPECS, updateStmt, type Rec, type State } from "./db";
 import type { D1Database, D1PreparedStatement } from "./env";
 
 export const AUDIT_KEEP = 1000;
 const MAX_OPS = 500;
-const REF_COLS = ["HouseholdID", "PartnerPersonID", "ParentPersonIDs"];
 
 type Fail = { ok: false; status: number; body: ApiErrorBody };
 export type WriteOutcome = { ok: true; ids: Record<string, string> } | Fail;
@@ -26,13 +26,12 @@ interface Touch {
 }
 
 const isTmp = (v: unknown): v is string => typeof v === "string" && v.startsWith("tmp:");
-const splitIds = (v: unknown) => String(v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 const clone = (st: State): State => Object.fromEntries(Object.entries(st).map(([k, m]) => [k, new Map([...m].map(([id, r]) => [id, { ...r }]))])) as unknown as State;
-const guestsOf = (st: State): GuestData => ({
-  households: [...st.households.values()], individuals: [...st.individuals.values()], friends: [...st.friends.values()],
-} as unknown as GuestData);
+const peopleOf = (st: State): PeopleData => ({ people: [...st.people.values()], parties: [...st.parties.values()] } as unknown as PeopleData);
+const policyOf = (st: State) => mergeSettings([...st.params.values()] as { key: string; value: unknown }[]).kidsPolicy;
 
-function nextSeq(ids: Iterable<string>, re: RegExp): number {
+function nextSeq(ids: Iterable<string>, prefix: string): number {
+  const re = new RegExp(`^${prefix}(\\d+)$`);
   let max = 0;
   for (const id of ids) {
     const m = re.exec(id);
@@ -40,72 +39,67 @@ function nextSeq(ids: Iterable<string>, re: RegExp): number {
   }
   return max + 1;
 }
-const pad3 = (n: number) => String(n).padStart(3, "0");
-const branchOf = (row: Rec) => {
-  const given = String(row._branch ?? "").toUpperCase().replace(/[^A-Z]/g, "");
-  if (given.length >= 2) return given.slice(0, 4);
-  const fromName = String(row.PrimaryHouseholdName ?? "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
-  return fromName.length >= 2 ? fromName : "HH";
-};
 
-/** Allocates an id for a create; `taken` holds every id already used (DB + this batch). */
-function allocate(table: TableName, row: Rec, taken: Set<string>): string {
-  const f = row.Family === "Angela" ? "A" : "M";
-  const esc = (s: string) => s.replace(/[-]/g, "\\-");
-  let id: string;
-  switch (table) {
-    case "individuals": id = `${f}${pad3(nextSeq(taken, new RegExp(`^${f}(\\d+)$`)))}`; break;
-    case "households": { const p = `${f}-${branchOf(row)}-`; id = `${p}${pad3(nextSeq(taken, new RegExp(`^${esc(p)}(\\d+)$`)))}`; break; }
-    case "friends": id = `F${pad3(nextSeq(taken, /^F(\d+)$/))}`; break;
-    case "quotes": id = crypto.randomUUID(); break;
-    case "params": id = String(row.key ?? ""); break;
-  }
-  taken.add(id);
-  return id;
-}
+/** Ref columns that may carry tmp ids, per table. */
+const REFS: Partial<Record<TableName, string[]>> = { people: ["party_id", "partner_id", "parent_ids"], fit: ["musthave_id"] };
 
 export async function applyWrite(db: D1Database, ops: unknown, who: string, now = new Date().toISOString()): Promise<WriteOutcome> {
   if (!Array.isArray(ops) || ops.length === 0 || ops.length > MAX_OPS) return fail(400, "bad_request", `ops must be a list of 1–${MAX_OPS}`);
   for (const o of ops as Op[]) {
     if (!o || !isTable(o.table) || !["create", "update", "delete"].includes(o.op)) return fail(400, "bad_request", "each op needs table and op");
     if (o.op !== "create" && (typeof o.id !== "string" || !Number.isInteger(o.version))) return fail(400, "bad_request", "update/delete need id and version");
+    if (o.op === "create" && !SPECS[o.table].create) return fail(400, "bad_request", `${o.table} rows cannot be created`);
+    if (o.op === "delete" && !SPECS[o.table].del) return fail(400, "bad_request", `${o.table} rows cannot be deleted${o.table === "musthaves" ? " — archive instead" : ""}`);
   }
   const orig = await loadState(db);
   const st = clone(orig);
   const touches = new Map<string, Touch>();
   const key = (t: TableName, id: string) => `${t}\u0000${id}`;
 
-  // 1. ids for creates (tmp → real)
+  // 1. ids for creates (tmp → real). fit ids are derived after refs resolve.
   const ids: Record<string, string> = {};
   const createIds = new Map<Op, string>();
-  const taken = new Set<string>([...st.households.keys(), ...st.individuals.keys(), ...st.friends.keys()]);
+  const taken: Partial<Record<TableName, Set<string>>> = {};
   for (const o of ops as Op[]) {
     if (o.op !== "create") continue;
     const row = (o.row ?? {}) as Rec;
-    const pk = TABLES[o.table].pk;
-    if (o.table === "params" && st.params.has(String(row.key))) {
-      return fail(409, "conflict", `${row.key} was already changed`, { row: { table: "params", id: String(row.key), updated_by: String(st.params.get(String(row.key))!.updated_by) } });
-    }
-    const id = allocate(o.table, row, taken);
-    if (isTmp(row[pk])) ids[row[pk] as string] = id;
+    const spec = SPECS[o.table];
+    let id: string;
+    if (spec.prefix) {
+      const used = (taken[o.table] ??= new Set(st[o.table].keys()));
+      id = `${spec.prefix}${String(nextSeq(used, spec.prefix)).padStart(spec.width ?? 3, "0")}`;
+      used.add(id);
+    } else if (o.table === "quotes") id = crypto.randomUUID();
+    else if (o.table === "params") {
+      id = String(row.key ?? "");
+      if (st.params.has(id)) return fail(409, "conflict", `${id} was already changed`, { row: { table: "params", id, updated_by: String(st.params.get(id)!.updated_by) } });
+    } else id = ""; // fit: below
+    if (isTmp(row[spec.pk])) ids[row[spec.pk] as string] = id;
     createIds.set(o, id);
   }
-  const resolve = (v: unknown, col: string): unknown => {
-    if (col === "ParentPersonIDs" && typeof v === "string") return splitIds(v).map((x) => ids[x] ?? x).join(", ");
-    return isTmp(v) ? (ids[v] ?? v) : v;
-  };
+  const resolve = (v: unknown): unknown => (Array.isArray(v) ? v.map(resolve) : isTmp(v) ? (ids[v] ?? v) : v);
+  const hasTmp = (v: unknown): boolean => (Array.isArray(v) ? v.some(hasTmp) : isTmp(v));
 
   // 2. apply ops in memory
   for (const o of ops as Op[]) {
-    const { pk } = TABLES[o.table];
+    const { pk } = SPECS[o.table];
     const map = st[o.table];
+    const refs = REFS[o.table] ?? [];
     if (o.op === "create") {
-      const id = createIds.get(o)!;
-      const n = normalize(o.table, o.row ?? {}, true);
+      const raw: Rec = { ...(o.row ?? {}) };
+      if (o.table !== "params") delete raw[pk];
+      const n = normalize(o.table, raw, true);
       if (!n.ok) return fail(400, "bad_request", n.msg);
+      for (const c of refs) if (c in n.row) n.row[c] = resolve(n.row[c]);
+      if (Object.values(n.row).some(hasTmp)) return fail(400, "bad_request", "reference to an unknown tmp: id");
+      let id = createIds.get(o)!;
+      if (o.table === "fit") {
+        id = `${n.row.scenario_id}:${n.row.musthave_id}`;
+        const tmp = (o.row ?? {})[pk];
+        if (isTmp(tmp)) ids[tmp] = id;
+      }
+      if (map.has(id) || touches.has(key(o.table, id))) return fail(409, "conflict", `${id} already exists — reload`, { row: { table: o.table, id } });
       const row: Rec = { ...n.row, [pk]: id, version: 1, updated_at: now, updated_by: who };
-      for (const c of REF_COLS) if (c in row) row[c] = resolve(row[c], c);
-      if (Object.values(row).some(isTmp)) return fail(400, "bad_request", "reference to an unknown tmp: id");
       map.set(id, row);
       touches.set(key(o.table, id), { table: o.table, id, op: "create", read: null, after: row });
       continue;
@@ -125,54 +119,80 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     const patch = o.table === "params" ? { ...(o.row ?? {}), key: o.id } : (o.row ?? {});
     const n = normalize(o.table, patch, false);
     if (!n.ok) return fail(400, "bad_request", n.msg);
-    if (pk in n.row && n.row[pk] !== o.id) return fail(400, "bad_request", `${pk} cannot change`);
+    if (pk in n.row && String(n.row[pk]) !== o.id) return fail(400, "bad_request", `${pk} cannot change`);
+    if (o.table === "fit" && ("scenario_id" in n.row || "musthave_id" in n.row)) return fail(400, "bad_request", "fit scenario/must-have cannot change");
     const row: Rec = { ...cur };
-    for (const [c, v] of Object.entries(n.row)) {
-      if (v === null && GUEST_TABLES.includes(o.table)) delete row[c];
-      else row[c] = REF_COLS.includes(c) ? resolve(v, c) : v;
-    }
+    for (const [c, v] of Object.entries(n.row)) row[c] = refs.includes(c) ? resolve(v) : v;
+    if (Object.values(row).some(hasTmp)) return fail(400, "bad_request", "reference to an unknown tmp: id");
     Object.assign(row, { version: Number(cur.version) + 1, updated_at: now, updated_by: who });
     map.set(o.id, row);
     touches.set(k, { table: o.table, id: o.id, op: "update", read: cur, after: row });
   }
 
-  // 3. person deleted → clear PartnerPersonID / ParentPersonIDs that point at them
-  const gone = new Set([...touches.values()].filter((t) => t.table === "individuals" && t.op === "delete").map((t) => t.id));
+  /** Change a row the client did not send (partner mirror, ref clearing): one version bump per save. */
+  const sideEdit = (table: TableName, id: string, mutate: (r: Rec) => void) => {
+    const base = st[table].get(id);
+    if (!base) return;
+    const row: Rec = { ...base };
+    mutate(row);
+    const k = key(table, id);
+    const prev = touches.get(k);
+    if (prev) prev.after = row;
+    else {
+      Object.assign(row, { version: Number(base.version) + 1, updated_at: now, updated_by: who });
+      touches.set(k, { table, id, op: "update", read: orig[table].get(id) ?? null, after: row });
+    }
+    st[table].set(id, row);
+  };
+
+  // 3. partner mirror: the side the client set wins; previous partners are cleared.
+  for (const t of [...touches.values()]) {
+    if (t.table !== "people" || t.op === "delete") continue;
+    const now_ = t.after!.partner_id as string | null | undefined;
+    const before = t.read?.partner_id as string | null | undefined;
+    if ((now_ ?? null) === (before ?? null)) continue;
+    if (before && before !== now_) sideEdit("people", before, (r) => { if (r.partner_id === t.id) r.partner_id = null; });
+    if (now_) {
+      const q = st.people.get(now_);
+      if (q?.partner_id && q.partner_id !== t.id) sideEdit("people", String(q.partner_id), (r) => { if (r.partner_id === now_) r.partner_id = null; });
+      sideEdit("people", now_, (r) => { r.partner_id = t.id; });
+    }
+  }
+
+  // 4. person deleted → clear partner_id / parent_ids pointing at them
+  const gone = new Set([...touches.values()].filter((t) => t.table === "people" && t.op === "delete").map((t) => t.id));
   if (gone.size) {
-    for (const [id, p] of st.individuals) {
-      const partner = gone.has(String(p.PartnerPersonID ?? ""));
-      const parents = splitIds(p.ParentPersonIDs);
-      const keptParents = parents.filter((x) => !gone.has(x));
-      if (!partner && keptParents.length === parents.length) continue;
-      const row: Rec = { ...p };
-      if (partner) delete row.PartnerPersonID;
-      if (keptParents.length) row.ParentPersonIDs = keptParents.join(", "); else delete row.ParentPersonIDs;
-      const k = key("individuals", id);
-      const prev = touches.get(k);
-      if (prev) prev.after = Object.assign(row, { version: row.version, updated_at: now, updated_by: who });
-      else {
-        Object.assign(row, { version: Number(p.version) + 1, updated_at: now, updated_by: who });
-        touches.set(k, { table: "individuals", id, op: "update", read: orig.individuals.get(id) ?? null, after: row });
-      }
-      st.individuals.set(id, row);
+    for (const [id, p] of st.people) {
+      const parents = (p.parent_ids as string[]) ?? [];
+      const partner = gone.has(String(p.partner_id ?? ""));
+      if (!partner && !parents.some((x) => gone.has(x))) continue;
+      sideEdit("people", id, (r) => {
+        if (partner) r.partner_id = null;
+        r.parent_ids = parents.filter((x) => !gone.has(x));
+      });
     }
   }
   for (const t of touches.values()) {
-    if (t.table === "households" && t.op === "delete" && [...st.individuals.values()].some((p) => p.HouseholdID === t.id))
-      return fail(422, "invalid", `${t.id} still has people — delete or move them in the same save`);
+    if (t.op !== "delete") continue;
+    if (t.table === "parties" && [...st.people.values()].some((p) => p.party_id === t.id))
+      return fail(422, "invalid", `${t.id} still has people — move or delete them in the same save`);
+  }
+  for (const f of st.fit.values()) {
+    if (!st.musthaves.has(String(f.musthave_id))) return fail(422, "invalid", `must-have ${f.musthave_id} does not exist`);
   }
 
-  // 4. validation: reject only errors this save introduces
-  if ([...touches.values()].some((t) => GUEST_TABLES.includes(t.table))) {
+  // 5. validation: reject only errors this save introduces
+  if ([...touches.values()].some((t) => t.table === "people" || t.table === "parties" || (t.table === "params" && t.id === "kidsPolicy"))) {
     const sig = (i: Issue) => `${i.where}|${i.msg}`;
-    const before = new Set(validateGuests(guestsOf(orig)).filter((i) => i.level === "error").map(sig));
-    const introduced = validateGuests(guestsOf(st)).filter((i) => i.level === "error" && !before.has(sig(i)));
+    const before = new Set(validatePeople(peopleOf(orig), policyOf(orig)).filter((i) => i.level === "error").map(sig));
+    const introduced = validatePeople(peopleOf(st), policyOf(st)).filter((i) => i.level === "error" && !before.has(sig(i)));
     if (introduced.length) return fail(422, "invalid", introduced.map((i) => `${i.where}: ${i.msg}`).join("; "), { issues: introduced });
   }
 
-  // 5. one batch: guards, writes (households created first, deleted last), audit, trim
+  // 6. one batch: guards, writes (parents first: parties/musthaves created first, deleted last), audit, trim
   const all = [...touches.values()];
-  const rank = (t: Touch) => (t.table === "households" ? (t.op === "create" ? 0 : t.op === "delete" ? 3 : 1) : t.op === "delete" ? 2 : 1);
+  const parentTable = (t: Touch) => t.table === "parties" || t.table === "musthaves";
+  const rank = (t: Touch) => (parentTable(t) ? (t.op === "create" ? 0 : t.op === "delete" ? 3 : 1) : t.op === "delete" ? 2 : 1);
   const stmts: D1PreparedStatement[] = [];
   for (const t of all) if (t.read) stmts.push(guardStmt(db, t.table, t.id, Number(t.read.version)));
   for (const t of [...all].sort((a, b) => rank(a) - rank(b))) {

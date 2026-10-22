@@ -25,7 +25,7 @@ describe("computeBudget", () => {
   });
   it("warns on capacity, range, season, understatement", () => {
     expect(computeBudget(scenarioById(3), 50).warnings.join()).toMatch(/practical minimum/);
-    expect(computeBudget(scenarioById(5), 125).warnings.join()).toMatch(/capacity/);
+    expect(computeBudget(scenarioById(5), 175).warnings.join()).toMatch(/capacity/);
     expect(computeBudget(scenarioById(6), 100, undefined, { date: "2027-04-24" }).unavailable).toMatch(/Closed/);
     expect(computeBudget(scenarioById(14), 100).warnings.join()).toMatch(/understated/);
   });

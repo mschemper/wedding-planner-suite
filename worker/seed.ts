@@ -1,7 +1,8 @@
-// GuestData → INSERT rows for D1 (one-time seed; DESIGN-v3 §2). Pure: scripts/seed-d1.ts renders SQL text, the dev server binds params.
+// Seed dataset → INSERT rows for D1 (DESIGN-v4 §5, §7). Pure: scripts/seed-v4.ts renders SQL text; the dev server and tests bind params.
 import type { TableName } from "../src/api/types";
-import type { GuestData } from "../src/guests/schema";
-import { META, TABLES, toDbValues, type Rec } from "./db";
+import { colNames, META, toDbValues, type Rec } from "./db";
+
+export type SeedSet = Partial<Record<TableName, object[]>>;
 
 export interface SeedRow {
   table: TableName;
@@ -9,20 +10,18 @@ export interface SeedRow {
   values: unknown[];
 }
 
-export function seedRows(d: GuestData, who: string, now = new Date().toISOString()): SeedRow[] {
+/** Parents before children: parties before people, musthaves before fit. */
+const ORDER: TableName[] = ["parties", "people", "venues", "musthaves", "fit", "tasks", "quotes", "params"];
+
+export function seedRows(d: SeedSet, who: string, now = new Date().toISOString()): SeedRow[] {
   const out: SeedRow[] = [];
-  const add = (table: TableName, rows: object[]) => {
-    const cols = [...TABLES[table].cols, ...META];
+  for (const table of ORDER) {
+    const rows = d[table];
+    if (!rows?.length) continue;
+    const cols = [...colNames(table), ...META];
     const sql = `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
-    for (const r of rows) {
-      const row: Rec = { ...(r as Rec), version: 1, updated_at: now, updated_by: who };
-      if (table === "friends" && typeof row.Ranking === "number") row.Ranking = String(row.Ranking);
-      out.push({ table, sql, values: toDbValues(table, row) });
-    }
-  };
-  add("households", d.households);
-  add("individuals", d.individuals);
-  add("friends", d.friends);
+    for (const r of rows) out.push({ table, sql, values: toDbValues(table, { ...(r as Rec), version: 1, updated_at: now, updated_by: who }) });
+  }
   return out;
 }
 

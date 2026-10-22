@@ -1,3 +1,5 @@
+import { KIDS_POLICIES, type KidsPolicy } from "../people/types";
+
 // Personal-cost parameters, Reconciled Master v2.0 §2.5. Change here → every scenario reprices; golden must stay green or be re-sourced (HISTORY.md).
 export interface Params {
   photography: number;
@@ -44,8 +46,55 @@ export const DEFAULT_PARAMS: Params = {
 export type ParamKey = keyof Params;
 export const PARAM_KEYS = Object.keys(DEFAULT_PARAMS) as ParamKey[];
 
-/** Checks one stored value (D1 `params`). Returns the value, or an error message. */
-export function parseParamValue(key: string, v: unknown): { ok: true; value: Params[ParamKey] } | { ok: false; msg: string } {
+/** Shared planning settings stored in the same D1 `params` table (DESIGN-v4 §1). Not prices: never reprice scenarios. */
+export interface DateWindow {
+  name: string;
+  /** YYYY-MM-DD inclusive */
+  from: string;
+  to: string;
+  /** reference date the budget uses for this window */
+  ref: string;
+}
+export interface Settings {
+  dateWindows: DateWindow[];
+  /** a date a venue is holding for us (YYYY-MM-DD) or null */
+  heldDate: string | null;
+  kidsPolicy: KidsPolicy;
+}
+export const DEFAULT_SETTINGS: Settings = {
+  dateWindows: [
+    { name: "Late spring", from: "2027-05-01", to: "2027-06-30", ref: "2027-06-12" },
+    { name: "Early fall", from: "2027-09-01", to: "2027-10-31", ref: "2027-09-18" },
+  ],
+  heldDate: "2027-06-12",
+  kidsPolicy: "ours",
+};
+export type SettingKey = keyof Settings;
+export const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS) as SettingKey[];
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+function parseSetting(key: SettingKey, v: unknown): { ok: true; value: unknown } | { ok: false; msg: string } {
+  if (key === "kidsPolicy") return (KIDS_POLICIES as readonly unknown[]).includes(v) ? { ok: true, value: v } : { ok: false, msg: "kidsPolicy must be ours, family or all" };
+  if (key === "heldDate") return v === null || (typeof v === "string" && DAY.test(v)) ? { ok: true, value: v } : { ok: false, msg: "heldDate must be YYYY-MM-DD or null" };
+  const ok = Array.isArray(v) && v.length >= 1 && v.length <= 4 && v.every((w) =>
+    w && typeof w === "object" && typeof w.name === "string" && w.name.trim() && [w.from, w.to, w.ref].every((d) => typeof d === "string" && DAY.test(d)) &&
+    w.from <= w.to && w.ref >= w.from && w.ref <= w.to);
+  return ok ? { ok: true, value: v } : { ok: false, msg: "dateWindows needs 1–4 {name, from, to, ref} with from ≤ ref ≤ to" };
+}
+
+export function mergeSettings(rows: { key: string; value: unknown }[]): Settings {
+  const out: Settings = { ...DEFAULT_SETTINGS };
+  for (const r of rows) {
+    if (!(SETTING_KEYS as string[]).includes(r.key)) continue;
+    const p = parseSetting(r.key as SettingKey, r.value);
+    if (p.ok) (out as unknown as Record<string, unknown>)[r.key] = p.value;
+  }
+  return out;
+}
+
+/** Checks one stored value (D1 `params`): a price param or a setting. Returns the value, or an error message. */
+export function parseParamValue(key: string, v: unknown): { ok: true; value: unknown } | { ok: false; msg: string } {
+  if ((SETTING_KEYS as string[]).includes(key)) return parseSetting(key as SettingKey, v);
   if (!(PARAM_KEYS as string[]).includes(key)) return { ok: false, msg: `unknown param "${key}"` };
   if (key === "floralsBase") {
     const ok = Array.isArray(v) && v.length >= 2 &&
@@ -59,6 +108,7 @@ export function parseParamValue(key: string, v: unknown): { ok: true; value: Par
 export function mergeParams(rows: { key: string; value: unknown }[], base: Params = DEFAULT_PARAMS): Params {
   const out: Params = { ...base };
   for (const r of rows) {
+    if (!(PARAM_KEYS as string[]).includes(r.key)) continue;
     const p = parseParamValue(r.key, r.value);
     if (p.ok) (out as unknown as Record<string, unknown>)[r.key] = p.value;
   }

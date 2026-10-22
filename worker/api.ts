@@ -1,10 +1,11 @@
-// /api router (DESIGN-v3 §3). Same origin only: no CORS; writes need JSON + a matching Origin (CSRF).
+// /api router (DESIGN-v3 §3; /api/version DESIGN-v4 §3). Same origin only: no CORS; writes need JSON + a matching Origin (CSRF).
 import type { JWTVerifyGetKey } from "jose";
 import type { ApiErrorBody, AuditEntry, WriteRequest } from "../src/api/types";
 import { authenticate } from "./auth";
 import { loadState, stateToApi } from "./db";
 import type { Env } from "./env";
 import { applyWrite } from "./write";
+import pkg from "../package.json";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
@@ -21,6 +22,8 @@ export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey):
   if (!auth.ok) return err(auth.status, auth.status === 403 ? "forbidden" : auth.status === 500 ? "server" : "unauthorized", auth.message);
 
   try {
+    if (url.pathname === "/api/version" && req.method === "GET") return json({ version: pkg.version });
+
     if (url.pathname === "/api/data" && req.method === "GET") return json(stateToApi(await loadState(env.DB), auth.email));
 
     if (url.pathname === "/api/write" && req.method === "POST") {

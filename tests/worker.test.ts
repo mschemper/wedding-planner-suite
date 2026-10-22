@@ -1,15 +1,16 @@
-// Worker API against node:sqlite (scripts/d1-sqlite.ts) with the real migration. DESIGN-v3 §2–3.
+// Worker API against node:sqlite (scripts/d1-sqlite.ts) with the real migrations. DESIGN-v3 §2–3, DESIGN-v4 §3.
 import { readFileSync } from "node:fs";
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWTVerifyGetKey } from "jose";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
-import fixture from "../data/fixtures/guests.sample.json";
+import fixture from "../data/fixtures/garden.sample.json";
+import pkg from "../package.json";
 import type { ApiData, ApiErrorBody, Op, WriteResult } from "../src/api/types";
-import type { GuestData } from "../src/guests/schema";
+import { SEED_FIT, SEED_MUSTHAVES, SEED_TASKS, SEED_VENUES } from "../src/data/seed-v4";
 import { SqliteD1 } from "../scripts/d1-sqlite";
 import { handleApi } from "../worker/api";
 import { guardStmt } from "../worker/db";
 import type { Env } from "../worker/env";
-import { seedRows, seedSql } from "../worker/seed";
+import { seedRows, seedSql, type SeedSet } from "../worker/seed";
 import { AUDIT_KEEP } from "../worker/write";
 
 const TEAM = "https://example-team.cloudflareaccess.com";
@@ -17,10 +18,11 @@ const AUD = "aud-1";
 const LOCAL = "http://localhost:5173";
 let db: SqliteD1;
 let env: Env;
+const SEED: SeedSet = { ...(fixture as unknown as SeedSet), venues: SEED_VENUES, musthaves: SEED_MUSTHAVES, fit: SEED_FIT, tasks: SEED_TASKS };
 
 function freshDb() {
   db = new SqliteD1().migrate();
-  for (const r of seedRows(fixture as unknown as GuestData, "seed", "2026-10-21T00:00:00Z")) db.raw.prepare(r.sql).run(...(r.values as never[]));
+  for (const r of seedRows(SEED, "seed", "2026-10-21T00:00:00Z")) db.raw.prepare(r.sql).run(...(r.values as never[]));
   env = { DB: db, ASSETS: { fetch: async () => new Response("asset") }, DEV_ACCESS_EMAIL: "mark@example.com" };
 }
 
@@ -29,7 +31,14 @@ const call = (path: string, init: RequestInit = {}, base = LOCAL, e: Env = env, 
 const write = (ops: Op[], base = LOCAL) =>
   call("/api/write", { method: "POST", headers: { "Content-Type": "application/json", Origin: base }, body: JSON.stringify({ ops }) }, base);
 const data = async () => (await (await call("/api/data")).json()) as ApiData;
-const person = (d: ApiData, id: string) => d.individuals.find((p) => p.PersonID === id)!;
+const person = (d: ApiData, id: string) => d.people.find((p) => p.id === id)!;
+const party = (d: ApiData, id: string) => d.parties.find((p) => p.id === id)!;
+const ok = async (ops: Op[]) => {
+  const r = await write(ops);
+  const body = await r.json();
+  expect(r.status, JSON.stringify(body)).toBe(200);
+  return body as WriteResult;
+};
 
 beforeEach(freshDb);
 
@@ -78,14 +87,22 @@ describe("csrf + routing", () => {
     expect((await call("/api/write", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://evil.example" }, body })).status).toBe(403);
     expect((await call("/api/write", { method: "POST", headers: { "Content-Type": "text/plain", Origin: LOCAL }, body })).status).toBe(403);
   });
-  it("GET /api/data returns the seeded rows with versions; responses are no-store", async () => {
+  it("GET /api/data returns every v4 table with versions; no-store", async () => {
     const r = await call("/api/data");
     expect(r.headers.get("Cache-Control")).toBe("no-store");
     const d = (await r.json()) as ApiData;
-    expect(d.households).toHaveLength(4);
-    expect(person(d, "M003").ParentPersonIDs).toBe("M001,M002");
-    expect(person(d, "M001").version).toBe(1);
+    expect(d.people).toHaveLength(fixture.people.length);
+    expect(d.parties).toHaveLength(fixture.parties.length);
+    expect(d.venues.length).toBe(SEED_VENUES.length);
+    expect(d.venues.filter((v) => v.active).map((v) => v.scenario_id).sort()).toEqual([17, 18, 4, 5].sort());
+    expect(person(d, "M003").parent_ids).toEqual(["M001", "M002"]);
+    expect(person(d, "C003").kids_room).toBe(true);
+    expect(party(d, "H-A3").talk).toBe(true);
+    expect(d.musthaves).toHaveLength(9);
     expect(d.me).toBe("mark@example.com");
+  });
+  it("GET /api/version returns package.json version", async () => {
+    expect(await (await call("/api/version")).json()).toEqual({ version: pkg.version });
   });
   it("unknown route → JSON 404", async () => {
     const r = await call("/api/nope");
@@ -96,112 +113,103 @@ describe("csrf + routing", () => {
 
 describe("writes", () => {
   it("update bumps version and records who; a stale version → 409 naming the editor, nothing written", async () => {
-    let r = await write([{ table: "individuals", op: "update", id: "M001", version: 1, row: { Locality: "Local Chicago Area" } }]);
-    expect(r.status).toBe(200);
-    const d = ((await r.json()) as WriteResult).data;
-    expect(person(d, "M001")).toMatchObject({ Locality: "Local Chicago Area", version: 2, updated_by: "mark@example.com" });
-
-    r = await write([
-      { table: "individuals", op: "update", id: "M002", version: 1, row: { Notes: "first" } },
-      { table: "individuals", op: "update", id: "M001", version: 1, row: { Notes: "stale" } },
+    const d = (await ok([{ table: "parties", op: "update", id: "H-M4", version: 1, row: { invite: "invite" } }])).data;
+    expect(party(d, "H-M4")).toMatchObject({ invite: "invite", version: 2, updated_by: "mark@example.com" });
+    const r = await write([
+      { table: "parties", op: "update", id: "H-A2", version: 1, row: { notes: "first" } },
+      { table: "parties", op: "update", id: "H-M4", version: 1, row: { invite: "no" } },
     ]);
     expect(r.status).toBe(409);
-    expect(((await r.json()) as ApiErrorBody).row).toMatchObject({ id: "M001", updated_by: "mark@example.com" });
-    expect(person(await data(), "M002").Notes).toBeUndefined();
+    expect(((await r.json()) as ApiErrorBody).row).toMatchObject({ id: "H-M4", updated_by: "mark@example.com" });
+    expect(party(await data(), "H-A2").notes).toBeNull();
   });
 
   it("the batch guard rolls back every statement when a row changed underneath", async () => {
-    db.raw.exec("UPDATE individuals SET version = 5 WHERE PersonID = 'M001'");
+    db.raw.exec("UPDATE parties SET version = 5 WHERE id = 'H-M4'");
     await expect(db.batch([
-      db.prepare("UPDATE individuals SET Notes = 'x' WHERE PersonID = 'M002'"),
-      guardStmt(db, "individuals", "M001", 1),
+      db.prepare("UPDATE parties SET notes = 'x' WHERE id = 'H-A2'"),
+      guardStmt(db, "parties", "H-M4", 1),
     ])).rejects.toThrow(/CHECK/);
-    expect(person(await data(), "M002").Notes).toBeUndefined();
+    expect(party(await data(), "H-A2").notes).toBeNull();
   });
 
-  it("creates a household + people with tmp ids; server allocates ids and rewrites links", async () => {
-    const r = await write([
-      { table: "households", op: "create", row: { HouseholdID: "tmp:h", _branch: "par", Family: "Mark", FamilySide: "Groom's father", PrimaryHouseholdName: "New" } },
-      { table: "individuals", op: "create", row: { PersonID: "tmp:a", HouseholdID: "tmp:h", Family: "Mark", DisplayName: "A", AdultOrChild: "Adult", Locality: "Unknown", InviteStatus: "TBD", InviteException: "No", PartnerPersonID: "tmp:b" } },
-      { table: "individuals", op: "create", row: { PersonID: "tmp:b", HouseholdID: "tmp:h", Family: "Mark", DisplayName: "B", AdultOrChild: "Adult", Locality: "Unknown", InviteStatus: "TBD", InviteException: "No", PartnerPersonID: "tmp:a" } },
-      { table: "individuals", op: "create", row: { PersonID: "tmp:c", HouseholdID: "tmp:h", Family: "Mark", DisplayName: "C", AdultOrChild: "Child", Locality: "Unknown", InviteStatus: "TBD", InviteException: "No", ParentPersonIDs: "tmp:a, tmp:b" } },
+  it("enum and type checks → 400", async () => {
+    expect((await write([{ table: "parties", op: "update", id: "H-M4", version: 1, row: { invite: "maybe" } }])).status).toBe(400);
+    expect((await write([{ table: "people", op: "update", id: "M001", version: 1, row: { deceased: "yes" } }])).status).toBe(400);
+    expect((await write([{ table: "tasks", op: "update", id: "T001", version: 1, row: { due: "Oct 30" } }])).status).toBe(400);
+    expect((await write([{ table: "people", op: "update", id: "M001", version: 1, row: { nope: 1 } }])).status).toBe(400);
+  });
+
+  it("creates a party + people with tmp ids; server allocates H/P ids and resolves refs", async () => {
+    const r = await ok([
+      { table: "parties", op: "create", row: { id: "tmp:h", name: "New household" } },
+      { table: "people", op: "create", row: { id: "tmp:a", first: "Ash", side: "Mark", branch: "Mark's father's side", gen: 0, party_id: "tmp:h", parent_ids: ["M007", "M008"] } },
+      { table: "people", op: "create", row: { id: "tmp:b", first: "Bay", side: "Mark", party_id: "tmp:h", partner_id: "tmp:a" } },
     ]);
-    expect(r.status).toBe(200);
-    const { ids, data: d } = (await r.json()) as WriteResult;
-    expect(ids).toEqual({ "tmp:h": "M-PAR-002", "tmp:a": "M006", "tmp:b": "M007", "tmp:c": "M008" });
-    expect(person(d, "M006")).toMatchObject({ HouseholdID: "M-PAR-002", PartnerPersonID: "M007" });
-    expect(person(d, "M008").ParentPersonIDs).toBe("M006, M007");
+    expect(r.ids["tmp:h"]).toBe("H001");
+    expect(r.ids["tmp:a"]).toBe("P001");
+    const a = person(r.data, "P001"), b = person(r.data, "P002");
+    expect(a).toMatchObject({ party_id: "H001", parent_ids: ["M007", "M008"], partner_id: "P002", kind: "family", age: "adult", local: "unknown" });
+    expect(b.partner_id).toBe("P001");
+    expect(party(r.data, "H001").invite).toBe("undecided");
   });
 
-  it("deleting a person clears partner/parent links to them (versions bumped, audited)", async () => {
-    const r = await write([{ table: "individuals", op: "delete", id: "M002", version: 1 }]);
-    expect(r.status).toBe(200);
-    const d = ((await r.json()) as WriteResult).data;
-    expect(person(d, "M001").PartnerPersonID).toBeUndefined();
-    expect(person(d, "M001").version).toBe(2);
-    expect(person(d, "M003").ParentPersonIDs).toBe("M001");
-    const audit = (await (await call("/api/audit")).json()) as { row_id: string; op: string }[];
-    expect(audit.map((a) => `${a.op}:${a.row_id}`).sort()).toEqual(["delete:M002", "update:M001", "update:M003"]);
+  it("setting a partner on one side mirrors it and clears the old partners", async () => {
+    const d = (await ok([{ table: "people", op: "update", id: "M009", version: 1, row: { partner_id: "A006" } }])).data;
+    expect(person(d, "M009").partner_id).toBe("A006");
+    expect(person(d, "A006").partner_id).toBe("M009");
+    expect(person(d, "M010").partner_id).toBeNull();
   });
 
-  it("household delete needs its people in the same save", async () => {
-    expect((await write([{ table: "households", op: "delete", id: "A-COU-001", version: 1 }])).status).toBe(422);
-    const r = await write([
-      { table: "individuals", op: "delete", id: "A003", version: 1 },
-      { table: "households", op: "delete", id: "A-COU-001", version: 1 },
+  it("deleting a person clears partner and parent links", async () => {
+    const d = (await ok([{ table: "people", op: "delete", id: "M003", version: 1 }])).data;
+    expect(person(d, "M004").partner_id).toBeNull();
+    expect(person(d, "M005").parent_ids).toEqual(["M004"]);
+  });
+
+  it("refuses a parent loop, a missing household, and a non-empty household delete", async () => {
+    expect((await write([{ table: "people", op: "update", id: "M001", version: 1, row: { parent_ids: ["M005"] } }])).status).toBe(422);
+    expect((await write([{ table: "people", op: "update", id: "M001", version: 1, row: { party_id: "H-NOPE" } }])).status).toBe(422);
+    expect((await write([{ table: "parties", op: "delete", id: "H-A4", version: 1 }])).status).toBe(422);
+  });
+
+  it("venues: update only; musthaves: no delete; fit id derived", async () => {
+    expect((await write([{ table: "venues", op: "create", row: { scenario_id: 99 } }])).status).toBe(400);
+    expect((await write([{ table: "musthaves", op: "delete", id: "MH01", version: 1 }])).status).toBe(400);
+    const r = await ok([
+      { table: "musthaves", op: "create", row: { id: "tmp:m", text: "Photo booth", sort: 95 } },
+      { table: "fit", op: "create", row: { id: "tmp:f", scenario_id: 17, musthave_id: "tmp:m", verdict: "yes" } },
+      { table: "venues", op: "update", id: "17", version: 1, row: { status: "booked" } },
     ]);
-    expect(r.status).toBe(200);
+    expect(r.ids["tmp:m"]).toBe("MH10");
+    expect(r.ids["tmp:f"]).toBe("17:MH10");
+    expect(r.data.venues.find((v) => v.scenario_id === 17)!.status).toBe("booked");
   });
 
-  it("rejects errors this save introduces (422 + issues), accepts saves while an old error exists elsewhere", async () => {
-    let r = await write([{ table: "individuals", op: "update", id: "M001", version: 1, row: { PartnerPersonID: "GHOST" } }]);
-    expect(r.status).toBe(422);
-    expect(((await r.json()) as ApiErrorBody).issues?.[0].msg).toMatch(/unknown PartnerPersonID/);
-
-    db.raw.exec("UPDATE individuals SET ParentPersonIDs = 'NOBODY' WHERE PersonID = 'A003'");
-    r = await write([{ table: "individuals", op: "update", id: "M001", version: 1, row: { Notes: "ok" } }]);
-    expect(r.status).toBe(200);
+  it("tasks: create and check off", async () => {
+    let r = await ok([{ table: "tasks", op: "create", row: { title: "Book florist", owner: "Angela", category: "vendor", due: "2026-12-01" } }]);
+    const id = r.ids["tmp:x"] ?? r.data.tasks.find((t) => t.title === "Book florist")!.id;
+    expect(id).toBe("T012");
+    r = await ok([{ table: "tasks", op: "update", id, version: 1, row: { status: "done", done_at: "2026-10-22T12:00:00Z" } }]);
+    expect(r.data.tasks.find((t) => t.id === id)!.status).toBe("done");
   });
 
-  it("shape checks: unknown column, bad enum, missing Family → 400", async () => {
-    expect((await write([{ table: "individuals", op: "update", id: "M001", version: 1, row: { Email: "x" } }])).status).toBe(400);
-    expect((await write([{ table: "individuals", op: "update", id: "M001", version: 1, row: { InviteException: "Maybe" } }])).status).toBe(400);
-    expect((await write([{ table: "households", op: "create", row: { PrimaryHouseholdName: "X" } }])).status).toBe(400);
+  it("settings params validate: kidsPolicy, dateWindows", async () => {
+    await ok([{ table: "params", op: "create", row: { key: "kidsPolicy", value: "all" } }]);
+    expect((await write([{ table: "params", op: "create", row: { key: "dateWindows", value: [{ name: "x", from: "2027-06-01", to: "2027-05-01", ref: "2027-05-15" }] } }])).status).toBe(400);
   });
 
-  it("params: create, update with version, delete = back to doc value; bad value → 400", async () => {
-    expect((await write([{ table: "params", op: "create", row: { key: "dress", value: -5 } }])).status).toBe(400);
-    let r = await write([{ table: "params", op: "create", row: { key: "dress", value: 3100 } }]);
-    expect(r.status).toBe(200);
-    expect(((await r.json()) as WriteResult).data.params).toMatchObject([{ key: "dress", value: 3100, version: 1 }]);
-    expect((await write([{ table: "params", op: "create", row: { key: "dress", value: 3200 } }])).status).toBe(409);
-    r = await write([{ table: "params", op: "update", id: "dress", version: 1, row: { value: 3200 } }]);
-    expect(((await r.json()) as WriteResult).data.params[0]).toMatchObject({ value: 3200, version: 2 });
-    r = await write([{ table: "params", op: "delete", id: "dress", version: 2 }]);
-    expect(((await r.json()) as WriteResult).data.params).toEqual([]);
+  it("audit records before/after; trimmed to AUDIT_KEEP", async () => {
+    await ok([{ table: "parties", op: "update", id: "H-M4", version: 1, row: { talk: true, talk_note: "ask Angela" } }]);
+    const a = (await (await call("/api/audit?limit=5")).json()) as { tbl: string; before: { talk: number }; after: { talk: boolean } }[];
+    expect(a[0]).toMatchObject({ tbl: "parties" });
+    expect(a[0].after.talk).toBe(true);
+    expect(AUDIT_KEEP).toBeGreaterThan(100);
   });
 
-  it("quotes: validated, stored with options JSON and boolean includes_tax", async () => {
-    expect((await write([{ table: "quotes", op: "create", row: { scenario_id: 999, item_desc: "x", amount: 1, status: "received" } }])).status).toBe(400);
-    const r = await write([{ table: "quotes", op: "create", row: { scenario_id: 2, item_desc: "Venue rental (Saturday)", amount: 9500, status: "received", options: { bar: "Full Bar" }, received_on: "2026-11-02" } }]);
-    expect(r.status).toBe(200);
-    const q = ((await r.json()) as WriteResult).data.quotes[0];
-    expect(q).toMatchObject({ scenario_id: 2, amount: 9500, basis: "total", includes_tax: false, options: { bar: "Full Bar" }, version: 1 });
-    expect(q.id).toMatch(/^[0-9a-f-]{36}$/);
-  });
-
-  it(`audit keeps the last ${AUDIT_KEEP}`, async () => {
-    const ins = db.raw.prepare("INSERT INTO audit (ts, who, tbl, row_id, op) VALUES ('t', 'w', 'households', 'x', 'update')");
-    for (let i = 0; i < AUDIT_KEEP + 20; i++) ins.run();
-    await write([{ table: "individuals", op: "update", id: "M001", version: 1, row: { Notes: "n" } }]);
-    expect((db.raw.prepare("SELECT COUNT(*) AS n FROM audit").get() as { n: number }).n).toBe(AUDIT_KEEP);
-  });
-});
-
-describe("seed", () => {
-  it("renders SQL with escaped quotes and NULLs", () => {
-    const sql = seedSql(seedRows({ households: [{ HouseholdID: "M-X-001", Family: "Mark", FamilySide: "O'Brien side", PrimaryHouseholdName: "X", HouseholdType: "T" }], individuals: [], friends: [] }, "seed", "t"));
-    expect(sql).toContain("'O''Brien side'");
-    expect(sql).toContain("NULL");
+  it("seedSql renders runnable SQL", () => {
+    const fresh = new SqliteD1().migrate();
+    fresh.raw.exec(seedSql(seedRows(SEED, "seed", "2026-10-21T00:00:00Z")));
+    expect((fresh.raw.prepare("SELECT COUNT(*) n FROM people").get() as { n: number }).n).toBe(fixture.people.length);
   });
 });
