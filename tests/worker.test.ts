@@ -301,3 +301,31 @@ describe("household names follow their people (v8)", () => {
     expect(partyName(r.data, "H-M4")).toBe("Hazel Example");
   });
 });
+
+describe("ask the planner (v8, fake Claude client — no network)", () => {
+  const post = (body: unknown, fake?: CreateFn) =>
+    handleApi(new Request(`${LOCAL}/api/ask`, { method: "POST", headers: { "Content-Type": "application/json", Origin: LOCAL }, body: JSON.stringify(body) }), env, undefined, fake ? { ask: fake } : {});
+  const reply = (obj: unknown) => ({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(obj) }] }) as unknown as Anthropic.Beta.BetaMessage;
+  const prop = { kind: "set_decision", summary: "Invite them", party_ids: ["H-A4"], person_ids: null, value: "invite", first: null, last: null, age: null, party_id: null, partner_of: null, title: null, due: null, owner: null };
+
+  it("503 without a key; 400 without a question", async () => {
+    expect((await post({ question: "hi" })).status).toBe(503);
+    expect((await post({ question: "" }, async () => reply({ answer: "", proposals: [] }))).status).toBe(400);
+  });
+  it("sends a snapshot with ids, adults/kids and no deceased; drops proposals with unknown ids", async () => {
+    let sent: Anthropic.Beta.MessageCreateParamsNonStreaming | undefined;
+    const r = await post({ question: "Who is undecided?", history: [{ role: "user", text: "hi" }, { role: "assistant", text: "hello" }] }, async (p) => {
+      sent = p;
+      return reply({ answer: "Olive is undecided.", proposals: [prop, { ...prop, party_ids: ["H-NOPE"] }] });
+    });
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    expect(body.answer).toBe("Olive is undecided.");
+    expect(body.proposals).toHaveLength(1);
+    const snap = JSON.stringify(sent!.system);
+    expect(snap).toContain("H-A4");
+    expect(snap).toContain("\\\"kids\\\"");
+    expect(sent!.messages).toHaveLength(3);
+    expect(sent).toMatchObject({ model: "claude-opus-5-5", output_config: { format: { type: "json_schema" } } });
+  });
+});

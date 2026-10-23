@@ -1,4 +1,5 @@
 // Browser client for worker/api.ts. Same origin; the Access cookie rides along.
+import type { AskAnswer, AskInput } from "../../worker/ask";
 import type { ResearchDraft } from "../../worker/research";
 import type { ApiData, ApiErrorBody, AuditEntry, Op, WriteResult } from "./types";
 
@@ -25,6 +26,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  /** Ask the planner (v8): answer + proposed edits; nothing is saved. 503 = no API key. */
+  ask: (input: AskInput, signal?: AbortSignal) =>
+    request<AskAnswer>("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input), signal }),
   data: () => request<ApiData>("/api/data"),
   write: (ops: Op[]) => request<WriteResult>("/api/write", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ops }) }),
   /** Venue research (30–90 s). Rejects with ApiFailure (503 = no API key); abort via `signal`. */
