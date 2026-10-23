@@ -75,3 +75,18 @@ Newest first. Each entry: what changed and why.
 ## v7 data (22 Oct 2026)
 - Firehouse Chicago kids' room capacity 20 (Bunk Room), adults seated 82. Source: Mark, 22 Oct 2026 (chat). `capacity.kids` added to Scenario; capacity checks adults and kids separately. Kids stay priced as adults (Mark's choice).
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
+
+## Release log (moved from STATE.md, 23 Oct 2026)
+- v6 Easy people + review fixes (tag v6, 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e.
+- v5 People tab (tag v5, 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452. Rollback = check out v5, build, deploy.
+- v4 Garden (tag v4): rollback = check out v4, build, deploy (0003 columns additive; v4 ignores them).
+- v7 hotfix (research line repair, commit dd4d6f1): Worker version 905d2070-023d-4dae-b1f1-b0c7b2d986d6.
+- Designs/reviews by release: DESIGN-v3/v4/v5/v7/v8, REVIEW-v2/v3/v4-people/v6; mockups docs/mockups/. Looks: Twinkle garden (v4, DESIGN-v4 §6) -> Conservatory Modern (v7) -> Prairie & Steel (v8, current).
+
+## Backups (moved from STATE.md)
+- Before v8: data/private/d1-backup-v7.sql (23 Oct 2026). Before v7: d1-backup-v6.sql (22 Oct). Before v6: d1-backup-v5.sql (22 Oct). Before v5: d1-backup-v4.sql (7 in-app edits); Time Travel bookmark before 0003: 0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8. Before v4: d1-backup-v3.sql; bookmark before 0002: 00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a.
+- Friend tiers set on live from the workbook InviteTier (A→Must, B→Want, C→Nice to have), 22 Oct 2026.
+
+## Guest data at seed, 22 Oct 2026 (moved from STATE.md)
+- Workbook G:\My Drive\Wedding Planner\wedding_guest_data_comprehensive_v4.xlsx (21 Oct 23:33) -> data/private/guests-v4.xlsx. People 115 (+4 tree-only grandparent placeholders): 2 couple, 93 family, 20 friends; 3 deceased; 11 unnamed kids became a household count (0003). Households 55 (45 family + 10 friend groups).
+- Decisions at seed: invite 36 heads (23 adults / 13 kids' room) · if room 0 · undecided 85 heads (42 households) · no 0. Headcount ≈ 28 expected of 36 invited; ≈ 95 if undecided invited. Tree: 45 linked to parents, 23 cousins unlinked. v3 -> v4 count: v3 116 invited / 91 expected; v4 considered 121 / 95.

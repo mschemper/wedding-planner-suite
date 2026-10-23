@@ -1,6 +1,6 @@
 # Usage per release
 
-One row per release, newest first (RELEASE.md rule 10). The handover message gives the same assessment in words. The lead session's own tokens can't be measured from inside a session; subagent figures are the `subagent_tokens` each Agent result reports.
+One row per release, newest first (RELEASE.md rule 10). **New rows <= 200 characters**: size, tokens, rework, verdict; no narrative (older rows are longer; leave them). The handover message gives the same assessment in words. The lead session's own tokens can't be measured from inside a session; subagent figures are the `subagent_tokens` each Agent result reports.
 
 | Version | Size / setup | Lead | Subagents (model: tokens) | Rework | Verdict and next time |
 |---|---|---|---|---|---|
