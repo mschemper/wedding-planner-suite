@@ -20,7 +20,8 @@ Organised by the thing you're changing, not by folder.
 | People model, enums | `src/people/types.ts` | DATA_MODEL "People" |
 | Who is invited (household decision, kids policy, overrides) | `src/people/invite.ts` | `tests/people.test.ts` |
 | Headcount, acceptance rates, capacity cutoff | `src/people/headcount.ts` | `tests/people.test.ts` |
-| Relationship words, tree grouping, "Add relative" defaults | `src/people/kin.ts`, `src/people/garden.ts` | `tests/people.test.ts` |
+| Relationship words | `src/people/kin.ts` | `tests/people.test.ts` "relation words" |
+| Add relative, generation from links, parent suggestions, household move / merge | `src/people/relatives.ts`; UI `src/ui/people/RelativeSheet.tsx`, `Family.tsx` (tray), `HouseholdSheet.tsx` | `tests/people-v6.test.ts` |
 | People validation (loops, partners, households) | `src/people/validate.ts` (also run by the Worker) | `tests/people.test.ts`, `tests/worker.test.ts` |
 | Workbook import | `src/people/fromWorkbook.ts`, `scripts/import-v4.ts` | DESIGN-v4 §5; run against `data/private/guests-v4.xlsx` |
 | Tasks grouping, paste format | `src/plan/tasks.ts` | `tests/plan.test.ts`; `docs/skills/email-sweep.md` |
@@ -42,3 +43,4 @@ Organised by the thing you're changing, not by folder.
 | Branch display names | `src/data/params.ts` `branchName` / settings `branchNames` | `tests/people-v5.test.ts` |
 | Plan tab (tasks, paste, must-haves) | `src/ui/plan/*` | `tests/plan-ui.test.ts` |
 | D1 seed | `scripts/seed-v4.ts`, `worker/seed.ts` | DESIGN-v4 §7.5 |
+| Quote form checks (vendor, $0 reason) | `src/ui/venues/model.ts` `quoteIssue`, `QuoteForm.tsx` | `tests/venues-ui.test.ts` |

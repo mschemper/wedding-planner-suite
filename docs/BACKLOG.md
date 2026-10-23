@@ -14,6 +14,12 @@ Import couldn't tell which aunt/uncle household they belong to. `data/private/im
 ### D2. Decide the 42 undecided households (People → Decide)
 Pricing defaults to "incl. undecided" until they're decided.
 
+### D4. Delete the 3 Firehouse test quotes (Venues → Firehouse → Quotes)
+docs/STATE.md "Quotes". Until then Firehouse reads ≈ $7,600 low.
+
+### D5. Place the unplaced relatives; set local / away (People → Family tray; household sheets)
+44 not placed (live, 22 Oct); 113 of 117 guests have locality "unknown" (blanket 0.78 attendance).
+
 ### D3. Venue answers (tasks T001–T007 in the app)
 Each price answer replaces an estimate in `src/data/scenarios.ts` → golden + HISTORY entry (or a quote in the app).
 
@@ -36,6 +42,20 @@ The mobile companion isn't in this repo. Mark supplies the files → review firs
 ### F11. Promontory package price check — XS
 Park District lists $3,679 for the weekend 11-hour package; the doc itemises $3,179 (probably the $500 deposit). Confirm, then golden + HISTORY.
 
+### F18. Quote sweep from email + Drive — S (REVIEW-v6 E1)
+`docs/skills/quote-sweep.md` + "Paste quotes" sheet (preview vs estimate, one save). PDFs from the Drive folder in STATE "Quotes".
+
+### F19. Vendors table + quote fields — M (REVIEW-v6 E2, Q2)
+Migration 0004: `vendors` (category, email domains), quote `source`, `valid_until`, `deposit`, `vendor_id`, status `excluded` ("not needed"; needs a quotes table rebuild: CHECK constraint).
+
+### F20. Email inbox in the app — L (REVIEW-v6 E3)
+D1 `inbox` of proposals written via /api/write with an Access service token; daily scheduled sweep; Accept / Dismiss on Today.
+
+### F21. Add people by sentence — S (REVIEW-v6 R5)
+Paste text → Claude JSON → preview of people + links → one save.
+
+### F22. Data health card, bulk edit, per-household cost — S each (REVIEW-v6 I2, I3, I5)
+
 ### F16. Automatic Gmail sync for tasks — L (out of v4 scope)
 Needs a Google OAuth app + stored tokens. Today: docs/skills/email-sweep.md → Plan "Paste tasks".
 
@@ -54,9 +74,6 @@ households / individuals / friends are unused since v4. Drop in a later release 
 
 ### B7. "All must-haves" link uses sessionStorage — XS
 `src/ui/today` sets `wps.planSection`; add a nav field (e.g. `openPlan(section)`) instead.
-
-### B9. Leftover v4 garden helpers — XS
-`buildGarden`/`relativeDefaults` in `src/people/garden.ts` are unused by the UI since v5; delete with their tests, or reuse relativeDefaults for "Add relative" in the Family view.
 
 ### B10. Relationship words from the workbook ("Niece/nephew", "Uncle / father's sibling") — XS
 Show derived words, or edit labels in the person sheet.

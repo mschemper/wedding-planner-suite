@@ -2,16 +2,17 @@
 
 **Read this first in a new session** (after AGENTS.md). It is the one file that says what is true right now. What isn't done yet is in `docs/BACKLOG.md`, how things got this way is in `docs/HISTORY.md`, and which files a change touches is in `docs/CODEMAP.md`. Update this at the end of any session that changes it.
 
-Last updated: 22 October 2026 (v5 People tab deployed and verified).
+Last updated: 22 October 2026 (v6 built on branch `review-v6`, not deployed; live data read for REVIEW-v6).
 
 ## Version
 
 | | |
 |---|---|
+| Built, not deployed | **v6 Easy people + review fixes** (package.json 6.0.0, branch `review-v6`; no migration). Deploy = merge to main, tag v6, `npm run build`, `npx wrangler deploy`, verify `/api/version` = 6.0.0 |
 | Released | **v5 People tab** (tag `v5`, package.json 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452; signed-in `/api/version` = 5.0.0; unauthenticated `/` → Access login (verified) |
 | Previous release | v4 "Garden" (tag `v4`). Rollback = check out `v4`, `npm run build`, `npx wrangler deploy` (0003 columns are additive; v4 ignores them) |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
-| Design | docs/DESIGN-v4.md, docs/DESIGN-v5.md (People), review docs/REVIEW-v4-people.md; mockups docs/mockups/ |
+| Design | docs/DESIGN-v4.md, docs/DESIGN-v5.md (People), reviews docs/REVIEW-v4-people.md, docs/REVIEW-v6.md; mockups docs/mockups/ |
 
 ## The wedding (facts that drive the model)
 
@@ -28,6 +29,9 @@ Last updated: 22 October 2026 (v5 People tab deployed and verified).
 
 ## Guest data (D1 is the source of truth; seeded 22 Oct 2026 from `npm run import:v4`)
 
+**Live, 22 Oct 2026 evening (REVIEW-v6 §2):** 121 people, 56 households; decisions invite 46 · if room 3 · undecided 7. 44 relatives not placed in the tree; locality unknown for 113 of 117 guests. The seed-time table below is history.
+
+
 | | |
 |---|---|
 | Workbook | `G:\My Drive\Wedding Planner\wedding_guest_data_comprehensive_v4.xlsx` (21 Oct 23:33) → `data/private/guests-v4.xlsx` (gitignored) |
@@ -37,6 +41,12 @@ Last updated: 22 October 2026 (v5 People tab deployed and verified).
 | Live headcount at seed | ≈ 28 expected of 36 invited; ≈ 95 if the undecided are invited (default pricing basis) |
 | Tree | 45 people linked to parents; 23 cousins not linked yet (set in the garden); review list `data/private/import-review.json` |
 | v3 → v4 count | v3 116 invited / 91 expected; v4 considered 121 / 95 (+10 friend partners split, −2 couple, −3 deceased) |
+
+## Quotes
+
+- **Firehouse live quotes to delete (Mark, in the app):** Tax + service $0, Event insurance $0, Photography $500 (entered 22 Oct 07:27, no vendor; Mark confirmed test taps). They lower the Firehouse total ≈ $7,600 at 75 guests. Venues → Firehouse → Quotes → delete each.
+- Quote documents: Google Drive folder https://drive.google.com/drive/folders/1HWECgGPfEdzSJ6sazixw2Rp3WB9xG2vn (22 Oct: The Joinery Chicago.pdf). Quotes-from-email plan: REVIEW-v6 §4 (BACKLOG F18–F20).
+- Joinery visit: Fri 30 Oct 2026 12:30 (Mark confirmed by email 22 Oct).
 
 ## Open questions to venues (tasks in the app)
 

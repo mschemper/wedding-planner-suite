@@ -1,5 +1,6 @@
 # REVIEW-v6 -- design + debug review, easier input, email quotes, people links (22 Oct 2026). Agent-facing.
 Inputs: v5 code (tag v5), gate `npm run check` green (284 tests, both builds); live D1 read 22 Oct (read-only SELECT on people, parties, quotes, tasks); Gmail read-only search for venue threads. Guest findings = counts only (AGENTS "Private data").
+Status (22 Oct 2026): v6 built B11–B14, Q2 (form check), V1–V2, R1–R4, visual pass; open → BACKLOG D4, D5, F18–F22.
 Mark's asks: (1) add information more easily; (2) prompt Claude to gather quotes from venue/vendor emails; (3) review guest data; (4) make relatives + households easy to add and link.
 
 ## 0. Act first

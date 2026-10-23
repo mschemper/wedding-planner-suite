@@ -27,9 +27,10 @@
 .pl-task-title { border: 0; background: none; text-align: left; font-weight: 600; font-size: 16px; line-height: 1.35; min-height: 44px; padding: 6px 0; width: 100%; display: block; }
 .pl-task-title:hover { text-decoration: underline; text-underline-offset: 3px; }
 .pl-task.is-done .pl-task-title { text-decoration: line-through; color: var(--muted); font-weight: 400; }
-.pl-task-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; color: var(--muted); }
+.pl-task-meta { display: flex; flex-wrap: wrap; gap: 0 12px; align-items: center; line-height: 1.2; font-size: 13px; color: var(--muted); }
 .pl-overdue { color: var(--peony-ink); font-weight: 700; }
-.pl-src { display: inline-flex; align-items: center; min-height: 44px; }
+.pl-task-meta > * { align-self: center; }
+.pl-src { display: inline-flex; align-items: center; min-height: 44px; color: var(--euc-ink); }
 .pl-err { color: var(--peony-ink); font-size: 14px; }
 .pl-hint { color: var(--muted); font-size: 13px; }
 .pl-confirm { align-self: center; color: var(--peony-ink); font-weight: 600; }
@@ -45,17 +46,29 @@
 .pl-preview li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; }
 .pl-preview li.is-skip { opacity: .65; }
 .pl-mh-list { list-style: none; margin-bottom: 12px; }
-.pl-mh { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--line); flex-wrap: wrap; }
 .pl-mh:last-child { border-bottom: 0; }
-.pl-mh-main { flex: 1 1 220px; min-width: 0; }
 .pl-mh-text { font-weight: 600; }
-.pl-mh-actions { display: flex; align-items: center; flex-wrap: wrap; }
 .pl-mh-edit { display: grid; gap: 8px; }
 .pl-row { display: flex; gap: 8px; }
 .pl-mh-arch { border-top: 1px solid var(--line); padding-top: 8px; }
 .pl-mh.is-archived .pl-mh-text { color: var(--muted); font-weight: 400; }
-.pl-vchips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
-.pl-vchip { min-height: 44px; min-width: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--ground); font-size: 13px; font-weight: 600; color: var(--muted); }
-.pl-vchip.v-yes { background: color-mix(in srgb, var(--euc) 22%, transparent); color: var(--euc-ink); }
-.pl-vchip.v-partly { background: color-mix(in srgb, var(--marigold) 26%, transparent); color: var(--gold-ink); }
-.pl-vchip.v-no { background: color-mix(in srgb, var(--blush) 34%, transparent); color: var(--peony-ink); }
+.pl-mh { display: flex; align-items: center; gap: 8px; padding: 2px 0; border-bottom: 1px dashed var(--line); flex-wrap: wrap; }
+.pl-mh-n { flex: none; width: 22px; text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pl-mh-main { flex: 1 1 160px; min-width: 0; padding: 4px 0; }
+.pl-marks { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pl-mark { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); background: var(--ground); font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.pl-mark.v-yes { color: var(--euc-ink); }
+.pl-mark.v-partly { color: var(--gold-ink); }
+.pl-mark.v-no { color: var(--peony-ink); }
+.pl-menu { position: relative; flex: none; }
+.pl-menu-pop { position: absolute; right: 0; top: 100%; z-index: 5; min-width: 150px; padding: 4px; display: grid; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 18%, transparent); }
+.pl-menu-item { min-height: 44px; padding: 0 12px; border: 0; background: none; text-align: left; font-size: 15px; border-radius: 8px; }
+.pl-menu-item:hover:not(:disabled), .pl-menu-item:focus-visible { background: var(--ground); }
+.pl-menu-item:disabled { color: var(--muted); cursor: default; }
+/* v6 lead fix: one header line per must-have (number · text · ⋯), venue marks on one tight line beneath */
+.pl-mh { display: grid; grid-template-columns: 22px minmax(0, 1fr) 44px; grid-template-areas: "n main menu" ". marks marks"; column-gap: 8px; align-items: center; padding: 4px 0 6px; }
+.pl-mh > .pl-mh-n { grid-area: n; }
+.pl-mh > .pl-mh-main { grid-area: main; padding: 2px 0; }
+.pl-mh > .pl-marks { grid-area: marks; display: flex; flex-wrap: wrap; gap: 4px; }
+.pl-mh > .pl-menu { grid-area: menu; justify-self: end; }
+.pl-mh .pl-mark { padding: 1px 7px; font-size: 13px; }

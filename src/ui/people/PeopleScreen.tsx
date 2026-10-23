@@ -17,6 +17,8 @@ import { HouseholdSheet, type HouseholdTarget } from "./HouseholdSheet";
 import { Menu } from "./Menu";
 import { relationFinder, relationSummary } from "./model";
 import { PersonSheet, type SheetRequest, type SheetTarget } from "./PersonSheet";
+import { RelativeSheet, type RelativeTarget } from "./RelativeSheet";
+import type { RelKind } from "../../people/relatives";
 import { RoomCheck, useRoom } from "./RoomCheck";
 import "./people.css";
 
@@ -31,11 +33,14 @@ export function PeopleScreen() {
   const act = useActions();
   const [target, setTarget] = useState<SheetTarget | null>(null);
   const [hh, setHh] = useState<HouseholdTarget | null>(null);
+  const [relT, setRelT] = useState<RelativeTarget | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [note, setNote] = useState("");
   const seq = useRef(0);
   const open = useCallback((t: SheetRequest) => setTarget({ ...t, key: String(++seq.current) } as SheetTarget), []);
   const openHousehold = useCallback((id: string) => setHh({ id, key: String(++seq.current) }), []);
+  // the relative sheet replaces any open person / household sheet
+  const openRelative = useCallback((of: string, rel: RelKind) => { setTarget(null); setHh(null); setRelT({ of, rel, key: String(++seq.current) }); }, []);
   const tc = useMemo(() => tierCtx(people), [people]);
   const rings = useMemo(() => buildRings(people, invite, tc), [people, invite, tc]);
   const rel = useMemo(() => relationFinder(people.people), [people.people]);
@@ -79,10 +84,11 @@ export function PeopleScreen() {
       <RoomCheck room={room} act={act} />
       {showHistory && <History />}
       {view === "decide" && <Decide rings={rings} room={room} rel={relOfRow} act={act} onHousehold={openHousehold} onPerson={editPerson} />}
-      {view === "family" && <Family rel={rel} act={act} onHousehold={openHousehold} onPerson={editPerson} />}
+      {view === "family" && <Family rel={rel} act={act} onHousehold={openHousehold} onPerson={editPerson} onRelative={openRelative} />}
       {view === "friends" && <Friends rings={rings} act={act} onHousehold={openHousehold} />}
-      <HouseholdSheet key={hh ? `h${hh.key}` : "h-none"} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onPerson={editPerson} onAddPerson={addToHousehold} />
-      <PersonSheet key={target?.key ?? "none"} target={target} onClose={() => setTarget(null)} />
+      <HouseholdSheet key={hh ? `h${hh.key}` : "h-none"} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onPerson={editPerson} onAddPerson={addToHousehold} onRelative={openRelative} />
+      <PersonSheet key={target?.key ?? "none"} target={target} onClose={() => setTarget(null)} rel={rel} onRelative={openRelative} />
+      <RelativeSheet key={relT?.key ?? "r-none"} target={relT} onClose={() => setRelT(null)} />
     </div>
   );
 }

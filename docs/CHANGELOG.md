@@ -1,5 +1,22 @@
 # Changelog
 
+## v6 - Easy people + review fixes (22 Oct 2026)
+
+**Not deployed yet** (branch `review-v6`). No D1 migration. Review: docs/REVIEW-v6.md. Mark picked (22 Oct): ＋ menu on rows and in sheets, placement suggestions in the tray, person sheet "basics + More", calmer + denser visuals, compact Plan must-haves, 2-line phone rows.
+
+**People**
+  * Add relative: ＋ on every Family row, in the person sheet and on each household member: Partner / Child / Sibling / Parent. Name + age + household; links, side, branch, generation and kids' room are filled in. A sibling of someone with no parents is linked through one "parents" placeholder.
+  * Not placed yet: each person shows a guess ("child of …?") with Accept / Other…; tick several and "these are the kids of …" links them in one step (Undo).
+  * Household sheet: per-member menu (add relative, move to another household, own household, partner moves too) and "Merge into another…".
+  * Person sheet: name, age, household and relatives first; RSVP, exception, local, notes, side, branch under "More details". No generation or kids'-room fields (derived). Fits the sheet (was cut off on desktop).
+  * Partner picker shows who is already partnered and asks before moving a link; offers "use the same household".
+  * Family tree: nobody drawn twice; couple's surname no longer doubled; a parent from another branch is noted instead of "Nobody here yet"; "1 person".
+  * Room check on one line; phone Decide rows take two lines.
+
+**Fixes**: kids' room counted by age everywhere (room check and ring seats agreed only when a box was ticked); relation words matched as whole words ("Grandson", "Godson", "Aunt's stepson" no longer read as child / aunt); generation follows parent / partner links on save; validator warns when partners are in different households.
+
+**Venues / Plan**: must-have matrix shows only the verdict (note on hover / always on touch); "Pricing at" in one row; Plan must-haves as a compact list with venue marks and a ⋯ menu; task meta aligned. Quote form: received / accepted quotes need a vendor, $0 needs a reason.
+
 ## v5 - People tab rebuild (22 Oct 2026)
 
 **Deployed** 22 Oct 2026. D1 migration 0003 (add-only columns + placeholder kids → counts). Design review: docs/REVIEW-v4-people.md; options docs/mockups/v5-people-options.html; Mark picked rings, outline tree, friend shortlist and all data changes.

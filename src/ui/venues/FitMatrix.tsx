@@ -77,8 +77,8 @@ export function FitMatrix({ active }: { active: VenueSummary[] }) {
                         <div className="vn-cell">
                           <VerdictPicker verdict={f?.verdict ?? "unknown"} label={names} disabled={readOnly} onCycle={() => void cycle(v.scenario.id, m.id, names)} />
                           {!readOnly && (
-                            <button type="button" className="vn-note-btn" aria-label={`${note ? "Edit" : "Add"} note: ${names}`}
-                              onClick={() => setTarget({ scenarioId: v.scenario.id, musthaveId: m.id, venue: v.scenario.name, musthave: m.text })}>{note ? "note ✎" : "note"}</button>
+                            <button type="button" className="vn-cell-note-btn" aria-label={`${note ? "Edit" : "Add"} note: ${names}`}
+                              onClick={() => setTarget({ scenarioId: v.scenario.id, musthaveId: m.id, venue: v.scenario.name, musthave: m.text })}>{note ? "note ✎" : "+ note"}</button>
                           )}
                         </div>
                         {note && <div className="vn-meta vn-cell-note">{note}</div>}
