@@ -5,7 +5,7 @@ import { cutoff, type Headcount } from "../../people/headcount";
 import { effectiveInvite, heads, kidsIn, type InviteCtx } from "../../people/invite";
 import { anchorFor, graph, relationRoot, relationText, type Relation } from "../../people/kin";
 import type { Ring, RingRow } from "../../people/rings";
-import { lastNamesFromHousehold, pairName } from "../../people/names";
+import { householdEnvelope, lastNamesFromHousehold, pairName } from "../../people/names";
 import { genFromLinks } from "../../people/relatives";
 import { tierLabel } from "../../people/tier";
 import {
@@ -498,4 +498,86 @@ export function friendLastNameFixes(d: PeopleData): { patches: Patch[]; lines: s
     }
   }
   return { patches, lines };
+}
+
+// ---------- household card (v8): the household and its people edited in one place, one save ----------
+export interface CardPerson {
+  /** stable key in the card (person id, or "new:<n>") */
+  key: string;
+  original?: Versioned<Person>;
+  draft: PersonDraft;
+  remove?: boolean;
+}
+export interface CardDraft {
+  household: HouseholdDraft;
+  /** false = the envelope name follows the people (v8 default) */
+  customName: boolean;
+  /** new household only: whose side and family vs friend, for the people added with it */
+  side: Side;
+  kind: "family" | "friend";
+  people: CardPerson[];
+}
+
+/** The automatic name the card shows while editing (same rule and order as the Worker). */
+export function cardAutoName(c: CardDraft): string {
+  const live = c.people.filter((x) => !x.remove && x.draft.first.trim()).map((x, i) => ({
+    ...(x.original ?? ({} as Person)), id: x.original?.id ?? `~${i}`, first: x.draft.first.trim(), last: x.draft.last.trim() || null,
+    nick: x.draft.nick.trim() || null, age: x.draft.age, deceased: x.draft.deceased, placeholder: false, plus_one: x.draft.plus_one,
+    parent_ids: x.draft.parent_ids, sort: x.original?.sort ?? null,
+  }) as Person);
+  return householdEnvelope(live);
+}
+
+export function cardIssues(c: CardDraft): string[] {
+  const out: string[] = [];
+  const kept = c.people.filter((x) => !x.remove);
+  if (!kept.length) out.push("A household needs at least one person (or move everyone and merge it instead).");
+  kept.forEach((x, i) => { if (!x.draft.first.trim()) out.push(`Person ${i + 1} needs a first name.`); });
+  if (c.customName && !c.household.name.trim()) out.push("Write an envelope name, or switch back to automatic.");
+  if (c.household.unnamed < 0 || c.household.unnamed > 20) out.push("Unnamed kids must be 0–20.");
+  return out;
+}
+
+/**
+ * One save for the card. Existing household: changed household fields + name mode, changed people, new people, removals.
+ * New household: create it (tmp:hh) then its people. The Worker writes the automatic name; a custom one is sent as written.
+ */
+export function cardOps(c: CardDraft, party: Versioned<Party> | null, friend: boolean, all: Person[]): Op[] {
+  const ops: Op[] = [];
+  const pid = party?.id ?? "tmp:hh";
+  const h = c.household;
+  if (!party) {
+    ops.push({ table: "parties", op: "create", row: {
+      id: "tmp:hh", name: c.customName ? h.name.trim() : "New household", name_custom: c.customName, invite: h.invite, kids: h.kids, tier: h.tier,
+      unnamed_kids: h.unnamed, talk: h.talk, talk_note: h.talk_note.trim() || null,
+      ...(c.kind === "friend" ? { circle: h.circle.trim() || null, known_by: h.known_by || null, reciprocal: h.reciprocal } : {}),
+    } });
+  } else {
+    const patch = householdPatch({ ...h, name: c.customName ? h.name : party.name }, party, friend);
+    const row: Record<string, unknown> = { ...(patch?.patch.row ?? {}) };
+    if (!!party.name_custom !== c.customName) row.name_custom = c.customName;
+    if (!c.customName) delete row.name;
+    if (Object.keys(row).length) ops.push({ table: "parties", op: "update", id: party.id, version: party.version, row });
+  }
+  let n = 0;
+  for (const x of c.people) {
+    if (x.remove) {
+      if (x.original) ops.push({ table: "people", op: "delete", id: x.original.id, version: x.original.version });
+      continue;
+    }
+    const made = personOps({ draft: { ...x.draft, party: pid }, original: x.original, needsParty: true, people: all });
+    if (x.original) ops.push(...made);
+    else {
+      n++;
+      for (const o of made) if (o.op === "create" && o.table === "people") ops.push({ ...o, row: { ...o.row, id: `tmp:p${n}` } });
+    }
+  }
+  return ops;
+}
+
+/** A blank person for "Add someone to this household": side, kind, branch and surname from the household. */
+export function blankCardPerson(key: string, peers: Person[], fallback: { side: Side; kind: "family" | "friend" }): CardPerson {
+  const peer = peers.find((p) => !p.placeholder && !p.deceased);
+  const kind = peer ? (peer.kind === "friend" ? "friend" : "family") : fallback.kind;
+  return { key, draft: draftFrom({ side: peer?.side ?? fallback.side, kind, branch: peer?.branch ?? null, last: peer?.last ?? null, local: peer?.local ?? "unknown" }) };
 }
