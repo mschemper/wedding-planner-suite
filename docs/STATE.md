@@ -11,7 +11,7 @@ Last updated: 22 October 2026 (v6 deployed; live data read for REVIEW-v6).
 | Released | **v6 Easy people + review fixes** (tag `v6`, package.json 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e at 100%; unauthenticated `/` and `/api/version` → Access login (verified); signed-in `/api/version` = 6.0.0 not yet checked (needs Mark signed in) |
 | Previous release | v5 People tab (tag `v5`). Rollback = check out `v5`, `npm run build`, `npx wrangler deploy` (no schema change in v6) |
 | Older | **v5 People tab** (tag `v5`, package.json 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452; signed-in `/api/version` = 5.0.0; unauthenticated `/` → Access login (verified) |
-| Previous release | v4 "Garden" (tag `v4`). Rollback = check out `v4`, `npm run build`, `npx wrangler deploy` (0003 columns are additive; v4 ignores them) |
+| Older | v4 "Garden" (tag `v4`). Rollback = check out `v4`, `npm run build`, `npx wrangler deploy` (0003 columns are additive; v4 ignores them) |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Design | docs/DESIGN-v4.md, docs/DESIGN-v5.md (People), reviews docs/REVIEW-v4-people.md, docs/REVIEW-v6.md; mockups docs/mockups/ |
 
