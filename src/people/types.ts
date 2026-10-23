@@ -73,6 +73,8 @@ export interface Party {
   circle?: string | null;
   known_by?: KnownBy | null;
   reciprocal?: boolean;
+  /** v8: true = envelope name written by hand; false = follows the people (envelopeName, kept in sync by the Worker) */
+  name_custom?: boolean;
 }
 
 export interface PeopleData {

@@ -1,0 +1,23 @@
+/* Ask the planner (v8). Tokens only; sheet chrome comes from kit .k-sheet. */
+.ask-fab { position: fixed; right: 16px; bottom: 20px; z-index: 40; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--euc); background: var(--euc); color: var(--on-euc); display: grid; place-items: center; box-shadow: 0 4px 16px rgba(0,0,0,.22); cursor: pointer; }
+.ask-fab svg { width: 26px; height: 26px; }
+@media (max-width: 639px) { .ask-fab { bottom: 76px; } }
+.ask-intro { margin: 0 0 12px; font-size: 14px; color: var(--muted); line-height: 1.5; }
+.ask-log { display: flex; flex-direction: column; gap: 12px; }
+.ask-msg { max-width: 92%; padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ask-user { align-self: flex-end; background: var(--euc); color: var(--on-euc); }
+.ask-bot { align-self: flex-start; background: var(--ground); border: 1px solid var(--line); color: var(--ink); }
+.ask-examples { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.ask-example { min-height: 44px; text-align: left; padding: 8px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--euc-ink); font-size: 15px; cursor: pointer; }
+.ask-card { align-self: stretch; border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ask-card-sum { font-weight: 600; color: var(--ink); }
+.ask-lines { margin: 0; padding-left: 18px; font-size: 14px; color: var(--ink); line-height: 1.5; }
+.ask-card-msg { margin: 0; font-size: 14px; color: var(--peony-ink); }
+.ask-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ask-done { font-weight: 600; color: var(--euc-ink); min-height: 44px; display: flex; align-items: center; }
+.ask-skipped { font-size: 14px; color: var(--muted); min-height: 44px; display: flex; align-items: center; }
+.ask-thinking { color: var(--muted); font-size: 15px; }
+.ask-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.ask-form textarea { width: 100%; min-height: 72px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--ground); color: var(--ink); font-size: 16px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+.ask-form-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ask-count { font-size: 13px; color: var(--muted); }

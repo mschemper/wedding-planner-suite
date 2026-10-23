@@ -1,4 +1,4 @@
-// WCAG contrast gate for the Twinkle-garden tokens (DESIGN-v4 §6): text tokens on ground + card, day and dusk.
+// WCAG contrast gate for the Prairie & Steel tokens (DESIGN-v8): text tokens on ground + card, day and dusk (night skyline).
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 

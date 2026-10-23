@@ -8,6 +8,8 @@ Last updated: 22 October 2026 (v7 deployed).
 
 | | |
 |---|---|
+| Built, not deployed | **v8** (package.json 8.0.0, branch `v8`): household card, names follow people (0005), Prairie & Steel look, Ask the planner. Deploy = D1 export → `npx wrangler d1 migrations apply DB --remote` (0005) → merge main into v8 then v8 into main, tag v8 → build → deploy → `/api/version` = 8.0.0 |
+| Hotfix on v7 | 23 Oct 2026: research line repair (commit dd4d6f1 on main), Worker version 905d2070-023d-4dae-b1f1-b0c7b2d986d6 |
 | Released | **v7** (tag `v7`, package.json 7.0.0): Conservatory look, hidden ancestors, adults vs kids, Add venue research, bulk edit. Deployed 22 Oct 2026, Worker version 66408ed9-8730-4dc2-9c89-842225e14794 at 100%; migration 0004 applied; unauthenticated `/` and `/api/version` → Access login (verified); signed-in `/api/version` = 7.0.0 not checked (needs Mark signed in). Research needs `ANTHROPIC_API_KEY` (BACKLOG P2) |
 | Previous release | **v6 Easy people + review fixes** (tag `v6`, package.json 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e at 100%; unauthenticated `/` and `/api/version` → Access login (verified); signed-in `/api/version` = 6.0.0 not yet checked (needs Mark signed in) |
 | Previous release | v5 People tab (tag `v5`). Rollback = check out `v5`, `npm run build`, `npx wrangler deploy` (no schema change in v6) |

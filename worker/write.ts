@@ -3,7 +3,8 @@
 import type { ApiErrorBody, Issue, Op, TableName } from "../src/api/types";
 import { CUSTOM_ID_MIN, itemIssues } from "../src/data/custom";
 import { mergeSettings } from "../src/data/params";
-import type { PeopleData } from "../src/people/types";
+import { householdEnvelope } from "../src/people/names";
+import type { PeopleData, Person } from "../src/people/types";
 import { validatePeople } from "../src/people/validate";
 import { deleteStmt, guardStmt, insertStmt, isTable, loadState, normalize, SPECS, updateStmt, type Rec, type State } from "./db";
 import type { D1Database, D1PreparedStatement } from "./env";
@@ -186,6 +187,24 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
       });
     }
   }
+  // 4b. v8: automatic household names follow their people (any person change, a new household, or "back to automatic")
+  const nameFields = ["party_id", "first", "last", "nick", "deceased", "placeholder", "age", "plus_one"];
+  const affected = new Set<string>();
+  for (const t of [...touches.values()]) {
+    if (t.table === "people") {
+      const changed = !t.read || !t.after || nameFields.some((f) => JSON.stringify(t.read![f] ?? null) !== JSON.stringify(t.after![f] ?? null));
+      if (!changed) continue;
+      for (const r of [t.read, t.after]) if (r?.party_id) affected.add(String(r.party_id));
+    }
+    if (t.table === "parties" && t.op !== "delete" && (t.op === "create" || (!!t.read?.name_custom && !t.after?.name_custom))) affected.add(t.id);
+  }
+  for (const id of affected) {
+    const party = st.parties.get(id);
+    if (!party || party.name_custom) continue;
+    const auto = householdEnvelope([...st.people.values()].filter((p) => p.party_id === id) as unknown as Person[]);
+    if (auto && auto !== party.name) sideEdit("parties", id, (r) => { r.name = auto; });
+  }
+
   for (const t of touches.values()) {
     if (t.op !== "delete") continue;
     if (t.table === "parties" && [...st.people.values()].some((p) => p.party_id === t.id))

@@ -8,7 +8,7 @@ import { buildRings, fillPoint } from "../src/people/rings";
 import { FRIEND_TIER_LABEL, tierCtx } from "../src/people/tier";
 import type { Party, PeopleData } from "../src/people/types";
 import {
-  authorName, branchEdit, bulkEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
+  authorName, blankCardPerson, branchEdit, bulkEdit, capacityFor, cardAutoName, cardIssues, cardOps, type CardDraft, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
   householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, partnerNotice, personOps, quickFriendIssues,
   friendLastNameFixes, quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
 } from "../src/ui/people/model";
@@ -305,5 +305,46 @@ describe("bulk edit (v7)", () => {
     const local = bulkEdit(ps, D.people, { kind: "local", value: "away" });
     expect(local.patches.every((p) => p.table === "people" && p.row?.local === "away")).toBe(true);
     expect(local.patches.length).toBe(D.people.filter((p) => (p.party_id === "H-M1" || p.party_id === "H-M2") && p.local !== "away").length);
+  });
+});
+
+describe("household card (v8)", () => {
+  const vp = (id: string) => ({ ...person(id), version: 2 });
+  const card = (id: string, extra: Partial<CardDraft> = {}): CardDraft => ({
+    household: householdDraft(party(id)), customName: false, side: "Mark", kind: "family",
+    people: D.people.filter((p) => p.party_id === id).map((p) => ({ key: p.id, original: vp(p.id), draft: draftFrom(p) })), ...extra,
+  });
+  it("auto name follows the edited people; nothing changed means no ops", () => {
+    const c = card("H-M4");
+    expect(cardOps(c, { ...party("H-M4"), version: 1 }, false, D.people)).toEqual([]);
+    c.people[0].draft = { ...c.people[0].draft, last: "Newname" };
+    expect(cardAutoName(c)).toBe("Hazel Newname & Iris Other");
+    expect(cardOps(c, { ...party("H-M4"), version: 1 }, false, D.people)).toEqual([{ table: "people", op: "update", id: "M009", version: 2, row: { last: "Newname" } }]);
+  });
+  it("custom name is sent as written; switching back sends name_custom false only", () => {
+    const c = card("H-M4", { customName: true });
+    c.household = { ...c.household, name: "The Examples" };
+    expect(cardOps(c, { ...party("H-M4"), version: 1 }, false, D.people)).toEqual([{ table: "parties", op: "update", id: "H-M4", version: 1, row: { name: "The Examples", name_custom: true } }]);
+    expect(cardOps(card("H-M4"), { ...party("H-M4"), name_custom: true, version: 1 }, false, D.people)).toEqual([{ table: "parties", op: "update", id: "H-M4", version: 1, row: { name_custom: false } }]);
+  });
+  it("adds and removes people in one save with unique tmp ids", () => {
+    const c = card("H-M4");
+    c.people.push(blankCardPerson("new:1", D.people.filter((p) => p.party_id === "H-M4"), { side: "Mark", kind: "family" }));
+    c.people.push(blankCardPerson("new:2", [], { side: "Mark", kind: "family" }));
+    c.people[2].draft = { ...c.people[2].draft, first: "Kid", age: "child" };
+    c.people[3].draft = { ...c.people[3].draft, first: "Baby", age: "child" };
+    c.people[1].remove = true;
+    const ops = cardOps(c, { ...party("H-M4"), version: 1 }, false, D.people);
+    expect(ops.map((o) => (o.op === "create" ? `create:${o.row.id}` : `${o.op}:${(o as { id: string }).id}`))).toEqual(["delete:M010", "create:tmp:p1", "create:tmp:p2"]);
+    expect(ops[1]).toMatchObject({ row: { party_id: "H-M4", last: "Example", side: "Mark", kids_room: true } });
+  });
+  it("new household: created first, people point at it; issues listed", () => {
+    const c: CardDraft = { household: { ...householdDraft(party("H-M4")), name: "", invite: "undecided" }, customName: false, side: "Angela", kind: "friend",
+      people: [blankCardPerson("new:1", [], { side: "Angela", kind: "friend" })] };
+    expect(cardIssues(c)).toEqual(["Person 1 needs a first name."]);
+    c.people[0].draft = { ...c.people[0].draft, first: "Sam", last: "Lee" };
+    const ops = cardOps(c, null, true, D.people);
+    expect(ops[0]).toMatchObject({ table: "parties", op: "create", row: { id: "tmp:hh", name_custom: false } });
+    expect(ops[1]).toMatchObject({ table: "people", op: "create", row: { id: "tmp:p1", first: "Sam", party_id: "tmp:hh", side: "Angela", kind: "friend" } });
   });
 });

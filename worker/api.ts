@@ -4,6 +4,7 @@ import type { ApiErrorBody, AuditEntry, WriteRequest } from "../src/api/types";
 import { authenticate } from "./auth";
 import { loadState, stateToApi } from "./db";
 import type { Env } from "./env";
+import { askPlanner, type AskInput } from "./ask";
 import { claudeCreate, researchVenue, ResearchError, type CreateFn, type ResearchInput } from "./research";
 import { applyWrite } from "./write";
 import pkg from "../package.json";
@@ -12,7 +13,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
 const err = (status: number, error: ApiErrorBody["error"], message: string) => json({ error, message } satisfies ApiErrorBody, status);
 
-export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey, deps: { research?: CreateFn } = {}): Promise<Response> {
+export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey, deps: { research?: CreateFn; ask?: CreateFn } = {}): Promise<Response> {
   const url = new URL(req.url);
   if (req.method !== "GET" && req.method !== "HEAD") {
     const origin = req.headers.get("Origin");
@@ -54,6 +55,24 @@ export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey, 
         if (e instanceof ResearchError) return err(e.status, e.status === 400 ? "bad_request" : "server", e.message);
         console.error("research error", e);
         return err(502, "server", "Research failed — try again, or add the venue by hand.");
+      }
+    }
+
+    if (url.pathname === "/api/ask" && req.method === "POST") {
+      const create = deps.ask ?? (env.ANTHROPIC_API_KEY ? claudeCreate(env.ANTHROPIC_API_KEY) : null);
+      if (!create) return err(503, "server", "Ask the planner needs an Anthropic API key (Cloudflare secret ANTHROPIC_API_KEY).");
+      let body: AskInput;
+      try {
+        body = (await req.json()) as AskInput;
+      } catch {
+        return err(400, "bad_request", "Body is not JSON");
+      }
+      try {
+        return json(await askPlanner(body, await loadState(env.DB), create));
+      } catch (e) {
+        if (e instanceof ResearchError) return err(e.status, e.status === 400 ? "bad_request" : "server", e.message);
+        console.error("ask error", e);
+        return err(502, "server", "Couldn't get an answer — try again.");
       }
     }
 

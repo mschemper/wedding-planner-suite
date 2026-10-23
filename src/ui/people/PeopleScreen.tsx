@@ -13,7 +13,9 @@ import { exportJson, exportXlsx } from "./exportFiles";
 import { Family } from "./Family";
 import { Friends } from "./Friends";
 import { History } from "./History";
-import { HouseholdSheet, type HouseholdTarget } from "./HouseholdSheet";
+import { HouseholdCard, type CardTarget } from "./HouseholdCard";
+import { HouseholdPicker } from "./HouseholdPicker";
+import { NameTidy } from "./NameTidy";
 import { Menu } from "./Menu";
 import { relationFinder, relationSummary } from "./model";
 import { PersonSheet, type SheetRequest, type SheetTarget } from "./PersonSheet";
@@ -32,13 +34,16 @@ export function PeopleScreen() {
   const { focus, clearFocus } = useNav();
   const act = useActions();
   const [target, setTarget] = useState<SheetTarget | null>(null);
-  const [hh, setHh] = useState<HouseholdTarget | null>(null);
+  const [hh, setHh] = useState<CardTarget | null>(null);
+  const [picking, setPicking] = useState(false);
   const [relT, setRelT] = useState<RelativeTarget | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [note, setNote] = useState("");
   const seq = useRef(0);
   const open = useCallback((t: SheetRequest) => setTarget({ ...t, key: String(++seq.current) } as SheetTarget), []);
-  const openHousehold = useCallback((id: string) => setHh({ id, key: String(++seq.current) }), []);
+  // v8: one household card for households and their people
+  const openCard = useCallback((t: Omit<CardTarget, "key">) => { setTarget(null); setHh({ ...t, key: String(++seq.current) }); }, []);
+  const openHousehold = useCallback((id: string) => openCard({ partyId: id }), [openCard]);
   // the relative sheet replaces any open person / household sheet
   const openRelative = useCallback((of: string, rel: RelKind) => { setTarget(null); setHh(null); setRelT({ of, rel, key: String(++seq.current) }); }, []);
   const tc = useMemo(() => tierCtx(people), [people]);
@@ -51,16 +56,18 @@ export function PeopleScreen() {
 
   useEffect(() => {
     if (!focus.person) return;
-    if (people.people.some((p) => p.id === focus.person)) { open({ mode: "edit", id: focus.person }); clearFocus(); }
+    const p = people.people.find((x) => x.id === focus.person);
+    if (p) { if (p.party_id) openCard({ partyId: p.party_id, focus: p.id }); else open({ mode: "edit", id: p.id }); clearFocus(); }
     else if (status === "ready") clearFocus();
-  }, [focus.person, people.people, status, open, clearFocus]);
+  }, [focus.person, people.people, status, open, openCard, clearFocus]);
 
   if (offline) return <Card title="People"><EmptyState>Guest decisions live in the online planner.</EmptyState></Card>;
 
-  const editPerson = (id: string, f?: "parents") => open({ mode: "edit", id, focus: f });
-  const addToHousehold = (partyId: string) => {
-    const m = people.people.find((p) => p.party_id === partyId);
-    open({ mode: "new", defaults: { party_id: partyId, side: m?.side, kind: m?.kind === "friend" ? "friend" : "family", branch: m?.branch, circle: m?.circle }, party: "" });
+  // a person opens their household card (the couple and tree-only rows keep the small person sheet)
+  const editPerson = (id: string, f?: "parents") => {
+    const p = people.people.find((x) => x.id === id);
+    if (p?.party_id) openCard({ partyId: p.party_id, focus: id });
+    else open({ mode: "edit", id, focus: f });
   };
 
   return (
@@ -69,9 +76,9 @@ export function PeopleScreen() {
         <div className="pp-views"><Segmented<PeopleView> label="People view" options={VIEWS.map((v) => ({ ...v, tone: "euc" as const }))} value={view} onChange={(v) => set({ peopleView: v })} /></div>
         <div className="pp-adds">
           <Menu label="Add" trigger={<>Add <span aria-hidden="true">▾</span></>} align="right" items={[
-            { key: "p", label: "Person", onSelect: () => open({ mode: "new", defaults: {}, party: "" }) },
-            { key: "h", label: "Household", onSelect: () => open({ mode: "new", defaults: {}, party: "new" }) },
-            { key: "f", label: "Friend", onSelect: () => open({ mode: "new", defaults: { kind: "friend" }, party: "new" }) },
+            { key: "h", label: "New household (family)…", onSelect: () => openCard({ partyId: null, kind: "family", side: "Mark" }) },
+            { key: "f", label: "New household (friends)…", onSelect: () => openCard({ partyId: null, kind: "friend", side: "Both" }) },
+            { key: "p", label: "Someone to an existing household…", onSelect: () => setPicking(true) },
           ]} />
           <Menu label="Export" trigger={<>Export <span aria-hidden="true">▾</span></>} align="right" items={[
             { key: "j", label: "JSON backup", onSelect: () => setNote(exportJson(people)) },
@@ -81,12 +88,14 @@ export function PeopleScreen() {
         </div>
       </div>
       {note && <p className="small" role="status">{note}</p>}
+      <NameTidy />
       <RoomCheck room={room} act={act} />
       {showHistory && <History />}
       {view === "decide" && <Decide rings={rings} room={room} rel={relOfRow} act={act} onHousehold={openHousehold} onPerson={editPerson} />}
       {view === "family" && <Family rel={rel} act={act} onHousehold={openHousehold} onPerson={editPerson} onRelative={openRelative} />}
       {view === "friends" && <Friends rings={rings} act={act} onHousehold={openHousehold} />}
-      <HouseholdSheet key={hh ? `h${hh.key}` : "h-none"} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onPerson={editPerson} onAddPerson={addToHousehold} onRelative={openRelative} />
+      {hh && <HouseholdCard key={`h${hh.key}`} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onOpen={(id, f) => openCard({ partyId: id, focus: f })} onRelative={openRelative} />}
+      {picking && <HouseholdPicker onClose={() => setPicking(false)} onPick={(id) => { setPicking(false); openCard({ partyId: id, addNew: true }); }} onNew={() => { setPicking(false); openCard({ partyId: null }); }} />}
       <PersonSheet key={target?.key ?? "none"} target={target} onClose={() => setTarget(null)} rel={rel} onRelative={openRelative} />
       <RelativeSheet key={relT?.key ?? "r-none"} target={relT} onClose={() => setRelT(null)} />
     </div>

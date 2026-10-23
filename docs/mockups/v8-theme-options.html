@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v8 theme options</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Jost:wght@400;500;600&family=Josefin+Sans:wght@400;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font: 16px/1.5 Inter, system-ui, sans-serif; background: #ECE6DA; color: #22302D; padding: 22px 16px 40px; }
+  .intro { max-width: 1260px; margin: 0 auto 16px; }
+  .intro h1 { font: 400 28px/1.2 "DM Serif Display", Georgia, serif; }
+  .intro p { color: #4F5F5A; font-size: 15px; }
+  .grid { max-width: 1260px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; }
+  .opt { border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.12); background: var(--ground); color: var(--ink); font-family: var(--body); }
+  .lab { padding: 10px 16px; background: var(--ink); color: var(--ground); font: 600 13px/1.3 Inter, sans-serif; letter-spacing: .8px; text-transform: uppercase; }
+  .lab b { font-size: 15px; }
+  .head { position: relative; height: 190px; overflow: hidden; text-align: center; }
+  .head svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .head .t { position: relative; padding-top: 26px; }
+  .head h2 { font-family: var(--display); font-weight: var(--dw); font-size: 34px; line-height: 1.05; color: var(--title); }
+  .head .sub { font: 600 11px/1 var(--body); letter-spacing: 3px; text-transform: uppercase; color: var(--title); opacity: .85; margin-top: 6px; }
+  .tabs { display: flex; justify-content: center; gap: 4px; padding: 10px 0 4px; }
+  .tab { font: 600 14px/1 var(--body); padding: 10px 14px; border-radius: var(--tabr); }
+  .tab.on { background: var(--accent); color: var(--on); }
+  .body { padding: 8px 14px 16px; display: grid; gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
+  .card h3 { font-family: var(--display); font-weight: var(--dw); font-size: 20px; display: flex; align-items: center; gap: 8px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--tabr); overflow: hidden; font-size: 13px; font-weight: 600; }
+  .seg span { padding: 7px 10px; } .seg .on { background: var(--accent); color: var(--on); }
+  .person { display: grid; grid-template-columns: 1fr 1fr 70px; gap: 6px; margin-top: 8px; align-items: end; }
+  .person label { font-size: 11px; font-weight: 600; color: var(--muted); display: grid; gap: 2px; }
+  .person .in { border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; background: var(--ground); font-size: 14px; color: var(--ink); }
+  .more { font-size: 12px; color: var(--accent2); font-weight: 600; margin-top: 2px; }
+  .auto { font-size: 12px; color: var(--muted); }
+  .auto b { color: var(--ink); }
+  .star { color: var(--star); }
+  .sw { display: flex; gap: 5px; } .sw i { flex: 1; height: 22px; border-radius: 6px; border: 1px solid rgba(0,0,0,.08); }
+
+  .A { --ground: #F6EFE2; --card: #FFFAF1; --ink: #1F2D2B; --muted: #4E5C58; --line: #E1D3BC; --accent: #1C6560; --accent2: #1C6560; --on: #fff; --chip: #E3EEE8;
+       --title: #1F2D2B; --star: #C8102E; --display: "DM Serif Display", serif; --dw: 400; --body: Jost, sans-serif; --r: 20px; --tabr: 999px; }
+  .B { --ground: #EEF4F4; --card: #FBFDFC; --ink: #14303A; --muted: #47606A; --line: #CFE0E2; --accent: #0E5C74; --accent2: #0E5C74; --on: #fff; --chip: #DCEFF3;
+       --title: #FFFFFF; --star: #E03A3E; --display: "Bricolage Grotesque", sans-serif; --dw: 700; --body: Jost, sans-serif; --r: 14px; --tabr: 10px; }
+  .C { --ground: #F2EBDD; --card: #FBF6EC; --ink: #2A2620; --muted: #5C5446; --line: #D8C9AC; --accent: #4F6330; --accent2: #8C3A1E; --on: #fff; --chip: #E8DEC6;
+       --title: #2A2620; --star: #A33A2A; --display: "Josefin Sans", sans-serif; --dw: 700; --body: "Josefin Sans", sans-serif; --r: 4px; --tabr: 2px; }
+  .C .head h2 { text-transform: uppercase; letter-spacing: 4px; font-size: 28px; }
+  .C .card h3 { text-transform: uppercase; letter-spacing: 1.5px; font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>v8 look: mid-century garden + Chicago — three directions</h1>
+  <p>Each shows the header, tabs, and the new single <b>Household card</b> (household + its people edited in one place; the envelope name follows the people). Chicago stars ✶ are the city flag's six-pointed star.</p>
+</div>
+<div class="grid">
+
+<!-- A: Conservatory Postcard -->
+<section class="opt A">
+  <div class="lab"><b>A · Conservatory Postcard</b> — today's florals + a skyline postcard</div>
+  <div class="head">
+    <svg viewBox="0 0 420 190" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <rect width="420" height="190" fill="#F6EFE2"/>
+      <circle cx="320" cy="62" r="38" fill="#F2C46B" opacity=".55"/>
+      <!-- skyline: Willis, Hancock, Marina City -->
+      <g fill="#9FC3BB">
+        <rect x="90" y="96" width="16" height="94"/><rect x="106" y="80" width="18" height="110"/><rect x="124" y="104" width="12" height="86"/>
+        <path d="M150 190 L154 78 L170 78 L174 190Z"/><rect x="160" y="62" width="2" height="16"/><rect x="164" y="62" width="2" height="16"/>
+        <rect x="248" y="100" width="22" height="90" rx="11"/><rect x="274" y="100" width="22" height="90" rx="11"/>
+        <rect x="200" y="118" width="30" height="72"/><rect x="300" y="126" width="26" height="64"/>
+      </g>
+      <g stroke="#CFE2DC" stroke-width="2"><path d="M250 112 H268 M250 124 H268 M250 136 H268 M250 148 H268 M276 112 H294 M276 124 H294 M276 136 H294 M276 148 H294"/></g>
+      <!-- foreground flowers -->
+      <g transform="translate(46,120)"><path d="M0 70 C4 40 -4 20 4 0" stroke="#1C6560" stroke-width="3" fill="none"/><g fill="#E07A5F"><circle cx="4" cy="-6" r="10"/><circle cx="-9" cy="-14" r="9"/><circle cx="17" cy="-14" r="9"/><circle cx="-3" cy="-27" r="9"/><circle cx="12" cy="-27" r="9"/></g><circle cx="4" cy="-17" r="7" fill="#F2C46B"/><path d="M2 40 C-24 28 -22 10 -6 20Z" fill="#7FA48E"/></g>
+      <g transform="translate(378,128)"><path d="M0 62 C-4 36 6 18 0 0" stroke="#1C6560" stroke-width="3" fill="none"/><g fill="#F2A7A0"><ellipse cx="0" cy="-14" rx="6" ry="16"/><ellipse cx="0" cy="-14" rx="6" ry="16" transform="rotate(60 0 -14)"/><ellipse cx="0" cy="-14" rx="6" ry="16" transform="rotate(120 0 -14)"/></g><circle cx="0" cy="-14" r="5" fill="#B5432E"/></g>
+      <text x="356" y="40" fill="#C8102E" font-size="20">✶</text><text x="66" y="36" fill="#C8102E" font-size="14">✶</text>
+    </svg>
+    <div class="t"><h2>Mark &amp; Angela</h2><div class="sub">A Chicago Garden Wedding · 2027</div></div>
+  </div>
+  <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+  <div class="body">
+    <div class="sw"><i style="background:#F6EFE2"></i><i style="background:#1C6560"></i><i style="background:#9FC3BB"></i><i style="background:#F2C46B"></i><i style="background:#E07A5F"></i><i style="background:#C8102E"></i></div>
+    <div class="card">
+      <h3><span class="star">✶</span> Erica Schemper &amp; Erik Vorhes</h3>
+      <div class="auto">Envelope name <b>follows the people</b> · <u>write my own</u></div>
+      <div class="chips"><span class="chip">Sister · Inner circle</span><span class="chip">2 adults</span></div>
+      <div style="margin-top:8px"><span class="seg"><span class="on">Invite</span><span>If room</span><span>No</span></span></div>
+      <div class="person"><label>First<span class="in">Erica</span></label><label>Last<span class="in">Schemper</span></label><label>Age<span class="in">Adult</span></label></div>
+      <div class="more">▸ More about Erica · relatives, RSVP, notes</div>
+      <div class="person"><label>First<span class="in">Erik</span></label><label>Last<span class="in">Vorhes</span></label><label>Age<span class="in">Adult</span></label></div>
+      <div class="more">▸ More about Erik</div>
+      <div class="more" style="margin-top:6px">＋ Add someone to this household</div>
+    </div>
+  </div>
+</section>
+
+<!-- B: Lakefront Modern -->
+<section class="opt B">
+  <div class="lab"><b>B · Lakefront Modern</b> — 1950s Chicago travel poster</div>
+  <div class="head">
+    <svg viewBox="0 0 420 190" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <rect width="420" height="190" fill="#0E5C74"/>
+      <rect y="0" width="420" height="120" fill="#7EC1D4"/>
+      <circle cx="80" cy="54" r="30" fill="#F7C55C"/>
+      <!-- skyline in deep teal -->
+      <g fill="#0E5C74"><rect x="220" y="44" width="16" height="76"/><rect x="236" y="30" width="16" height="90"/><rect x="252" y="56" width="12" height="64"/>
+        <path d="M282 120 L286 40 L300 40 L304 120Z"/><rect x="291" y="26" width="2" height="14"/><rect x="295" y="26" width="2" height="14"/>
+        <rect x="322" y="62" width="18" height="58" rx="9"/><rect x="344" y="62" width="18" height="58" rx="9"/><rect x="170" y="74" width="30" height="46"/><rect x="372" y="80" width="30" height="40"/></g>
+      <!-- lake waves -->
+      <g stroke="#7EC1D4" stroke-width="2" fill="none" opacity=".7"><path d="M0 140 Q20 134 40 140 T80 140 T120 140 T160 140 T200 140 T240 140 T280 140 T320 140 T360 140 T400 140 T440 140"/><path d="M0 160 Q20 154 40 160 T80 160 T120 160 T160 160 T200 160 T240 160 T280 160 T320 160 T360 160 T400 160 T440 160"/></g>
+      <!-- flowers in front -->
+      <g transform="translate(36,160)"><g fill="#E03A3E"><circle cx="0" cy="-10" r="9"/><circle cx="-12" cy="-18" r="8"/><circle cx="12" cy="-18" r="8"/><circle cx="-6" cy="-30" r="8"/><circle cx="8" cy="-30" r="8"/></g><circle cx="0" cy="-20" r="6" fill="#F7C55C"/></g>
+      <g transform="translate(392,166)"><g fill="#F6B7C1"><ellipse cx="0" cy="-16" rx="6" ry="15"/><ellipse cx="0" cy="-16" rx="6" ry="15" transform="rotate(60 0 -16)"/><ellipse cx="0" cy="-16" rx="6" ry="15" transform="rotate(120 0 -16)"/></g><circle cx="0" cy="-16" r="5" fill="#E03A3E"/></g>
+      <g fill="#E03A3E" font-size="16"><text x="140" y="34">✶</text><text x="166" y="34">✶</text><text x="192" y="34">✶</text><text x="218" y="18" font-size="0">.</text></g>
+    </svg>
+    <div class="t" style="padding-top:132px"><h2 style="font-size:28px">Mark &amp; Angela</h2></div>
+  </div>
+  <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+  <div class="body">
+    <div class="sw"><i style="background:#EEF4F4"></i><i style="background:#0E5C74"></i><i style="background:#7EC1D4"></i><i style="background:#F7C55C"></i><i style="background:#E03A3E"></i><i style="background:#F6B7C1"></i></div>
+    <div class="card">
+      <h3><span class="star">✶</span> Erica Schemper &amp; Erik Vorhes</h3>
+      <div class="auto">Envelope name <b>follows the people</b> · <u>write my own</u></div>
+      <div class="chips"><span class="chip">Sister · Inner circle</span><span class="chip">2 adults</span></div>
+      <div style="margin-top:8px"><span class="seg"><span class="on">Invite</span><span>If room</span><span>No</span></span></div>
+      <div class="person"><label>First<span class="in">Erica</span></label><label>Last<span class="in">Schemper</span></label><label>Age<span class="in">Adult</span></label></div>
+      <div class="more">▸ More about Erica · relatives, RSVP, notes</div>
+      <div class="person"><label>First<span class="in">Erik</span></label><label>Last<span class="in">Vorhes</span></label><label>Age<span class="in">Adult</span></label></div>
+      <div class="more">▸ More about Erik</div>
+      <div class="more" style="margin-top:6px">＋ Add someone to this household</div>
+    </div>
+  </div>
+</section>
+
+<!-- C: Prairie Corncob -->
+<section class="opt C">
+  <div class="lab"><b>C · Prairie &amp; Steel</b> — Wright art glass meets Marina City</div>
+  <div class="head">
+    <svg viewBox="0 0 420 190" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <rect width="420" height="190" fill="#F2EBDD"/>
+      <g fill="none" stroke="#2A2620" stroke-width="1.2" opacity=".5"><path d="M0 16 H420 M0 22 H420"/></g>
+      <!-- Marina City towers, geometric -->
+      <g fill="#B9AD93"><rect x="180" y="70" width="26" height="120" rx="13"/><rect x="214" y="70" width="26" height="120" rx="13"/></g>
+      <g stroke="#F2EBDD" stroke-width="2.5"><path d="M182 84 H204 M182 96 H204 M182 108 H204 M182 120 H204 M182 132 H204 M216 84 H238 M216 96 H238 M216 108 H238 M216 120 H238 M216 132 H238"/></g>
+      <!-- art-glass tulip panels -->
+      <g transform="translate(30,46)" stroke="#2A2620" stroke-width="1.3"><path d="M30 140 V40 M30 70 H10 V55 M30 70 H50 V55 M30 92 H14 M30 92 H46" fill="none"/><rect x="22" y="14" width="16" height="24" fill="#A33A2A"/><rect x="26" y="5" width="8" height="10" fill="#D49A36"/><rect x="4" y="44" width="12" height="11" fill="#4F6330"/><rect x="44" y="44" width="12" height="11" fill="#4F6330"/></g>
+      <g transform="translate(330,46)" stroke="#2A2620" stroke-width="1.3"><path d="M30 140 V40 M30 70 H10 V55 M30 70 H50 V55 M30 92 H14 M30 92 H46" fill="none"/><rect x="22" y="14" width="16" height="24" fill="#B9637A"/><rect x="26" y="5" width="8" height="10" fill="#D49A36"/><rect x="4" y="44" width="12" height="11" fill="#4F6330"/><rect x="44" y="44" width="12" height="11" fill="#4F6330"/></g>
+      <text x="280" y="44" fill="#A33A2A" font-size="18">✶</text><text x="120" y="44" fill="#A33A2A" font-size="18">✶</text>
+    </svg>
+    <div class="t"><h2>Mark &amp; Angela</h2><div class="sub">Chicago · Prairie Garden · 2027</div></div>
+  </div>
+  <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+  <div class="body">
+    <div class="sw"><i style="background:#F2EBDD"></i><i style="background:#4F6330"></i><i style="background:#D49A36"></i><i style="background:#A33A2A"></i><i style="background:#B9637A"></i><i style="background:#2A2620"></i></div>
+    <div class="card">
+      <h3><span class="star">✶</span> Erica Schemper &amp; Erik Vorhes</h3>
+      <div class="auto">Envelope name <b>follows the people</b> · <u>write my own</u></div>
+      <div class="chips"><span class="chip">Sister · Inner circle</span><span class="chip">2 adults</span></div>
+      <div style="margin-top:8px"><span class="seg"><span class="on">Invite</span><span>If room</span><span>No</span></span></div>
+      <div class="person"><label>First<span class="in">Erica</span></label><label>Last<span class="in">Schemper</span></label><label>Age<span class="in">Adult</span></label></div>
+      <div class="more">▸ More about Erica · relatives, RSVP, notes</div>
+      <div class="person"><label>First<span class="in">Erik</span></label><label>Last<span class="in">Vorhes</span></label><label>Age<span class="in">Adult</span></label></div>
+      <div class="more">▸ More about Erik</div>
+      <div class="more" style="margin-top:6px">＋ Add someone to this household</div>
+    </div>
+  </div>
+</section>
+</div>
+</body>
+</html>

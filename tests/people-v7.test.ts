@@ -113,3 +113,28 @@ describe("names", () => {
     expect([...lastNamesFromHousehold("Zed Other & Sara Van Der Berg", m)]).toEqual([["b", "Van Der Berg"]]);
   });
 });
+
+describe("envelope names (v8)", () => {
+  const m = (first: string, last: string | null, extra: Partial<Person> = {}) =>
+    ({ first, nick: null, last, deceased: false, placeholder: false, age: "adult", plus_one: false, ...extra }) as Person;
+  it("adults with &, own surnames, guest, kids only when no adults, deceased left out", async () => {
+    const { envelopeName } = await import("../src/people/names");
+    expect(envelopeName([m("Fran", "Van Noord"), m("Len", "Van Noord"), m("Kid", "Van Noord", { age: "child" })])).toBe("Fran & Len Van Noord");
+    expect(envelopeName([m("Erica", "Schemper"), m("Erik", "Vorhes")])).toBe("Erica Schemper & Erik Vorhes");
+    expect(envelopeName([m("Sam", "Lee", { plus_one: true })])).toBe("Sam Lee & Guest");
+    expect(envelopeName([m("Nan", "CaJacob"), m("Pete", "CaJacob", { deceased: true })])).toBe("Nan CaJacob");
+    expect(envelopeName([m("Wren", "Example", { age: "child" })])).toBe("Wren Example");
+    expect(envelopeName([m("G", null, { placeholder: true })])).toBe("");
+  });
+});
+
+describe("name tidy (v8)", () => {
+  it("lists automatic households whose name differs; custom ones are left alone", async () => {
+    const { nameFixes } = await import("../src/people/names");
+    const d = clone();
+    const fixes = nameFixes(d);
+    expect(fixes.find((f) => f.partyId === "H-M4")).toEqual({ partyId: "H-M4", from: D.parties.find((x) => x.id === "H-M4")!.name, to: "Hazel Example & Iris Other" });
+    d.parties.find((x) => x.id === "H-M4")!.name_custom = true;
+    expect(nameFixes(d).some((f) => f.partyId === "H-M4")).toBe(false);
+  });
+});
