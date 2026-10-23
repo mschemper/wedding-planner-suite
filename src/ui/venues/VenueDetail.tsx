@@ -60,12 +60,13 @@ function ReadOnlyFacts({ v }: { v: VenueSummary }) {
 }
 
 export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSummary; scenarios: import("../../engine/types").Scenario[]; guests: number; date: string; onBack(): void }) {
-  const { edit, quotes, musthaves, fit, offline } = useData();
+  const { edit, quotes, musthaves, fit, offline, raw } = useData();
   const { prefs } = usePrefs();
   const fe = useFitEdit();
   const [target, setTarget] = useState<NoteTarget | null>(null);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
-  useEffect(() => window.scrollTo(0, 0), [v.scenario.id]);
+  // braces: scrollTo returns a Promise in newer browsers, which React would call as a cleanup
+  useEffect(() => { window.scrollTo(0, 0); }, [v.scenario.id]);
   const sc = v.scenario;
   const short = sc.name.split(" ")[0];
   const settings = useMemo(() => ({ date, contingency: prefs.contingency, quotes }), [date, prefs.contingency, quotes]);
@@ -77,6 +78,7 @@ export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSu
     setFail(r.ok ? null : r);
   }
   const rows = orderedMustHaves(musthaves);
+  const added = raw?.custom_venues.find((c) => c.scenario_id === sc.id);
   const links = (sc.sources ?? []).map((u) => ({ u, href: safeUrl(u) })).filter((x) => x.href);
 
   return (
@@ -91,6 +93,13 @@ export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSu
           </div>
         </div>
         <p className="vn-desc">{sc.desc}</p>
+        {added && (
+          <>
+            {added.researched_at && <p className="vn-meta">Researched on {fmtDate(added.researched_at)}</p>}
+            {added.notes && <p className="vn-desc">{added.notes}</p>}
+            {sc.flag && <div className="flag"><strong>Planner's note · </strong>{sc.flag}</div>}
+          </>
+        )}
         <div className="vn-head-row">
           {offline ? <StatusChip v={v} /> : (
             <Field label="Status">

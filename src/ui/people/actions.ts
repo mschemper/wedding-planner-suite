@@ -4,7 +4,7 @@ import { useData, type Patch, type SaveResult } from "../data";
 import type { Decision, KidsPolicy, KidsRule, Party } from "../../people/types";
 import { linkParentsPatches, type ParentUnit } from "../../people/relatives";
 import type { Ring } from "../../people/rings";
-import { branchEdit, decisionEdit, inviteAllEdit, kidsEdit, moveRank, policyEdit, talkEdit, tierEdit } from "./model";
+import { branchEdit, bulkEdit, type BulkChange, decisionEdit, inviteAllEdit, kidsEdit, moveRank, policyEdit, talkEdit, tierEdit } from "./model";
 
 export type SaveFail = Extract<SaveResult, { ok: false }>;
 
@@ -20,6 +20,8 @@ export interface Actions {
   renameBranch(raw: string, name: string): void;
   /** set these people's parents to a unit (placement tray) */
   linkParents(childIds: string[], unit: ParentUnit): void;
+  /** one edit for several households (Decide bulk mode) */
+  bulk(parties: Party[], change: BulkChange): Promise<boolean>;
   error: SaveFail | null;
   clearError(): void;
 }
@@ -46,10 +48,17 @@ export function useActions(): Actions {
     tier: (p, t, friend) => { const e = tierEdit(p, t, friend); void run([e.patch], e.label); },
     inviteAll: (ring) => { const e = inviteAllEdit(ring); void run(e.patches, e.label); },
     renameBranch: (raw, name) => { const e = branchEdit(names, raw, name); void run([e.patch], e.label); },
+    bulk: async (ps, change) => {
+      const e = bulkEdit(ps, people.people, change);
+      if (!e.patches.length) return true;
+      const r = await edit(e.patches, e.label);
+      setError(r.ok ? null : r);
+      return r.ok;
+    },
     linkParents: (childIds, unit) => {
       const n = childIds.length;
       void run(linkParentsPatches(childIds, unit, people), `${n === 1 ? "1 person" : `${n} people`} placed under ${unit.names}`);
     },
     error, clearError: () => setError(null),
-  }), [parties, names, run, error, people]);
+  }), [parties, names, run, error, people, edit]);
 }

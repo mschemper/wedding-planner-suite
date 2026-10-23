@@ -174,3 +174,26 @@
 .pp-bulk { position: sticky; bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 8px; padding: 8px 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--euc); box-shadow: var(--shadow); font-size: 14px; }
 .pp-bulk select { min-height: 44px; max-width: 100%; }
 @media (max-width: 640px) { .pp-guess { margin-left: 52px; } .pp-bulk { bottom: 72px; } }
+
+/* v7: hidden ancestors — a dashed junction instead of a row; its branch lines are dashed */
+.pp-junction { height: 18px; display: flex; align-items: center; }
+.pp-junction span { display: block; width: 18px; border-top: 2px dashed var(--sage); }
+.pp-tree li.is-junction > ul > li::before, .pp-tree li.is-junction > ul > li::after { border-style: dashed; border-color: var(--sage); }
+.pp-tree > li.is-junction > ul { margin-left: 8px; }
+/* place by relation */
+.pp-place-rel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; width: 100%; padding: 6px 0 8px; }
+.pp-place-rel.compact { padding-left: 52px; }
+.pp-place-rel select { min-height: 44px; max-width: 100%; font-size: 15px; font-weight: 600; border-radius: 12px; border: 1px solid var(--line); background: var(--ground); padding: 4px 8px; color: var(--ink); }
+.pp-place-who { font-weight: 600; }
+.pp-place-rel .pp-hint { flex-basis: 100%; }
+@media (max-width: 640px) { .pp-place-rel.compact { padding-left: 0; } }
+/* bulk edit on Decide */
+.pp-pickbox { width: 22px; height: 22px; }
+.pp-bulk-field { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.pp-bulk-field select { min-height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--ground); padding: 4px 8px; color: var(--ink); }
+/* bulk bar floats above the list (the room check owns the top edge) */
+.pp-stack > .pp-bulk { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: 16px; width: min(1088px, calc(100% - 24px)); margin: 0; }
+@media (max-width: 639px) { .pp-stack > .pp-bulk { bottom: 76px; } }
+/* friends last-name fix, room check kids */
+.pp-fixlist { margin: 6px 0 8px 18px; font-size: 14px; }
+.pp-kidsline.is-over { color: var(--peony-ink); font-weight: 600; }

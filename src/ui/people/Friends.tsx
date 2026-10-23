@@ -9,14 +9,14 @@ import { Card, Chip, EmptyState, Field } from "../kit/kit";
 import { SaveError } from "../SaveError";
 import type { Actions } from "./actions";
 import { DecisionControl, DecisionMark } from "./DecisionControl";
-import { friendMeta, friendTiers, quickFriendIssues, quickFriendOps, type QuickFriend } from "./model";
+import { friendLastNameFixes, friendMeta, friendTiers, quickFriendIssues, quickFriendOps, type QuickFriend } from "./model";
 
 const KNOWN_LETTER: Record<KnownBy, string> = { Mark: "M", Angela: "A", Both: "M+A" };
 
 function QuickAdd({ circles, byTier }: { circles: string[]; byTier: ReturnType<typeof friendTiers> }) {
   const { save } = useData();
   const list = useId();
-  const blank: QuickFriend = { first: "", partner: "", plusOne: false, circle: "", known_by: "Both", tier: 2 };
+  const blank: QuickFriend = { first: "", last: "", partner: "", partnerLast: "", plusOne: false, circle: "", known_by: "Both", tier: 2 };
   const [f, setF] = useState<QuickFriend>(blank);
   const [problems, setProblems] = useState<string[]>([]);
   const [err, setErr] = useState<Extract<SaveResult, { ok: false }> | null>(null);
@@ -27,7 +27,7 @@ function QuickAdd({ circles, byTier }: { circles: string[]; byTier: ReturnType<t
     setProblems(issues);
     if (issues.length) return;
     setBusy(true);
-    const r = await save(quickFriendOps(f, byTier.find((t) => t.tier === f.tier)?.rows.map((x) => x.party) ?? []));
+    const r = await save(quickFriendOps({ ...f, partnerLast: f.partnerLast?.trim() || f.last },  byTier.find((t) => t.tier === f.tier)?.rows.map((x) => x.party) ?? []));
     setBusy(false);
     if (r.ok) { setErr(null); setF({ ...blank, circle: f.circle, known_by: f.known_by, tier: f.tier }); } else setErr(r);
   };
@@ -38,7 +38,9 @@ function QuickAdd({ circles, byTier }: { circles: string[]; byTier: ReturnType<t
       {problems.length > 0 && <div className="flag warn" role="alert">{problems.join(" ")}</div>}
       <div className="pp-quick-grid">
         <Field label="First name"><input value={f.first} onChange={(e) => set("first", e.target.value)} autoComplete="off" /></Field>
+        <Field label="Last name"><input value={f.last} onChange={(e) => set("last", e.target.value)} autoComplete="off" /></Field>
         <Field label="Partner's first name"><input value={f.partner} disabled={f.plusOne} onChange={(e) => set("partner", e.target.value)} autoComplete="off" /></Field>
+        <Field label="Partner's last name" hint="Leave empty if the same"><input value={f.partnerLast} disabled={f.plusOne || !f.partner.trim()} onChange={(e) => set("partnerLast", e.target.value)} placeholder={f.last} autoComplete="off" /></Field>
         <label className="pp-check"><input type="checkbox" checked={f.plusOne} disabled={!!f.partner.trim()} onChange={(e) => set("plusOne", e.target.checked)} /> +1 (unnamed guest)</label>
         <Field label="Circle">
           <input list={list} value={f.circle} onChange={(e) => set("circle", e.target.value)} placeholder="Work, College…" />
@@ -52,6 +54,27 @@ function QuickAdd({ circles, byTier }: { circles: string[]; byTier: ReturnType<t
   );
 }
 
+/** Friends imported with full names only on the household: fill their last names in one step (Undo). */
+function LastNameFix() {
+  const { people, edit } = useData();
+  const fx = useMemo(() => friendLastNameFixes(people), [people]);
+  const missing = people.people.filter((p) => p.kind === "friend" && !p.placeholder && !p.last?.trim()).length;
+  const [open, setOpen] = useState(false);
+  const [err, setErr] = useState<Extract<SaveResult, { ok: false }> | null>(null);
+  if (!missing) return null;
+  const apply = async () => { const r = await edit(fx.patches, `Last names filled for ${fx.patches.length} friends`); setErr(r.ok ? null : r); if (r.ok) setOpen(false); };
+  return (
+    <div className="flag" role="status">
+      <SaveError result={err} onDismiss={() => setErr(null)} />
+      <b>{missing} friend{missing === 1 ? " has" : "s have"} no last name.</b>{" "}
+      {fx.patches.length > 0
+        ? <>{fx.patches.length} can be filled from their household name. <button type="button" className="pp-link" onClick={() => setOpen((o) => !o)}>{open ? "Hide" : "Preview"}</button>
+          {open && <><ul className="pp-fixlist">{fx.lines.map((l) => <li key={l}>{l}</li>)}</ul><button type="button" className="k-btn k-btn-primary" onClick={() => void apply()}>Fill {fx.patches.length} last names</button></>}</>
+        : "Open a household to add them."}
+    </div>
+  );
+}
+
 export function Friends({ rings, act, onHousehold }: { rings: Ring[]; act: Actions; onHousehold(id: string): void }) {
   const { people } = useData();
   const tiers = useMemo(() => friendTiers(rings, FRIEND_TIER_LABEL), [rings]);
@@ -59,6 +82,7 @@ export function Friends({ rings, act, onHousehold }: { rings: Ring[]; act: Actio
   return (
     <div className="pp-stack">
       <SaveError result={act.error} onDismiss={act.clearError} />
+      <LastNameFix />
       {tiers.map((t) => (
         <Card key={t.tier} title={`${t.label} · ${t.rows.length}`}>
           {t.rows.length === 0 ? <EmptyState>Nobody in this tier yet.</EmptyState> : (

@@ -12,6 +12,7 @@ import { useNav } from "../nav";
 import { PLAN_SECTION_KEY } from "../plan/PlanScreen";
 import { TaskRow } from "../plan/TaskRow";
 import { fmtDay, shortVenueName } from "../plan/model";
+import { capacityShort } from "../venues/model";
 import { countdown } from "./model";
 import "./today.css";
 
@@ -30,7 +31,7 @@ function VenueTile({ v, i, onOpen }: { v: VenueSummary; i: number; onOpen(): voi
         ? <span className="td-price">{money(v.budget.total)}</span>
         : <span className="td-price td-price-none">Awaiting rates</span>}
       <span className="td-venue-meta">
-        {v.capacity ? (v.capacity.ok ? "Capacity ✓" : `Over capacity by ${Math.abs(v.capacity.spare)} ✕`) : "Capacity not set"}
+        {capacityShort(v)}
       </span>
       <span className="td-venue-meta">
         Fit {f.yes} of {total}{f.partly ? ` · ${f.partly} partly` : ""}{f.unknown ? ` · ${f.unknown} unknown` : ""}
@@ -76,7 +77,7 @@ export function TodayScreen() {
             <p className="td-muted">expected of {inv.heads} invited · {hc.undecidedParties} undecided household{hc.undecidedParties === 1 ? "" : "s"}</p>
             <p className="td-chips">
               <Chip>{inv.adults} adults · main room</Chip>
-              <Chip tone="gold">{inv.kids} kids · kids' room</Chip>
+              <Chip tone="gold">{inv.kids} kid{inv.kids === 1 ? "" : "s"} · kids' room</Chip>
             </p>
           </>
         )}

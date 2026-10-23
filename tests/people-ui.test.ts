@@ -10,7 +10,7 @@ import type { Party, PeopleData } from "../src/people/types";
 import {
   authorName, branchEdit, bulkEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
   householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, partnerNotice, personOps, quickFriendIssues,
-  quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
+  friendLastNameFixes, quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
 } from "../src/ui/people/model";
 import { loadPrefs } from "../src/ui/prefs";
 
@@ -163,17 +163,27 @@ describe("friends", () => {
     expect(solo).toHaveLength(2);
     expect(solo[0]).toMatchObject({ table: "parties", op: "create", row: { id: "tmp:hh", name: "Sam + guest", invite: "undecided", tier: 1, circle: "Work", known_by: "Angela", rank: 5 } });
     expect(solo[1]).toMatchObject({ table: "people", op: "create", row: { id: "tmp:p1", first: "Sam", side: "Angela", kind: "friend", party_id: "tmp:hh", plus_one: true } });
-    const pair = quickFriendOps({ first: "Sam", partner: "Alex", plusOne: true, circle: "", known_by: "Both", tier: 2 }, []);
+    const pair = quickFriendOps({ first: "Sam", last: "Lee", partner: "Alex", partnerLast: "Kim", plusOne: true, circle: "", known_by: "Both", tier: 2 }, []);
     expect(pair).toHaveLength(3);
-    expect(pair[0]).toMatchObject({ row: { name: "Sam & Alex", circle: null, rank: 1 } });
-    expect(pair[1]).toMatchObject({ row: { plus_one: false } });
-    expect(pair[2]).toMatchObject({ table: "people", row: { id: "tmp:p2", first: "Alex", partner_id: "tmp:p1", party_id: "tmp:hh", side: "Both" } });
+    expect(pair[0]).toMatchObject({ row: { name: "Sam Lee & Alex Kim", circle: null, rank: 1 } });
+    expect(pair[1]).toMatchObject({ row: { plus_one: false, last: "Lee" } });
+    expect(pair[2]).toMatchObject({ table: "people", row: { id: "tmp:p2", first: "Alex", last: "Kim", partner_id: "tmp:p1", party_id: "tmp:hh", side: "Both" } });
+    expect(quickFriendName({ first: "Sam", last: "Lee", partner: "Alex", partnerLast: "Lee", plusOne: false, circle: "", known_by: "Both", tier: 2 })).toBe("Sam & Alex Lee");
   });
   it("quick add validation and name", () => {
     const f = { first: "", partner: "", plusOne: false, circle: "", known_by: "Both" as const, tier: 2 };
     expect(quickFriendIssues(f)).toHaveLength(1);
     expect(quickFriendIssues({ ...f, first: "A" })).toEqual([]);
     expect(quickFriendName({ ...f, first: "A" })).toBe("A");
+  });
+  it("fills friends' last names from household names (v7)", () => {
+    const d = clone();
+    const f1 = d.people.find((p) => p.id === "F-1-1")!;
+    f1.last = null;
+    d.parties.find((x) => x.id === "F-1")!.name = `${f1.first} Hollis & Quill Friend`;
+    const fx = friendLastNameFixes(d);
+    expect(fx.patches).toEqual([{ table: "people", id: "F-1-1", row: { last: "Hollis" } }]);
+    expect(fx.lines).toEqual([`${f1.first} → ${f1.first} Hollis`]);
   });
 });
 

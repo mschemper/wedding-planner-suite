@@ -14,6 +14,8 @@ import { DecisionMark, KidsChip } from "./DecisionControl";
 import { bloomFor } from "./model";
 import { Menu, type MenuItem } from "./Menu";
 import { Bloom } from "../garden/motifs";
+import { pairName } from "../../people/names";
+import { PlaceRelation } from "./PlaceRelation";
 
 interface Env {
   data: PeopleData;
@@ -29,19 +31,9 @@ interface Env {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
+/** "Erica Schemper & Erik Vorhes", "Fran & Len Van Noord" (each partner keeps their own surname). */
 function Names({ u }: { u: Unit }) {
-  const lead = u.people.find((p) => !p.placeholder) ?? u.people[0];
-  return (
-    <span className="pp-unames">
-      {u.people.map((p, i) => (
-        <span key={p.id}>
-          {i > 0 && " & "}
-          <span className={p.placeholder || p.deceased ? "pp-ghost" : ""}>{p.nick || p.first}{p.placeholder ? " · not guests" : p.deceased ? " (deceased)" : ""}</span>
-        </span>
-      ))}
-      {lead.last && !lead.placeholder && <span className="pp-ulast"> {lead.last}</span>}
-    </span>
-  );
+  return <span className="pp-unames">{pairName(u.people)}</span>;
 }
 
 /** ＋ menu: add a relative of the unit's lead (partner only when they have none; child of the pair). */
@@ -57,6 +49,8 @@ function AddRelative({ u, env }: { u: Unit; env: Env }) {
 }
 
 function UnitRow({ u, env }: { u: Unit; env: Env }) {
+  // ancestors who aren't coming: only the connector is drawn
+  if (u.hidden) return <div className="pp-junction" role="presentation" title="Linked through relatives who aren't shown"><span aria-hidden="true" /></div>;
   const lead = u.people.find((p) => !p.placeholder && !p.deceased) ?? u.people[0];
   const party = u.party_id ? env.parties.get(u.party_id) : undefined;
   // kids chip only on a grown-up's row (the household's kids rule), not on each child
@@ -78,7 +72,7 @@ function Tree({ units, env }: { units: Unit[]; env: Env }) {
   return (
     <ul className="pp-tree">
       {units.map((u) => (
-        <li key={u.id}>
+        <li key={u.id} className={u.hidden ? "is-junction" : undefined}>
           <UnitRow u={u} env={env} />
           {u.children.length > 0 && <Tree units={u.children} env={env} />}
         </li>
@@ -103,6 +97,7 @@ function Tray({ b, env }: { b: OutlineBranch; env: Env }) {
     return [...guesses, ...list];
   }, [env.data, b.side, b.branch, rows]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [placing, setPlacing] = useState<string | null>(null);
   const firstBest = rows.find((r) => picked.has(r.child.id))?.s.best;
   const [unitKey, setUnitKey] = useState("");
   const unitFor = (key: string): ParentUnit | undefined => units.find((x) => x.ids.join("+") === key);
@@ -116,7 +111,7 @@ function Tray({ b, env }: { b: OutlineBranch; env: Env }) {
   };
   return (
     <div className="pp-tray">
-      <h4>Not placed yet · {rows.length} <span className="muted small">— whose child is each person? Accept a guess, or tick several and link them together.</span></h4>
+      <h4>Not placed yet · {rows.length} <span className="muted small">— accept a guess, tick several and link them, or place someone by relation (e.g. "Fran is Lugene's aunt").</span></h4>
       <ul className="pp-place">
         {rows.map(({ u, child, s }) => (
           <li key={u.id} className="pp-place-row">
@@ -133,7 +128,9 @@ function Tray({ b, env }: { b: OutlineBranch; env: Env }) {
                 </>
               ) : <span className="muted small">no clear guess</span>}
               <button type="button" className="pp-link" onClick={() => env.onPerson(child.id, "parents")}>{s.best ? "Other…" : "Set parents"}</button>
+              <button type="button" className="pp-link" aria-expanded={placing === child.id} onClick={() => setPlacing((x) => (x === child.id ? null : child.id))}>By relation…</button>
             </span>
+            {placing === child.id && <PlaceRelation person={child} compact onDone={() => setPlacing(null)} />}
           </li>
         ))}
       </ul>

@@ -13,12 +13,20 @@
 - **parties** (households / envelopes): id, name, invite (undecided | invite | ifroom | no), kids (policy | in | out), rank (order within its ring / tier), talk + talk_note, notes, tier (family 1 Inner · 2 Close · 3 Extended · 4 Wider; friends 1 Must · 2 Want · 3 Nice to have; null = derived, `src/people/tier.ts`), unnamed_kids, circle, known_by (Mark | Angela | Both), reciprocal (v5, migration 0003).
 - Derived on save (v6): `gen` = parent gen + 1, else partner's, else stored; `kids_room` = age child (headcount and rings count kids by age; the column is kept in sync, not read).
 - Linking (v6, `src/people/relatives.ts`): add relative ops (sibling without parents → one tree-only placeholder "<name>'s parents"), parent suggestions for unplaced relatives (same side, one generation up; branch + surname + matching relation), household move / merge ops.
+- Hidden ancestors (v7): tree-only placeholders and deceased people are never shown; the outline turns a unit with nobody living into a junction (dashed connector) that keeps its children. `placeOps` (relatives.ts) links "X is Y's <relation>" through hidden "<Y>'s parents" / "…grandparents" / "…sibling" / "…aunt or uncle" placeholders, reusing real parents when present.
+- Names (v7, `src/people/names.ts`): `pairName` keeps each partner's surname; `lastNamesFromHousehold` fills friends' last names from the household name.
 - Couple rows (kind couple) anchor the tree; never counted. Placeholders have no party; every other person has one.
 - Effective invite (`src/people/invite.ts`): override → party decision; children only when kids resolve in (party.kids, else `kidsPolicy`: ours = the couple's own kids, family = family households, all).
 - Headcount (`src/people/headcount.ts`): invited / if room / undecided / no tallies (heads, adults, kids' room, expected at §2.3 rates: local 0.85, away 0.55, unknown 0.78; accepted 1, declined 0). Capacity cutoff per venue: main room = adults (+ kids when no kids' room) at full acceptance; ranked if-room households added until the cap.
 - Relationships (`src/people/kin.ts`): derived from parent/partner links (core set + "-in-law" via one partner hop); a stored gendered label wins when it names the same relation. Label words match whole words; only the first "/" alternative counts; a possessive ("Aunt's stepson") or "great-" = unknown.
 - Import (`npm run import:v4`, `src/people/fromWorkbook.ts`): workbook households → parties, individuals → people, friend groups → a party + 1–2 people; status precedence and inference rules in DESIGN-v4 §5. Output `data/private/garden.json` + `import-review.json` (both gitignored).
 - Mailing addresses, phones and guest emails: not stored (no plan yet).
+
+## Added venues (v7)
+- **custom_venues** (0004): scenario_id (>= 1000, chosen by the client, = the shortlist row's id), name, location, kind, description, capacity_seated / capacity_kids / capacity_cocktail, confidence, items JSON (`CustomItem`: cat, desc, type fixed | perGuest | percent, amount | rate, taxable, source_url, note), sources JSON, notes, researched_at. No delete (archive via venues.active). `customScenario` (src/data/custom.ts) → Scenario; useData() merges them into `scenarios`.
+- One save adds a venue: custom_venues create + venues create (only ids >= 1000) + a "contact the venue" task.
+- Research: POST /api/research {name, city?, guests?} → draft (not saved). Claude Opus 5.5, web search, JSON schema output, server-side checks (worker/research.ts). Secret `ANTHROPIC_API_KEY`; dev: `WPS_FAKE_RESEARCH=1`.
+- Capacity: `Scenario.capacity.kids` = kids' room seats; capacity is ok only when adults and kids both fit.
 
 ## Planning (v4)
 - **venues**: one row per scenario (seeded; update only): active (shortlist), status (researching | tour booked | toured | held | quoted | booked | passed), hold_date, tour_date, contacts, next_step, notes.

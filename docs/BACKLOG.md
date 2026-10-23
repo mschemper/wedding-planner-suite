@@ -42,6 +42,9 @@ The mobile companion isn't in this repo. Mark supplies the files → review firs
 ### F11. Promontory package price check — XS
 Park District lists $3,679 for the weekend 11-hour package; the doc itemises $3,179 (probably the $500 deposit). Confirm, then golden + HISTORY.
 
+### P2. Set the research key (Mark) — XS
+`npx wrangler secret put ANTHROPIC_API_KEY` (key from console.anthropic.com). Without it "Add venue" falls back to manual entry. Cost ≈ $0.10–0.50 per research.
+
 ### F18. Quote sweep from email + Drive — S (REVIEW-v6 E1)
 `docs/skills/quote-sweep.md` + "Paste quotes" sheet (preview vs estimate, one save). PDFs from the Drive folder in STATE "Quotes".
 

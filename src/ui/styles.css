@@ -115,7 +115,8 @@ a { color: var(--euc-ink); }
 .k-btn-danger { color: var(--peony-ink); border-color: color-mix(in srgb, var(--peony) 45%, transparent); }
 .k-btn:disabled { opacity: .55; cursor: default; }
 .k-icon-btn { min-width: 44px; min-height: 44px; border: 0; background: none; font-size: 18px; border-radius: 10px; }
-.k-field { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.k-field { display: flex; flex-direction: column; gap: 4px; font-size: 14px; min-width: 0; }
+.k-field input:not([type="checkbox"]):not([type="radio"]), .k-field select, .k-field textarea { width: 100%; max-width: 100%; }
 .k-field.wide { grid-column: 1 / -1; }
 .k-field-label { font-weight: 600; color: var(--muted); }
 .k-field-hint { font-size: 13px; color: var(--muted); }

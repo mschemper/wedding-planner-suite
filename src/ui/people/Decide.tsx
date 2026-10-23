@@ -1,4 +1,5 @@
 // Decide view (DESIGN-v5 §3, mockup A1): one section per closeness ring, rows with a 3-way decision, room line at the fill point.
+// v7: ring headers split adults and kids; "Select several" bulk mode (decision / ring / kids rule / local-away in one edit).
 import { useMemo, useState, type ReactNode } from "react";
 import type { Ring } from "../../people/rings";
 import { FilterChip, Segmented, Card, EmptyState } from "../kit/kit";
@@ -6,7 +7,9 @@ import { useData } from "../data";
 import { SaveError } from "../SaveError";
 import type { Actions } from "./actions";
 import { HouseholdRow } from "./HouseholdRow";
-import { matchesRow, NO_FILTER, type RowFilter, type SideFilter } from "./model";
+import { DECISION_LABEL, KIDS_RULE_TEXT, matchesRow, NO_FILTER, type RowFilter, type SideFilter } from "./model";
+import { DECISIONS, KIDS_RULES, LOCALS, type Decision, type KidsRule, type Local, type Party } from "../../people/types";
+import { FAMILY_TIER_LABEL } from "../../people/tier";
 import type { Room } from "./RoomCheck";
 
 const SIDES: { value: SideFilter; label: string }[] = [
@@ -22,6 +25,25 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
   const undecidedAll = useMemo(() => rings.reduce((n, r) => n + r.undecidedRows, 0), [rings]);
   const shown = useMemo(() => rings.map((r) => ({ ring: r, rows: r.rows.filter((x) => matchesRow(x, f)) })).filter((x) => x.rows.length), [rings, f]);
   const cap = room.check?.cap;
+  const [bulk, setBulk] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const all = useMemo(() => new Map(rings.flatMap((r) => r.rows.map((x) => [x.party.id, x.party] as [string, Party]))), [rings]);
+  const toggle = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const shownIds = shown.flatMap((x) => x.rows.map((r) => r.party.id));
+  const apply = async (change: Parameters<Actions["bulk"]>[1]) => {
+    setBusy(true);
+    const ok = await act.bulk([...picked].map((id) => all.get(id)!).filter(Boolean), change);
+    setBusy(false);
+    if (ok) setPicked(new Set());
+  };
+  const pickSel = (label: string, opts: [string, string][], on: (v: string) => void) => (
+    <label className="pp-bulk-field"><span>{label}</span>
+      <select value="" disabled={busy || !picked.size} onChange={(e) => { if (e.target.value) on(e.target.value); }}>
+        <option value="">Set…</option>{opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+      </select>
+    </label>
+  );
   return (
     <div className="pp-stack">
       <SaveError result={act.error} onDismiss={act.clearError} />
@@ -29,22 +51,35 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
         <FilterChip on={f.undecidedOnly} onClick={() => setF((x) => ({ ...x, undecidedOnly: !x.undecidedOnly }))} count={undecidedAll}>Undecided only</FilterChip>
         <Segmented<SideFilter> label="Side" size="sm" options={SIDES.map((s) => ({ ...s, tone: "euc" as const }))} value={f.side} onChange={(v) => setF((x) => ({ ...x, side: v }))} />
         <input className="k-input pp-search" type="search" value={f.q} onChange={(e) => setF((x) => ({ ...x, q: e.target.value }))} placeholder="Search a name or household" aria-label="Search households" />
+        <button type="button" className={`k-btn${bulk ? " k-btn-primary" : ""}`} aria-pressed={bulk} onClick={() => { setBulk((b) => !b); setPicked(new Set()); }}>{bulk ? "Done selecting" : "Select several"}</button>
       </div>
+      {bulk && (
+        <div className="pp-bulk" role="group" aria-label="Change selected households">
+          <span><b>{picked.size}</b> selected</span>
+          <button type="button" className="pp-link" onClick={() => setPicked(new Set(shownIds))}>All shown ({shownIds.length})</button>
+          {picked.size > 0 && <button type="button" className="pp-link" onClick={() => setPicked(new Set())}>Clear</button>}
+          {pickSel("Decision", DECISIONS.map((d) => [d, DECISION_LABEL[d]]), (v) => void apply({ kind: "invite", value: v as Decision }))}
+          {pickSel("Ring", [["auto", "Automatic"], ...[1, 2, 3, 4].map((t) => [String(t), FAMILY_TIER_LABEL[t]] as [string, string])], (v) => void apply({ kind: "tier", value: v === "auto" ? null : Number(v) }))}
+          {pickSel("Kids", KIDS_RULES.map((k) => [k, KIDS_RULE_TEXT[k]]), (v) => void apply({ kind: "kids", value: v as KidsRule }))}
+          {pickSel("Local?", LOCALS.map((l) => [l, l === "away" ? "away (travelling)" : l]), (v) => void apply({ kind: "local", value: v as Local }))}
+        </div>
+      )}
       {shown.length === 0 && <Card><EmptyState>{f.undecidedOnly && !f.q && f.side === "all" ? "Everyone is decided." : "No households match."}</EmptyState></Card>}
       {shown.map(({ ring, rows }) => (
         <section key={ring.key} className="pp-ring" aria-label={ring.label}>
           <header className="pp-ring-head">
             <h2>{ring.label}</h2>
             <span className="pp-ring-meta">
-              {ring.rows.length} household{ring.rows.length === 1 ? "" : "s"} · {ring.invited + ring.ifroom + ring.undecided} seats
+              {ring.rows.length} household{ring.rows.length === 1 ? "" : "s"} · {seatSplit(ring)}
               {ring.undecidedRows > 0 && <> · <b>{ring.undecidedRows} undecided</b></>}
             </span>
             {ring.undecidedRows > 0 && <button type="button" className="k-btn pp-invite-all" onClick={() => act.inviteAll(ring)}>Invite all undecided</button>}
           </header>
           <ul className="pp-hlist">
             {rows.map((row) => (
-              <FragmentRow key={row.party.id} line={room.fill?.party === row.party.id && cap ? `— ${room.sel?.name} fills here (${cap} seated) —` : null}>
-                <HouseholdRow row={row} relation={rel(row)} ctx={invite} act={act} ringParties={parties.get(ring.key) ?? []} onHousehold={onHousehold} onPerson={onPerson} />
+              <FragmentRow key={row.party.id} line={room.fill?.party === row.party.id && cap ? `— ${room.sel?.name} fills here (${cap} ${room.kidsRoom ? "adults " : ""}seated) —` : null}>
+                <HouseholdRow row={row} relation={rel(row)} ctx={invite} act={act} ringParties={parties.get(ring.key) ?? []} onHousehold={onHousehold} onPerson={onPerson}
+                  pick={bulk ? { on: picked.has(row.party.id), toggle: () => toggle(row.party.id) } : undefined} />
               </FragmentRow>
             ))}
           </ul>
@@ -52,6 +87,13 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
       ))}
     </div>
   );
+}
+
+/** "14 adults · 3 kids" seats a ring takes if everyone not decided "no" comes. */
+function seatSplit(r: Ring): string {
+  const a = r.rows.reduce((n, x) => n + x.seats.adults, 0);
+  const k = r.rows.reduce((n, x) => n + x.seats.kids, 0);
+  return `${a} adult${a === 1 ? "" : "s"}${k ? ` · ${k} kid${k === 1 ? "" : "s"}` : ""}`;
 }
 
 function FragmentRow({ line, children }: { line: string | null; children: ReactNode }) {

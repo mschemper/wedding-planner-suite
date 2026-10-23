@@ -18,9 +18,11 @@ export interface RowProps {
   ringParties: Party[];
   onHousehold(id: string): void;
   onPerson(id: string): void;
+  /** bulk mode: a checkbox replaces the decision mark */
+  pick?: { on: boolean; toggle(): void };
 }
 
-export function HouseholdRow({ row, relation, ctx, act, ringParties, onHousehold, onPerson }: RowProps) {
+export function HouseholdRow({ row, relation, ctx, act, ringParties, onHousehold, onPerson, pick }: RowProps) {
   const { party } = row;
   const first = row.members.find((m) => !m.deceased) ?? row.members[0];
   const tiers = row.friend ? FRIEND_TIERS : FAMILY_TIERS;
@@ -39,7 +41,9 @@ export function HouseholdRow({ row, relation, ctx, act, ringParties, onHousehold
   ];
   return (
     <li className={`pp-hrow st-${party.invite}`} aria-label={party.name}>
-      <span className="pp-hmark"><DecisionMark state={party.invite} /></span>
+      <span className="pp-hmark">{pick
+        ? <input type="checkbox" className="pp-pickbox" checked={pick.on} onChange={pick.toggle} aria-label={`Select ${party.name}`} />
+        : <DecisionMark state={party.invite} />}</span>
       <button type="button" className="pp-hname" onClick={() => onHousehold(party.id)} aria-label={`Edit household: ${party.name}`}>
         <b>{namesLine(row)}</b>
         {relation && <small>{relation}</small>}

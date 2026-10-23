@@ -45,7 +45,9 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
   if (!sel || !c) return null;
   const pct = (n: number) => `${(n / c.scale) * 100}%`;
   const total = c.invited + c.ifroom + c.undecided;
-  const summary = `${c.invited} invited, ${c.ifroom} if room, ${c.undecided} undecided, of ${c.cap} seats`;
+  const kidsCap = room.kidsRoom ? sel.capacity?.kids ?? null : null;
+  const who = room.kidsRoom ? "adults" : "guests";
+  const summary = `${c.invited} ${who} invited, ${c.ifroom} if room, ${c.undecided} undecided, of ${c.cap} seats`;
   return (
     <section className="pp-room" aria-label="Room check">
       <label className="pp-venue"><span className="sr-only">Venue for the room check</span>
@@ -58,10 +60,14 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
         <span className="pp-capline" style={{ left: `calc(${pct(c.cap)} - 2px)` }} title={`${sel.name} seats ${c.cap}`} />
       </div>
       <p className="pp-legend">
-        <b>{c.invited} in</b>
+        <b>{c.invited} {who} in</b>
         <span className="pp-opt"> · {c.ifroom} if room</span> · {c.undecided} undecided
-        {c.kidsUp > 0 && <span className="pp-opt"> · {c.kidsUp} kids upstairs</span>}
-        <span className="pp-cap-text"> · seats {c.cap}{c.over > 0 ? ` · over by ${c.over}` : total > c.cap ? ` · ${total - c.cap} over if all come` : ""}</span>
+        <span className="pp-cap-text"> · {c.cap} {who} seated{c.over > 0 ? ` · over by ${c.over}` : total > c.cap ? ` · ${total - c.cap} over if all come` : ""}</span>
+        {room.kidsRoom && (
+          <span className={`pp-kidsline${kidsCap != null && c.kidsUp > kidsCap ? " is-over" : ""}`}>
+            {" "}· kids {c.kidsUp}{kidsCap != null ? ` of ${kidsCap}` : ""} upstairs{kidsCap != null && c.kidsUp > kidsCap ? ` (over by ${c.kidsUp - kidsCap})` : ""}
+          </span>
+        )}
       </p>
       <b className="pp-cost" title="Budget at the venue for the guest basis chosen on Venues">{room.cost === undefined ? "" : room.cost === null ? "awaiting rates" : `≈ ${money(room.cost)}`}</b>
       <Menu label="Kids setting" align="right" triggerClass="pp-kidsbtn"
