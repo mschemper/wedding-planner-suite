@@ -2,7 +2,7 @@
 
 ## v7 - Conservatory garden look, hidden ancestors, adults vs kids, Add venue research (22 Oct 2026)
 
-**Not deployed yet** (branch `v7`). D1 migration 0004 (add-only: `custom_venues`). Needs the Cloudflare secret `ANTHROPIC_API_KEY` for web research (without it, venues are added by hand). Theme options: docs/mockups/v7-theme-options.html; Mark picked B · Conservatory Modern. Design note: docs/DESIGN-v7.md.
+**Deployed** 22 Oct 2026 (Worker version 66408ed9). D1 migration 0004 (add-only: `custom_venues`). Needs the Cloudflare secret `ANTHROPIC_API_KEY` for web research (without it, venues are added by hand). Theme options: docs/mockups/v7-theme-options.html; Mark picked B · Conservatory Modern. Design note: docs/DESIGN-v7.md.
 
 **Look**: Conservatory Modern — Garfield Park Conservatory + 1950s botanical prints: flat coral / blush / mustard blooms and teal stems in the header and card corners, DM Serif Display + Jost, rounded cards, teal pill tabs; day and dusk.
 
