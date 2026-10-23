@@ -10,7 +10,7 @@ import { summarizeAll } from "../src/plan/venueSummary";
 import type { Fit } from "../src/plan/types";
 import {
   capacityText, cycleFitWrite, dateChoice, draftOf, fitPct, fitText, noteWrite, parseHeld, parseWindows, safeUrl, statusRank, statusTone,
-  telHref, venuePatch, windowParts,
+  quoteIssue, telHref, venuePatch, windowParts,
 } from "../src/ui/venues/model";
 
 const hc = headcount(fixture as unknown as PeopleData, "ours");
@@ -116,5 +116,17 @@ describe("assumptions", () => {
     expect(dateChoice("2027-06-12", "2027-06-12", w)).toBe("held");
     expect(dateChoice("2027-09-18", "2027-06-12", w)).toBe("2027-09-18");
     expect(dateChoice("2027-07-01", null, w)).toBeNull();
+  });
+});
+
+describe("quote form (REVIEW-v6 Q2)", () => {
+  it("needs a vendor to apply, and a reason for $0", () => {
+    const q = { amount: "500", status: "received", vendor: "", notes: "" };
+    expect(quoteIssue(q)).toMatch(/vendor/);
+    expect(quoteIssue({ ...q, vendor: "Lens Co" })).toBe("");
+    expect(quoteIssue({ ...q, amount: "0", vendor: "Firehouse" })).toMatch(/\$0/);
+    expect(quoteIssue({ ...q, amount: "0", vendor: "Firehouse", notes: "in package" })).toBe("");
+    expect(quoteIssue({ ...q, status: "requested" })).toBe("");
+    expect(quoteIssue({ ...q, amount: "abc" })).toMatch(/number/);
   });
 });

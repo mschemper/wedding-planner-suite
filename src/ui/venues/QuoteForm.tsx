@@ -4,6 +4,7 @@ import type { Op } from "../../api/types";
 import type { Options, Quote, QuoteStatus, Scenario } from "../../engine/types";
 import { SaveError } from "../SaveError";
 import { useData, type SaveResult } from "../data";
+import { quoteIssue } from "./model";
 
 export const ALL_IN = "*";
 
@@ -37,6 +38,7 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const isZero = amount.trim() !== "" && Number(amount.replace(/[$,\s]/g, "")) === 0;
   const scopes: { v: string; label: string }[] = [{ v: "", label: "Any option" }];
   for (const o of scenario.options) for (const c of o.choices) scopes.push({ v: JSON.stringify({ [o.key]: c }), label: `${o.label}: ${c}` });
   if (scope && !scopes.some((s) => s.v === scope)) {
@@ -45,8 +47,9 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
 
   async function submit() {
     if (busy) return;
+    const issue = quoteIssue({ amount, status, vendor, notes });
+    if (issue) return setErr(issue);
     const n = Number(amount.replace(/[$,\s]/g, ""));
-    if (!amount.trim() || !Number.isFinite(n) || n < 0) return setErr("Amount must be a number of 0 or more.");
     setErr("");
     const row = {
       scenario_id: scenario.id, item_desc: line, options: scope ? (JSON.parse(scope) as Options) : null, basis, amount: n,
@@ -100,6 +103,7 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
     return (
       <div className="q-mini">
         {amountField}{basisField}{vendorField}{statusField}
+        {isZero && <label className="wide">Why $0?<input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. included in the venue package" /></label>}
         <div className="wide">{taxField}</div>
         <div className="wide">{buttons}</div>
         <div className="wide"><SaveError result={fail} onDismiss={() => setFail(null)} /></div>

@@ -19,6 +19,8 @@ export interface OutlineBranch {
   elders: Unit[];
   /** relatives with no parent link yet */
   unplaced: Unit[];
+  /** this branch's people drawn in another branch's unit (with a partner from there) */
+  elsewhere: Person[];
   count: number;
 }
 export interface Outline {
@@ -69,10 +71,14 @@ export function buildOutline(d: PeopleData): Outline {
     // roots: no parents, oldest generations first (placeholders, parents' generation)
     const rootCands = ps.filter((p) => p.parent_ids.length === 0 && (p.placeholder || coupleParents.has(p.id) || (p.gen ?? 0) <= -1) && !hasLinkedPartner(p)).sort(byName);
     const linkedElders = rootCands.filter((p) => p.placeholder || coupleParents.has(p.id) || (kids.get(p.id)?.length ?? 0) > 0 || (p.gen ?? 0) === -1);
-    const roots = linkedElders.filter((p) => !seen.has(p.id)).map((p) => unitOf(p));
-    const elders = rootCands.filter((p) => !seen.has(p.id) && (p.gen ?? 0) <= -2).map((p) => unitOf(p));
-    const unplaced = ps.filter((p) => !seen.has(p.id) && !p.placeholder).sort(byName).filter((p) => !seen.has(p.id)).map((p) => unitOf(p));
-    return { side, branch, roots, elders, unplaced, count: ps.filter((p) => !p.placeholder).length };
+    // check `seen` per person as units are built: a partner taken into an earlier unit must not start its own
+    const units = (cands: Person[]) => cands.reduce<Unit[]>((out, p) => (seen.has(p.id) ? out : [...out, unitOf(p)]), []);
+    const roots = units(linkedElders);
+    const elders = units(rootCands.filter((p) => (p.gen ?? 0) <= -2));
+    const unplaced = units(ps.filter((p) => !p.placeholder).sort(byName));
+    const here = new Set([...roots, ...elders, ...unplaced].flatMap(walk).flatMap((u) => u.people.map((p) => p.id)));
+    const elsewhere = ps.filter((p) => !p.placeholder && !here.has(p.id));
+    return { side, branch, roots, elders, unplaced, elsewhere, count: ps.filter((p) => !p.placeholder).length };
   }).sort((a, b) => (a.side === b.side ? a.branch.localeCompare(b.branch) : a.side === "Mark" ? -1 : 1));
 
   return { couple, branches, unplacedTotal: branches.reduce((n, b) => n + b.unplaced.reduce((m, u) => m + u.people.length, 0), 0) };

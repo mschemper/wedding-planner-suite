@@ -73,6 +73,14 @@ describe("outline", () => {
     expect(af.roots.flatMap(walk).some((u) => u.people.some((p) => p.id === "C002"))).toBe(true);
     expect(af.unplaced.flatMap((u) => u.people.map((p) => p.id))).toContain("A006");
   });
+  it("draws each person once per side; a partner from another branch is listed as elsewhere (REVIEW-v6 V1)", () => {
+    for (const side of ["Mark", "Angela"]) {
+      const ids = o.branches.filter((b) => b.side === side).flatMap((b) => [...b.roots, ...b.elders, ...b.unplaced].flatMap(walk)).flatMap((u) => u.people.map((p) => p.id));
+      expect(ids.length).toBe(new Set(ids).size);
+    }
+    const mm = o.branches.find((b) => b.branch === "Mark's mother's side")!;
+    expect(mm.elsewhere.map((p) => p.id)).toEqual(["M002"]);
+  });
 });
 
 describe("branch names", () => {
