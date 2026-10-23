@@ -23,6 +23,7 @@ export function validatePeople(d: PeopleData, policy: KidsPolicy = "ours"): Issu
       if (p.partner_id === p.id) err(p.id, "cannot be their own partner");
       else if (!q) err(p.id, `partner ${p.partner_id} does not exist`);
       else if (q.partner_id !== p.id) err(p.id, `partner link to ${q.id} is one-sided`);
+      else if (p.id < q.id && p.party_id && q.party_id && p.party_id !== q.party_id) warn(p.id, `partner ${q.id} is in another household`);
     }
     if (p.parent_ids.length > 2) err(p.id, "at most two parents");
     for (const par of p.parent_ids) {

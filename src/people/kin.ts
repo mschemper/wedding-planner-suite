@@ -69,29 +69,36 @@ export function derivedRelation(g: Graph, anchor: string, x: string): string | n
 }
 
 const ROOTS: [RegExp, RegExp][] = [
-  [/^parent/, /mother|father|parent|mom|dad/i],
-  [/^child/, /son|daughter|child/i],
-  [/^sibling/, /brother|sister|sibling/i],
-  [/^grandparent/, /grand(mother|father|parent)/i],
-  [/^aunt\/uncle/, /aunt|uncle/i],
-  [/^niece\/nephew/, /niece|nephew/i],
-  [/^cousin/, /cousin/i],
-  [/^step-child/, /step/i],
+  [/^parent/, /\b(mother|father|parent|mom|dad)/i],
+  [/^child/, /\b(son|daughter|child)/i],
+  [/^sibling/, /\b(brother|sister|sibling)/i],
+  [/^grandparent/, /\bgrand(mother|father|parent)/i],
+  [/^grandchild/, /\bgrand(son|daughter|child)/i],
+  [/^aunt\/uncle/, /\b(aunt|uncle)/i],
+  [/^niece\/nephew/, /\b(niece|nephew)/i],
+  [/^cousin/, /\bcousin/i],
+  [/^step-child/, /\bstep/i],
 ];
 
-/** Core relation named by a text (derived word or a workbook label), or null. Order matters: "grandparent" before "parent". */
+/**
+ * Core relation named by a text (derived word or a workbook label), or null. Whole words only ("Godson" ≠ son).
+ * Only the first "/"-alternative counts; a possessive in it ("Aunt's stepson", "Lugene's aunt") names someone else's
+ * relative → null. Order matters: "grandparent" before "parent".
+ */
 export function relationRoot(text: string | null | undefined): Relation | null {
-  const t = (text ?? "").toLowerCase();
-  if (!t) return null;
-  if (/grand(mother|father|parent)/.test(t)) return "grandparent";
-  if (/great/.test(t)) return null;
-  if (/niece|nephew/.test(t)) return "niece/nephew";
-  if (/cousin/.test(t)) return "cousin";
-  if (/aunt|uncle/.test(t)) return "aunt/uncle";
-  if (/step/.test(t)) return "step-child";
-  if (/brother|sister|sibling/.test(t)) return "sibling";
-  if (/mother|father|parent|mom|dad/.test(t)) return "parent";
-  if (/son|daughter|child/.test(t)) return "child";
+  const t = (text ?? "").toLowerCase().split("/")[0].trim();
+  if (!t || /['’]s\b/.test(t)) return null;
+  if (/\bgrand(mother|father|parent|ma|pa)s?\b/.test(t)) return "grandparent";
+  if (/\bgrand(son|daughter|child|children|kid)s?\b/.test(t)) return "grandchild";
+  if (/\bgreat\b/.test(t)) return null;
+  if (/\b(niece|nephew)s?\b/.test(t)) return "niece/nephew";
+  if (/\bcousins?\b/.test(t)) return "cousin";
+  if (/\b(aunt|uncle)s?\b/.test(t)) return "aunt/uncle";
+  if (/\bstep-?(son|daughter|child|children|kid)s?\b/.test(t)) return "step-child";
+  if (/\bstep-?(mother|father|mom|dad|parent)s?\b/.test(t)) return "parent";
+  if (/\b(brother|sister|sibling)s?\b/.test(t)) return "sibling";
+  if (/\b(mother|father|parent|mom|dad|mum)s?\b/.test(t)) return "parent";
+  if (/\b(son|daughter|child|children|kid)s?\b/.test(t)) return "child";
   return null;
 }
 

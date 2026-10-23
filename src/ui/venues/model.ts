@@ -127,3 +127,12 @@ export function dateChoice(date: string, held: string | null, windows: DateWindo
   if (held && date === held) return "held";
   return windows.find((w) => w.ref === date)?.ref ?? null;
 }
+
+/** Quote form checks (REVIEW-v6 Q2): an applied quote needs a source; $0 needs a reason. Returns the first problem or "". */
+export function quoteIssue(q: { amount: string; status: string; vendor: string; notes: string }): string {
+  const n = Number(q.amount.replace(/[$,\s]/g, ""));
+  if (!q.amount.trim() || !Number.isFinite(n) || n < 0) return "Amount must be a number of 0 or more.";
+  if (q.status !== "requested" && !q.vendor.trim()) return "Who quoted this? Add the vendor (received and accepted quotes change the budget).";
+  if (n === 0 && q.status !== "requested" && !q.notes.trim()) return "$0 removes this line from the budget. Say why in Notes (e.g. included in the venue package).";
+  return "";
+}

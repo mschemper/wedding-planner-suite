@@ -9,7 +9,7 @@ import { FRIEND_TIER_LABEL, tierCtx } from "../src/people/tier";
 import type { Party, PeopleData } from "../src/people/types";
 import {
   authorName, branchEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
-  householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, personOps, quickFriendIssues,
+  householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, partnerNotice, personOps, quickFriendIssues,
   quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
 } from "../src/ui/people/model";
 import { loadPrefs } from "../src/ui/prefs";
@@ -247,11 +247,17 @@ describe("person ops", () => {
     expect(ops[0]).toMatchObject({ table: "parties", op: "create", row: { id: "tmp:hh", name: "Demo household", invite: "undecided" } });
     expect(ops[1]).toMatchObject({ table: "people", op: "create", row: { id: "tmp:p", first: "Pat", party_id: "tmp:hh", placeholder: false } });
   });
-  it("adding a parent also links the child (max 2)", () => {
-    const d = draftFrom({ first: "Pa" }, "new");
-    const ops = personOps({ draft: d, needsParty: true, parentOf: { id: "C003", parent_ids: ["a"], version: 2 } });
-    expect(ops[2]).toEqual({ table: "people", op: "update", id: "C003", version: 2, row: { parent_ids: ["a", "tmp:p"] } });
-    expect(personOps({ draft: d, needsParty: true, parentOf: { id: "C003", parent_ids: ["a", "b"], version: 2 } })).toHaveLength(2);
+  it("generation follows parent links; kids' room follows age (REVIEW-v6 B11, B14)", () => {
+    const o = orig("A006");
+    const ops = personOps({ draft: { ...draftFrom(o), parent_ids: ["A004", "A005"], gen: "5" }, original: o, needsParty: true, people: D.people });
+    expect(ops[0]).toMatchObject({ row: { parent_ids: ["A004", "A005"] } });
+    expect((ops[0] as { row: Record<string, unknown> }).row.gen).toBeUndefined(); // already 0 = aunt's gen + 1
+    const kid = personOps({ draft: { ...draftFrom({ first: "Tot" }, "new"), age: "child", parent_ids: ["M009"] }, needsParty: true, people: D.people });
+    expect(kid[1]).toMatchObject({ row: { gen: 1, kids_room: true } });
+  });
+  it("warns when the chosen partner is linked to someone else or lives elsewhere (REVIEW-v6 B12)", () => {
+    expect(partnerNotice("A006", "M009", "H-A4", D.people)).toEqual({ taken: person("M010"), otherHousehold: "H-M4" });
+    expect(partnerNotice("M009", "M010", "H-M4", D.people)).toEqual({ taken: null, otherHousehold: null });
   });
   it("validates draft", () => {
     expect(draftIssues(draftFrom({}, ""), { needsParty: true })).toHaveLength(2);

@@ -5,6 +5,7 @@ import { cutoff, type Headcount } from "../../people/headcount";
 import { effectiveInvite, heads, kidsIn, type InviteCtx } from "../../people/invite";
 import { anchorFor, graph, relationRoot, relationText, type Relation } from "../../people/kin";
 import type { Ring, RingRow } from "../../people/rings";
+import { genFromLinks } from "../../people/relatives";
 import { tierLabel } from "../../people/tier";
 import {
   displayName, type Decision, type KidsPolicy, type KidsRule, type KnownBy, type Override, type Party, type PeopleData, type Person, type Side,
@@ -181,11 +182,13 @@ export function draftIssues(d: PersonDraft, opts: { needsParty: boolean }): stri
 }
 
 const nn = (s: string) => s.trim() || null;
-function rowFromDraft(d: PersonDraft): Row {
-  const gen = parseGen(d.gen);
+/** Generation follows the links (parent + 1, else partner); the stored value only when nothing linked has one. Kids' room = age child. */
+function rowFromDraft(d: PersonDraft, byId?: Map<string, Person>): Row {
+  const stored = parseGen(d.gen);
+  const linked = byId ? genFromLinks({ parent_ids: d.parent_ids, partner_id: d.partner_id }, byId) : null;
   return {
-    first: d.first.trim(), last: nn(d.last), nick: nn(d.nick), age: d.age, kids_room: d.kids_room, local: d.local, side: d.side, kind: d.kind,
-    branch: nn(d.branch), gen: gen === "bad" ? null : gen, partner_id: d.partner_id, parent_ids: d.parent_ids, override: d.override || null,
+    first: d.first.trim(), last: nn(d.last), nick: nn(d.nick), age: d.age, kids_room: d.age === "child", local: d.local, side: d.side, kind: d.kind,
+    branch: nn(d.branch), gen: linked ?? (stored === "bad" ? null : stored), partner_id: d.partner_id, parent_ids: d.parent_ids, override: d.override || null,
     rsvp: d.rsvp, plus_one: d.plus_one, circle: nn(d.circle), deceased: d.deceased, label: nn(d.label), notes: nn(d.notes),
   };
 }
@@ -195,13 +198,13 @@ export type Versioned<T> = T & { version: number };
 
 /**
  * Save ops for the person sheet. Edit: only changed fields (none changed → []). Create: optional new household first
- * (tmp ids), then the person; `parentOf` also appends the new person to that child's parents (max 2).
+ * (tmp ids), then the person. `people` lets generation follow the parent / partner links.
  */
 export function personOps(a: {
-  draft: PersonDraft; original?: Versioned<Person>; needsParty: boolean; parentOf?: Versioned<Pick<Person, "id" | "parent_ids">>;
+  draft: PersonDraft; original?: Versioned<Person>; needsParty: boolean; people?: Person[];
 }): Op[] {
   const { draft: d, original } = a;
-  const row = rowFromDraft(d);
+  const row = rowFromDraft(d, a.people && new Map(a.people.map((p) => [p.id, p])));
   const ops: Op[] = [];
   let partyId: string | null | undefined;
   if (a.needsParty) {
@@ -218,12 +221,30 @@ export function personOps(a: {
     return ops.some((o) => o.table === "people") ? ops : [];
   }
   ops.push({ table: "people", op: "create", row: { id: "tmp:p", ...row, party_id: partyId ?? null, placeholder: false } });
-  if (a.parentOf && a.parentOf.parent_ids.length < 2) {
-    const list = [...a.parentOf.parent_ids, "tmp:p"];
-    ops.push({ table: "people", op: "update", id: a.parentOf.id, version: a.parentOf.version, row: { parent_ids: list } });
-  }
   return ops;
 }
+
+/** Partner choice side effects to show before saving (REVIEW-v6 B12). */
+export interface PartnerNotice {
+  /** the chosen partner is linked to someone else; saving unlinks them */
+  taken: Person | null;
+  /** the chosen partner lives in another household */
+  otherHousehold: string | null;
+}
+export function partnerNotice(selfId: string | undefined, partnerId: string | null, party: string, people: Person[]): PartnerNotice {
+  const q = partnerId ? people.find((p) => p.id === partnerId) : undefined;
+  if (!q) return { taken: null, otherHousehold: null };
+  const taken = q.partner_id && q.partner_id !== selfId ? people.find((p) => p.id === q.partner_id) ?? null : null;
+  const otherHousehold = q.party_id && party && party !== "new" && q.party_id !== party ? q.party_id : null;
+  return { taken, otherHousehold };
+}
+
+/** "Cousin · Mark's side" / "Friend · Angela's side": the line under the person sheet title. */
+export const personSummary = (p: Person, rel: (p: Person) => string) => {
+  const what = p.kind === "couple" ? "The couple" : p.kind === "friend" ? "Friend" : rel(p);
+  const side = p.side === "Both" ? "both sides" : `${p.side}'s side`;
+  return p.kind === "couple" ? what : `${what.charAt(0).toUpperCase()}${what.slice(1)} · ${side}`;
+};
 
 // ---------- envelopes + export ----------
 export interface Envelope { party: Party; names: string[]; heads: number }

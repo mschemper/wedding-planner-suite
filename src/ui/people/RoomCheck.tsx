@@ -37,6 +37,8 @@ export function useRoom(rings: Ring[]): Room {
   return { list, sel, check, fill, kidsRoom, cost, setVenue: (id) => set({ capacityVenue: id }) };
 }
 
+const KIDS_SHORT: Record<KidsPolicy, string> = { ours: "ours only", family: "family", all: "all" };
+
 export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
   const { settings } = useData();
   const { sel, check: c, list } = room;
@@ -63,7 +65,7 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
       </p>
       <b className="pp-cost" title="Budget at the venue for the guest basis chosen on Venues">{room.cost === undefined ? "" : room.cost === null ? "awaiting rates" : `≈ ${money(room.cost)}`}</b>
       <Menu label="Kids setting" align="right" triggerClass="pp-kidsbtn"
-        trigger={<>Kids: {POLICY_LABEL[settings.kidsPolicy]} <span aria-hidden="true">▾</span></>}
+        title={`Kids: ${POLICY_LABEL[settings.kidsPolicy]}`} trigger={<>Kids: {KIDS_SHORT[settings.kidsPolicy]} <span aria-hidden="true">▾</span></>}
         items={[
           { key: "h", heading: "Which kids come (each household can override)" },
           ...KIDS_POLICIES.map((v: KidsPolicy) => ({ key: v, label: POLICY_LABEL[v], checked: settings.kidsPolicy === v, onSelect: () => act.policy(v) })),

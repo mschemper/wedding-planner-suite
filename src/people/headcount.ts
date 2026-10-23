@@ -36,7 +36,8 @@ export function rate(p: Person): number {
 function add(t: Tally, p: Person) {
   const h = heads(p);
   t.heads += h;
-  if (p.kids_room) t.kids += h; else t.adults += h;
+  // kids' room = age child (same rule as rings.ts); people.kids_room is kept in sync on save, not read
+  if (p.age === "child") t.kids += h; else t.adults += h;
   t.expected += h * rate(p);
 }
 

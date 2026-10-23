@@ -5,10 +5,10 @@ import v3sample from "../data/fixtures/guests.sample.json";
 import { forecastAttendance } from "../src/guests/attendance";
 import type { GuestData } from "../src/guests/schema";
 import { fromWorkbook } from "../src/people/fromWorkbook";
-import { buildGarden, relativeDefaults } from "../src/people/garden";
+import { relativeDefaults } from "../src/people/relatives";
 import { cutoff, headcount } from "../src/people/headcount";
 import { effectiveInvite, inviteCtx } from "../src/people/invite";
-import { anchorFor, graph, relationText } from "../src/people/kin";
+import { anchorFor, graph, relationRoot, relationText } from "../src/people/kin";
 import type { PeopleData, Person } from "../src/people/types";
 import { validatePeople } from "../src/people/validate";
 
@@ -73,16 +73,19 @@ describe("kin", () => {
   });
 });
 
-describe("garden", () => {
-  it("beds by side and branch, rows by generation, friends by circle; edges only where linked", () => {
-    const gd = buildGarden(D);
-    expect(gd.couple.map((p) => p.first)).toEqual(["Mark", "Angela"]);
-    expect(gd.beds.map((b) => `${b.side}:${b.branch}`)).toEqual(["Mark:Mark's father's side", "Mark:Mark's mother's side", "Angela:Angela's father's side"]);
-    expect(gd.beds[0].rows.map((r) => r.gen)).toEqual([-2, -1, 0, 1]);
-    expect(gd.circles.map((c) => c.circle)).toEqual(["Work", "Neighbors", "College"]);
-    expect(gd.edges.some((e) => e.kind === "parent" && e.from === "M007" && e.to === "M009")).toBe(true);
-    expect(gd.edges.filter((e) => e.kind === "partner" && e.from === "M001").length).toBe(1);
+describe("relation words", () => {
+  it("matches whole words; possessives and great- are unknown; grandchild is its own relation", () => {
+    const cases: [string, string | null][] = [
+      ["Grandson", "grandchild"], ["Godson", null], ["Mason", null], ["Aunt's stepson", null], ["Brother-in-law's mother", null],
+      ["Nephew's girlfriend", null], ["Aunt / father's sibling", "aunt/uncle"], ["Lugene's aunt / extended family", null],
+      ["Cousin-in-law", "cousin"], ["Stepmother", "parent"], ["Stepson", "step-child"], ["Great-aunt", null], ["Grandmother", "grandparent"],
+      ["Sister-in-law", "sibling"], ["Uncle by marriage", "aunt/uncle"], ["Daughter", "child"],
+    ];
+    for (const [t, r] of cases) expect([t, relationRoot(t)]).toEqual([t, r]);
   });
+});
+
+describe("add relative", () => {
   it("Add relative pre-fills links, branch, generation and household", () => {
     const of = P(D, "M009") as Person;
     expect(relativeDefaults(of, "child")).toMatchObject({ gen: 1, age: "child", parent_ids: ["M009", "M010"], party_id: "H-M4", branch: of.branch });
