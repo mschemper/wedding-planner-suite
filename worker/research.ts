@@ -69,7 +69,8 @@ const SCHEMA = {
 const SYSTEM = `You research wedding venues for a couple planning a 2027 wedding in the Chicago area (late spring or early fall, Saturday evening, about 60–100 adults; kids may have a separate room).
 Use web search: find the venue's official site and pricing pages, rate sheets, wedding listings (The Knot, WeddingWire, Zola, Here Comes the Guide), and recent reviews that mention prices.
 Return a budget the app can price by guest count:
-- Line items only for costs at this venue: rental / site fee (fixed), food and drink minimums or per-person catering (perGuest), bar packages (perGuest), service charge and tax (one percent line, as a fraction like 0.22, applied to taxable food and drink lines), required fees (security, cleaning, coordinator, insurance; fixed).
+- Line items only for costs at this venue: rental / site fee (fixed), per-person catering (perGuest), bar packages (perGuest), a food and drink minimum as a fixed line (its total in "amount"), service charge and tax (one percent line, as a fraction like 0.22, applied to taxable food and drink lines), required fees (security, cleaning, coordinator, insurance; fixed).
+- perGuest lines: "rate" = dollars per guest (e.g. 165), "amount" null. fixed lines: "amount" = dollars, "rate" null. percent: "rate" as a fraction, "amount" null.
 - Prefer published 2026–2027 Saturday prices. When a number is not published, estimate it from comparable Chicago venues of the same style and say "estimate" in the note. Never invent a source URL: only cite pages you actually opened.
 - capacity_seated = seated dinner maximum; capacity_kids = seats in a separate kids' room if one exists, else null; capacity_cocktail = standing maximum.
 - confidence 0–100: how much of the budget comes from the venue's own published prices.
@@ -79,14 +80,29 @@ Return a budget the app can price by guest count:
 export function cleanDraft(raw: unknown, input: ResearchInput, today: string): ResearchDraft {
   const r = raw as Record<string, unknown>;
   if (!r || typeof r !== "object" || typeof r.name !== "string") throw new ResearchError(502, "Research returned no venue.");
-  const items = (Array.isArray(r.items) ? r.items : []).slice(0, 30).map((x) => {
+  // Repair the usual slips instead of rejecting the whole result: a per-guest line that is really a total or minimum
+  // (rate > 2,000 or only an amount) becomes a fixed line; a percent given as 22 becomes 0.22; a fixed line with only a rate
+  // uses it as the amount. Lines still unusable are dropped and listed in the summary so Mark can add them by hand.
+  const dropped: string[] = [];
+  const items = (Array.isArray(r.items) ? r.items : []).slice(0, 30).flatMap((x) => {
     const it = x as CustomItem;
-    return { cat: it.cat, desc: String(it.desc ?? "").slice(0, 120), type: it.type, amount: it.type === "fixed" ? it.amount ?? null : null,
-      rate: it.type === "fixed" ? null : it.rate ?? null, taxable: !!it.taxable,
-      source_url: typeof it.source_url === "string" && /^https?:\/\//i.test(it.source_url) ? it.source_url : null, note: it.note ? String(it.note).slice(0, 200) : null };
+    const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null);
+    let type = it.type;
+    let amount = n(it.amount);
+    let rate = n(it.rate);
+    let note = it.note ? String(it.note).slice(0, 200) : null;
+    if (type === "perGuest" && (rate == null || rate > 2_000) && (amount ?? rate) != null) {
+      amount = amount ?? rate; rate = null; type = "fixed";
+      note = [note, "given as a total, not per guest"].filter(Boolean).join("; ");
+    }
+    if (type === "percent" && rate != null && rate > 1 && rate <= 60) rate = rate / 100;
+    if (type === "fixed" && amount == null && rate != null) amount = rate;
+    const line = { cat: it.cat, desc: String(it.desc ?? "").slice(0, 120), type, amount: type === "fixed" ? amount : null,
+      rate: type === "fixed" ? null : rate, taxable: !!it.taxable,
+      source_url: typeof it.source_url === "string" && /^https?:\/\//i.test(it.source_url) ? it.source_url : null, note };
+    if (itemIssues([line]).length) { dropped.push(line.desc || "a line"); return []; }
+    return [line];
   });
-  const bad = itemIssues(items);
-  if (bad.length) throw new ResearchError(502, `Research returned lines the app can't use: ${bad.slice(0, 2).join("; ")}`);
   const int = (v: unknown, max: number) => (typeof v === "number" && v > 0 && v <= max ? Math.round(v) : null);
   const link = (v: unknown) => (typeof v === "string" && /^https?:\/\//i.test(v) ? v : null);
   return {
@@ -95,7 +111,7 @@ export function cleanDraft(raw: unknown, input: ResearchInput, today: string): R
     description: typeof r.description === "string" ? r.description.slice(0, 300) : null,
     capacity_seated: int(r.capacity_seated, 2000), capacity_kids: int(r.capacity_kids, 500), capacity_cocktail: int(r.capacity_cocktail, 3000),
     items, confidence: Math.max(0, Math.min(100, Math.round(Number(r.confidence) || 0))),
-    summary: typeof r.summary === "string" ? r.summary.slice(0, 800) : "",
+    summary: (typeof r.summary === "string" ? r.summary.slice(0, 800) : "") + (dropped.length ? ` (Left out, add by hand if needed: ${dropped.slice(0, 5).join(", ")}.)` : ""),
     sources: [...new Set((Array.isArray(r.sources) ? r.sources : []).map(link).filter((s): s is string => !!s))].slice(0, 12),
     researched_at: today,
   };

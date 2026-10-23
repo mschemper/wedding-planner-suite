@@ -268,8 +268,29 @@ describe("venue research (v7, fake Claude client — no network)", () => {
   });
   it("refuses unusable output and refusals", async () => {
     const bad = { ...draft, items: [{ ...draft.items[0], amount: -1 }] };
-    expect((await post({ name: "X" }, async () => reply(JSON.stringify(bad)))).status).toBe(502);
+    const dropped = await post({ name: "X" }, async () => reply(JSON.stringify(bad)));
+    expect(dropped.status).toBe(200);
+    expect((await dropped.json()).items).toHaveLength(0);
     expect((await post({ name: "X" }, async () => reply("", "refusal"))).status).toBe(502);
     expect((await post({ name: "X" }, async () => reply("not json"))).status).toBe(502);
+  });
+});
+
+describe("venue research repairs common slips (v8 hotfix)", () => {
+  it("per-guest totals become fixed lines, 22 becomes 0.22, unusable lines are dropped and named", async () => {
+    const { cleanDraft } = await import("../worker/research");
+    const raw = { name: "Hall", location: null, website: null, kind: "local", description: null, capacity_seated: 100, capacity_kids: null, capacity_cocktail: null,
+      confidence: 40, summary: "S.", sources: [],
+      items: [
+        { cat: "Food & beverage", desc: "F&B minimum", type: "perGuest", amount: null, rate: 14000, taxable: true, source_url: null, note: null },
+        { cat: "Food & beverage", desc: "Catering", type: "perGuest", amount: 9500, rate: null, taxable: true, source_url: null, note: null },
+        { cat: "Food & beverage", desc: "Service", type: "percent", amount: null, rate: 22, taxable: false, source_url: null, note: null },
+        { cat: "Venue & site", desc: "Rental", type: "fixed", amount: null, rate: 5000, taxable: false, source_url: null, note: null },
+        { cat: "Nope", desc: "Weird", type: "fixed", amount: 1, rate: null, taxable: false, source_url: null, note: null },
+      ] };
+    const d = cleanDraft(raw, { name: "Hall" }, "2026-10-23");
+    expect(d.items.map((i) => [i.type, i.amount, i.rate])).toEqual([["fixed", 14000, null], ["fixed", 9500, null], ["percent", null, 0.22], ["fixed", 5000, null]]);
+    expect(d.items[0].note).toMatch(/total/);
+    expect(d.summary).toContain("Weird");
   });
 });
