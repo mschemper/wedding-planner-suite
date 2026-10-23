@@ -2,7 +2,7 @@
 
 ## v8 - Household card, names that follow the people, Prairie & Steel Chicago look, Ask the planner (23 Oct 2026)
 
-**Not deployed yet** (branch `v8`). D1 migration 0005 (add-only: `parties.name_custom`). Ask the planner and Add venue research use the Cloudflare secret `ANTHROPIC_API_KEY`. Theme options: docs/mockups/v8-theme-options.html; Mark picked C · Prairie & Steel with more Chicago. Design note: docs/DESIGN-v8.md.
+**Deployed** 23 Oct 2026 (Worker version 13029a97). D1 migration 0005 (add-only: `parties.name_custom`). Ask the planner and Add venue research use the Cloudflare secret `ANTHROPIC_API_KEY`. Theme options: docs/mockups/v8-theme-options.html; Mark picked C · Prairie & Steel with more Chicago. Design note: docs/DESIGN-v8.md.
 
 **Household card** (replaces the separate person and household sheets): tapping any name opens its household — envelope name, invite decision, ring, kids rule at the top; every person below with first / last / age edited in place, "More about…" for relatives, RSVP, local, notes; add someone; move / own household / merge; remove from the guest list. One Save. "Add" now asks: new household (family / friends) or someone to an existing household.
 
