@@ -5,7 +5,7 @@ import type { Person } from "./types";
 
 export type Relation =
   | "self" | "partner" | "parent" | "child" | "step-child" | "sibling" | "grandparent" | "grandchild"
-  | "aunt/uncle" | "niece/nephew" | "cousin";
+  | "aunt/uncle" | "niece/nephew" | "cousin" | "great-grandparent" | "great-aunt/uncle" | "cousin once removed";
 
 export interface Graph {
   byId: Map<string, Person>;
@@ -47,13 +47,21 @@ export function bloodRelation(g: Graph, anchor: string, x: string): Relation | n
   const auntsUncles = flat(parents, (p) => siblingsOf(g, p));
   if (auntsUncles.includes(x)) return "aunt/uncle";
   if (flat(sibs, (s) => childrenOf(g, s)).includes(x)) return "niece/nephew";
-  if (flat(auntsUncles, (u) => childrenOf(g, u)).includes(x)) return "cousin";
+  const cousins = flat(auntsUncles, (u) => childrenOf(g, u));
+  if (cousins.includes(x)) return "cousin";
+  // one generation further out, usually reached through ancestors who are never shown (tree-only or deceased; v7)
+  const grandparents = flat(parents, (p) => parentsOf(g, p));
+  if (flat(grandparents, (p) => parentsOf(g, p)).includes(x)) return "great-grandparent";
+  const greatAunts = flat(grandparents, (p) => siblingsOf(g, p));
+  if (greatAunts.includes(x)) return "great-aunt/uncle";
+  if (flat(greatAunts, (u) => childrenOf(g, u)).includes(x) || flat(cousins, (c) => childrenOf(g, c)).includes(x)) return "cousin once removed";
   return null;
 }
 
 const IN_LAW: Partial<Record<Relation, string>> = {
   parent: "parent-in-law", child: "child-in-law", sibling: "sibling-in-law", "aunt/uncle": "aunt/uncle by marriage",
   "niece/nephew": "niece/nephew by marriage", cousin: "cousin-in-law", grandparent: "grandparent-in-law",
+  "great-aunt/uncle": "great-aunt/uncle by marriage", "cousin once removed": "cousin once removed by marriage",
 };
 
 /** Derived text: blood relation, or "-in-law" via one partner hop. */
@@ -69,6 +77,9 @@ export function derivedRelation(g: Graph, anchor: string, x: string): string | n
 }
 
 const ROOTS: [RegExp, RegExp][] = [
+  [/^great-grandparent/, /\bgreat.?grand(mother|father|parent)/i],
+  [/^great-aunt\/uncle/, /\bgreat.?(aunt|uncle)/i],
+  [/^cousin once removed/, /\bonce removed/i],
   [/^parent/, /\b(mother|father|parent|mom|dad)/i],
   [/^child/, /\b(son|daughter|child)/i],
   [/^sibling/, /\b(brother|sister|sibling)/i],
@@ -88,9 +99,12 @@ const ROOTS: [RegExp, RegExp][] = [
 export function relationRoot(text: string | null | undefined): Relation | null {
   const t = (text ?? "").toLowerCase().split("/")[0].trim();
   if (!t || /['’]s\b/.test(t)) return null;
+  if (/\bgreat.?grand(mother|father|parent|ma|pa)s?\b/.test(t)) return "great-grandparent";
+  if (/\bgreat.?(aunt|uncle)s?\b/.test(t)) return "great-aunt/uncle";
+  if (/\bcousins?\b.*\bremoved\b/.test(t)) return "cousin once removed";
+  if (/\bgreat\b/.test(t)) return null;
   if (/\bgrand(mother|father|parent|ma|pa)s?\b/.test(t)) return "grandparent";
   if (/\bgrand(son|daughter|child|children|kid)s?\b/.test(t)) return "grandchild";
-  if (/\bgreat\b/.test(t)) return null;
   if (/\b(niece|nephew)s?\b/.test(t)) return "niece/nephew";
   if (/\bcousins?\b/.test(t)) return "cousin";
   if (/\b(aunt|uncle)s?\b/.test(t)) return "aunt/uncle";

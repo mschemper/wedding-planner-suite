@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v7 theme options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=DM+Serif+Display&family=Jost:wght@400;500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font: 16px/1.5 Inter, system-ui, sans-serif; background: #EEE9DF; color: #2B2A25; padding: 24px 16px 48px; }
+  .intro { max-width: 1240px; margin: 0 auto 18px; }
+  .intro h1 { font: 700 26px/1.2 Fraunces, Georgia, serif; }
+  .intro p { color: #5A564B; font-size: 15px; margin-top: 4px; }
+  .grid { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
+  .opt { border-radius: 18px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.12); background: var(--ground); color: var(--ink); }
+  .opt-label { padding: 10px 16px; font: 600 13px/1.3 Inter, sans-serif; letter-spacing: 1px; text-transform: uppercase; background: var(--ink); color: var(--ground); }
+  .opt-label b { font-size: 15px; letter-spacing: .5px; }
+  .head { position: relative; text-align: center; padding: 26px 16px 14px; overflow: hidden; }
+  .head svg.motif { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .head h2 { position: relative; font-family: var(--display); font-size: 34px; line-height: 1.1; color: var(--ink); }
+  .head .sub { position: relative; font: 600 12px/1 var(--body); letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  .tabs { position: relative; display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
+  .tab { font: 600 15px/1 var(--body); padding: 11px 16px; border-radius: var(--tabr); color: var(--ink); }
+  .tab.on { background: var(--accent); color: var(--on-accent); }
+  .body { padding: 6px 16px 18px; display: grid; gap: 12px; font-family: var(--body); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; position: relative; overflow: hidden; }
+  .card h3 { font-family: var(--display); font-size: 21px; font-weight: 700; }
+  .card .corner { position: absolute; right: -6px; top: -6px; width: 70px; height: 70px; }
+  .big { font: 600 32px/1 var(--body); margin-top: 6px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--chip); color: var(--ink); }
+  .chip.k { background: var(--chip2); }
+  .row { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--line); }
+  .row:first-of-type { border-top: 0; }
+  .row b { font-weight: 600; }
+  .row small { display: block; color: var(--muted); font-size: 13px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--segr); overflow: hidden; font-size: 14px; font-weight: 600; }
+  .seg span { padding: 8px 10px; }
+  .seg .on { background: var(--accent); color: var(--on-accent); }
+  .price { font-family: var(--display); font-size: 28px; color: var(--price); }
+  .bar { height: 12px; border-radius: 6px; background: var(--line); display: flex; overflow: hidden; margin-top: 8px; }
+  .bar i { display: block; height: 100%; }
+  .sw { display: flex; gap: 6px; }
+  .sw i { flex: 1; height: 26px; border-radius: 6px; border: 1px solid rgba(0,0,0,.08); }
+  .note { font-size: 13px; color: var(--muted); }
+  .tree { font-size: 15px; }
+  .tree .t { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .tree .lnk { border-left: 2px dashed var(--accent); margin-left: 10px; padding-left: 14px; }
+  .tree .rel { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--chip); }
+
+  /* A: Prairie art glass (Frank Lloyd Wright, Robie House, Hollyhock windows) */
+  .A { --ground: #F3EDDF; --card: #FBF8F0; --ink: #2B2A22; --muted: #5E5845; --line: #D9CDB2; --accent: #5E6B34; --on-accent: #FFFDF5;
+       --chip: #E7DDC3; --chip2: #F0D7C7; --price: #9A3F22; --display: "Josefin Sans", sans-serif; --body: "Josefin Sans", sans-serif;
+       --r: 4px; --tabr: 2px; --segr: 2px; }
+  .A .head h2 { text-transform: uppercase; letter-spacing: 4px; font-size: 30px; font-weight: 700; }
+  .A .card h3 { text-transform: uppercase; letter-spacing: 2px; font-size: 16px; }
+  .A .card { border-top: 4px solid #B5862F; }
+  .A .big { font-family: "Josefin Sans"; }
+
+  /* B: Conservatory modern (Garfield Park Conservatory + 1950s botanical prints) */
+  .B { --ground: #F7F1E6; --card: #FFFBF4; --ink: #22302D; --muted: #4F5F5A; --line: #E2D6C1; --accent: #1F6A66; --on-accent: #FFFFFF;
+       --chip: #DDEAE4; --chip2: #F7DCCB; --price: #B5432E; --display: "DM Serif Display", Georgia, serif; --body: Jost, sans-serif;
+       --r: 22px; --tabr: 999px; --segr: 999px; }
+
+  /* C: Lurie meadow (Lurie Garden perennials + skyline) */
+  .C { --ground: #F4F0EA; --card: #FCFAF6; --ink: #2A2530; --muted: #5C5563; --line: #DCD3D8; --accent: #6B3F6E; --on-accent: #FFFFFF;
+       --chip: #E9DFEA; --chip2: #F3E1C9; --price: #8E3B1F; --display: Fraunces, Georgia, serif; --body: Inter, sans-serif;
+       --r: 14px; --tabr: 10px; --segr: 10px; }
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>v7 look: three garden-floral directions rooted in Chicago</h1>
+  <p>Same screens in each: header, tabs, headcount (adults and kids), a Decide row, the Family tree linking Fran without her parents, and a venue card. Colours pass AA contrast for text; motifs are decoration only.</p>
+</div>
+<div class="grid">
+
+<!-- A -->
+<section class="opt A" aria-label="Option A Prairie Art Glass">
+  <div class="opt-label"><b>A · Prairie Art Glass</b> — Frank Lloyd Wright</div>
+  <div class="head">
+    <svg class="motif" viewBox="0 0 400 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g fill="none" stroke="#5E6B34" stroke-width="1.6" opacity=".55">
+        <path d="M0 18 H400 M0 132 H400"/><path d="M0 24 H400" stroke="#B5862F"/>
+      </g>
+      <!-- leaded-glass tulips / sumac, left and right -->
+      <g transform="translate(18,30)">
+        <g fill="none" stroke="#2B2A22" stroke-width="1.4"><path d="M30 95 V35 M30 60 H10 V45 M30 60 H50 V45 M30 78 H14 M30 78 H46"/></g>
+        <rect x="22" y="12" width="16" height="22" fill="#C2553A" stroke="#2B2A22"/><rect x="26" y="4" width="8" height="10" fill="#E2A33A" stroke="#2B2A22"/>
+        <rect x="4" y="36" width="12" height="10" fill="#7C8B3F" stroke="#2B2A22"/><rect x="44" y="36" width="12" height="10" fill="#7C8B3F" stroke="#2B2A22"/>
+        <rect x="8" y="74" width="8" height="8" fill="#B5862F" stroke="#2B2A22"/><rect x="44" y="74" width="8" height="8" fill="#B5862F" stroke="#2B2A22"/>
+      </g>
+      <g transform="translate(322,30)">
+        <g fill="none" stroke="#2B2A22" stroke-width="1.4"><path d="M30 95 V35 M30 60 H10 V45 M30 60 H50 V45 M30 78 H14 M30 78 H46"/></g>
+        <rect x="22" y="12" width="16" height="22" fill="#B9637A" stroke="#2B2A22"/><rect x="26" y="4" width="8" height="10" fill="#E2A33A" stroke="#2B2A22"/>
+        <rect x="4" y="36" width="12" height="10" fill="#7C8B3F" stroke="#2B2A22"/><rect x="44" y="36" width="12" height="10" fill="#7C8B3F" stroke="#2B2A22"/>
+        <rect x="8" y="74" width="8" height="8" fill="#B5862F" stroke="#2B2A22"/><rect x="44" y="74" width="8" height="8" fill="#B5862F" stroke="#2B2A22"/>
+      </g>
+    </svg>
+    <h2>Mark &amp; Angela</h2>
+    <div class="sub">A Prairie Garden Wedding · 2027</div>
+    <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+  </div>
+  <div class="body">
+    <div class="sw" aria-label="palette"><i style="background:#F3EDDF"></i><i style="background:#5E6B34"></i><i style="background:#B5862F"></i><i style="background:#C2553A"></i><i style="background:#B9637A"></i><i style="background:#2B2A22"></i></div>
+    <div class="card">
+      <svg class="corner" viewBox="0 0 70 70" aria-hidden="true"><g stroke="#2B2A22" stroke-width="1"><rect x="30" y="14" width="14" height="18" fill="#C2553A"/><rect x="34" y="8" width="6" height="7" fill="#E2A33A"/><path d="M37 32 V66 M37 46 H22 M37 46 H52" fill="none"/><rect x="18" y="40" width="8" height="8" fill="#7C8B3F"/><rect x="48" y="40" width="8" height="8" fill="#7C8B3F"/></g></svg>
+      <h3>Headcount</h3>
+      <div class="big">≈ 63 expected</div>
+      <div class="chips"><span class="chip">51 adults · seats 82</span><span class="chip k">12 kids · Bunk Room 20</span></div>
+      <div class="bar"><i style="width:55%;background:#5E6B34"></i><i style="width:8%;background:#B5862F"></i></div>
+    </div>
+    <div class="card">
+      <h3>Inner circle</h3>
+      <div class="row"><span>✿</span><div><b>Erica Schemper &amp; Erik Vorhes</b><small>Sister</small></div><span class="seg"><span class="on">Invite</span><span>If room</span><span>No</span></span></div>
+      <div class="row"><span>✿</span><div><b>Pine Hollis &amp; Quill Friend</b><small>College · known by Mark</small></div><span class="seg"><span>Invite</span><span>If room</span><span>No</span></span></div>
+    </div>
+    <div class="card tree">
+      <h3>Mark's dad's side</h3>
+      <div class="lnk"><div class="t">✿ <b>Lugene &amp; Carla Schemper</b> <span class="rel">Father</span></div>
+        <div class="t">✿ <b>Fran Van Noord &amp; Len Van Noord</b> <span class="rel">Great-aunt</span></div></div>
+      <p class="note">Dashed line = linked through relatives who aren't shown.</p>
+    </div>
+    <div class="card"><h3>Firehouse Chicago</h3><div class="price">$37,644</div><p class="note">51 adults of 82 ✓ · 12 kids of 20 upstairs ✓</p></div>
+  </div>
+</section>
+
+<!-- B -->
+<section class="opt B" aria-label="Option B Conservatory Modern">
+  <div class="opt-label"><b>B · Conservatory Modern</b> — Garfield Park, 1950s botanicals</div>
+  <div class="head">
+    <svg class="motif" viewBox="0 0 400 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <!-- atomic-age blooms + monstera, flat cut-paper -->
+      <g transform="translate(40,70)">
+        <path d="M0 80 C10 40 -10 10 6 -20" stroke="#1F6A66" stroke-width="3" fill="none"/>
+        <g fill="#E07A5F"><circle cx="6" cy="-26" r="10"/><circle cx="-8" cy="-34" r="9"/><circle cx="20" cy="-34" r="9"/><circle cx="-2" cy="-48" r="9"/><circle cx="14" cy="-48" r="9"/></g>
+        <circle cx="6" cy="-38" r="7" fill="#E9B44C"/>
+        <path d="M-30 40 C-60 20 -50 -10 -20 0 C-20 20 -10 30 -30 40Z" fill="#7FA48E"/>
+      </g>
+      <g transform="translate(350,58)">
+        <path d="M0 90 C-6 50 8 20 0 -6" stroke="#1F6A66" stroke-width="3" fill="none"/>
+        <g fill="#F2A7A0"><ellipse cx="0" cy="-26" rx="7" ry="18"/><ellipse cx="0" cy="-26" rx="7" ry="18" transform="rotate(60 0 -26)"/><ellipse cx="0" cy="-26" rx="7" ry="18" transform="rotate(120 0 -26)"/></g>
+        <circle cx="0" cy="-26" r="6" fill="#B5432E"/>
+        <path d="M10 50 C40 30 50 60 24 76 C20 66 14 58 10 50Z" fill="#1F6A66" opacity=".85"/>
+      </g>
+      <g fill="#E9B44C" opacity=".8"><circle cx="120" cy="22" r="3"/><circle cx="290" cy="30" r="3"/><circle cx="200" cy="12" r="2.5"/></g>
+      <g stroke="#E9B44C" stroke-width="2" opacity=".8"><path d="M120 14 V30 M112 22 H128 M290 22 V38 M282 30 H298"/></g>
+    </svg>
+    <h2>Mark &amp; Angela</h2>
+    <div class="sub">A Garden Wedding · Chicago 2027</div>
+    <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+  </div>
+  <div class="body">
+    <div class="sw"><i style="background:#F7F1E6"></i><i style="background:#1F6A66"></i><i style="background:#7FA48E"></i><i style="background:#E9B44C"></i><i style="background:#E07A5F"></i><i style="background:#F2A7A0"></i></div>
+    <div class="card">
+      <svg class="corner" viewBox="0 0 70 70" aria-hidden="true"><g fill="#E07A5F"><circle cx="40" cy="22" r="8"/><circle cx="28" cy="16" r="7"/><circle cx="52" cy="16" r="7"/><circle cx="34" cy="6" r="7"/><circle cx="46" cy="6" r="7"/></g><circle cx="40" cy="14" r="5" fill="#E9B44C"/><path d="M40 30 C38 46 44 56 40 70" stroke="#1F6A66" stroke-width="2.5" fill="none"/></svg>
+      <h3>Headcount</h3>
+      <div class="big">≈ 63 expected</div>
+      <div class="chips"><span class="chip">51 adults · seats 82</span><span class="chip k">12 kids · Bunk Room 20</span></div>
+      <div class="bar"><i style="width:55%;background:#1F6A66"></i><i style="width:8%;background:#E9B44C"></i></div>
+    </div>
+    <div class="card">
+      <h3>Inner circle</h3>
+      <div class="row"><span style="color:#E07A5F">✿</span><div><b>Erica Schemper &amp; Erik Vorhes</b><small>Sister</small></div><span class="seg"><span class="on">Invite</span><span>If room</span><span>No</span></span></div>
+      <div class="row"><span style="color:#E07A5F">✿</span><div><b>Pine Hollis &amp; Quill Friend</b><small>College · known by Mark</small></div><span class="seg"><span>Invite</span><span>If room</span><span>No</span></span></div>
+    </div>
+    <div class="card tree">
+      <h3>Mark's dad's side</h3>
+      <div class="lnk"><div class="t">✿ <b>Lugene &amp; Carla Schemper</b> <span class="rel">Father</span></div>
+        <div class="t">✿ <b>Fran Van Noord &amp; Len Van Noord</b> <span class="rel">Great-aunt</span></div></div>
+      <p class="note">Dashed line = linked through relatives who aren't shown.</p>
+    </div>
+    <div class="card"><h3>Firehouse Chicago</h3><div class="price">$37,644</div><p class="note">51 adults of 82 ✓ · 12 kids of 20 upstairs ✓</p></div>
+  </div>
+</section>
+
+<!-- C -->
+<section class="opt C" aria-label="Option C Lurie Meadow">
+  <div class="opt-label"><b>C · Lurie Meadow</b> — Lurie Garden perennials, skyline</div>
+  <div class="head">
+    <svg class="motif" viewBox="0 0 400 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <!-- skyline line -->
+      <path d="M0 132 H40 V112 H52 V96 H60 V112 H84 V84 H96 V60 H104 V84 H120 V108 H150 V132 H250 V104 H270 V70 H278 V52 H286 V70 H296 V100 H320 V88 H338 V132 H400" fill="none" stroke="#B9AFC0" stroke-width="1.4"/>
+      <!-- coneflowers, salvia, grasses -->
+      <g stroke="#6E7B4E" stroke-width="2" fill="none"><path d="M24 150 C26 120 22 100 28 80"/><path d="M60 150 C58 116 64 104 60 86"/><path d="M350 150 C352 118 346 100 352 82"/><path d="M380 150 C376 120 384 104 378 92"/><path d="M10 150 C20 120 30 110 42 104"/><path d="M394 150 C384 124 372 114 362 110"/></g>
+      <g transform="translate(28,78)"><g fill="#C2649A"><ellipse cx="-9" cy="2" rx="9" ry="3" transform="rotate(20 -9 2)"/><ellipse cx="9" cy="2" rx="9" ry="3" transform="rotate(-20 9 2)"/><ellipse cx="-6" cy="5" rx="8" ry="3" transform="rotate(50 -6 5)"/><ellipse cx="6" cy="5" rx="8" ry="3" transform="rotate(-50 6 5)"/></g><circle r="5" fill="#8E3B1F"/></g>
+      <g transform="translate(352,80)"><g fill="#C2649A"><ellipse cx="-9" cy="2" rx="9" ry="3" transform="rotate(20 -9 2)"/><ellipse cx="9" cy="2" rx="9" ry="3" transform="rotate(-20 9 2)"/><ellipse cx="-6" cy="5" rx="8" ry="3" transform="rotate(50 -6 5)"/><ellipse cx="6" cy="5" rx="8" ry="3" transform="rotate(-50 6 5)"/></g><circle r="5" fill="#8E3B1F"/></g>
+      <g fill="#6B3F6E"><rect x="57" y="70" width="6" height="16" rx="3"/><rect x="57" y="58" width="5" height="12" rx="2.5"/><rect x="375" y="76" width="6" height="16" rx="3"/><rect x="376" y="64" width="5" height="12" rx="2.5"/></g>
+      <g fill="#D9A441"><circle cx="40" cy="104" r="4"/><circle cx="362" cy="110" r="4"/></g>
+    </svg>
+    <h2>Mark &amp; Angela</h2>
+    <div class="sub">A Meadow Wedding · Chicago 2027</div>
+    <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+  </div>
+  <div class="body">
+    <div class="sw"><i style="background:#F4F0EA"></i><i style="background:#6B3F6E"></i><i style="background:#C2649A"></i><i style="background:#6E7B4E"></i><i style="background:#D9A441"></i><i style="background:#8E3B1F"></i></div>
+    <div class="card">
+      <svg class="corner" viewBox="0 0 70 70" aria-hidden="true"><path d="M44 70 C42 50 48 36 44 20" stroke="#6E7B4E" stroke-width="2" fill="none"/><g transform="translate(44,18)" fill="#C2649A"><ellipse cx="-9" cy="2" rx="9" ry="3" transform="rotate(20 -9 2)"/><ellipse cx="9" cy="2" rx="9" ry="3" transform="rotate(-20 9 2)"/><ellipse cx="-6" cy="6" rx="8" ry="3" transform="rotate(50 -6 6)"/><ellipse cx="6" cy="6" rx="8" ry="3" transform="rotate(-50 6 6)"/><circle r="5" fill="#8E3B1F"/></g><rect x="22" y="30" width="5" height="16" rx="2.5" fill="#6B3F6E"/></svg>
+      <h3>Headcount</h3>
+      <div class="big">≈ 63 expected</div>
+      <div class="chips"><span class="chip">51 adults · seats 82</span><span class="chip k">12 kids · Bunk Room 20</span></div>
+      <div class="bar"><i style="width:55%;background:#6B3F6E"></i><i style="width:8%;background:#D9A441"></i></div>
+    </div>
+    <div class="card">
+      <h3>Inner circle</h3>
+      <div class="row"><span style="color:#C2649A">✿</span><div><b>Erica Schemper &amp; Erik Vorhes</b><small>Sister</small></div><span class="seg"><span class="on">Invite</span><span>If room</span><span>No</span></span></div>
+      <div class="row"><span style="color:#C2649A">✿</span><div><b>Pine Hollis &amp; Quill Friend</b><small>College · known by Mark</small></div><span class="seg"><span>Invite</span><span>If room</span><span>No</span></span></div>
+    </div>
+    <div class="card tree">
+      <h3>Mark's dad's side</h3>
+      <div class="lnk"><div class="t">✿ <b>Lugene &amp; Carla Schemper</b> <span class="rel">Father</span></div>
+        <div class="t">✿ <b>Fran Van Noord &amp; Len Van Noord</b> <span class="rel">Great-aunt</span></div></div>
+      <p class="note">Dashed line = linked through relatives who aren't shown.</p>
+    </div>
+    <div class="card"><h3>Firehouse Chicago</h3><div class="price">$37,644</div><p class="note">51 adults of 82 ✓ · 12 kids of 20 upstairs ✓</p></div>
+  </div>
+</section>
+</div>
+</body>
+</html>

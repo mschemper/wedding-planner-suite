@@ -51,10 +51,10 @@ export function summarize(s: Scenario, i: SummaryInput): VenueSummary {
     return { name: w.name, ref: w.ref, total: b.total, unavailable: b.unavailable };
   });
   const cap = s.capacity?.hardMax;
-  const c = cap ? cutoff(i.headcount, cap, !!s.kidsRoom) : undefined;
+  const c = cap ? cutoff(i.headcount, cap, !!s.kidsRoom, s.capacity?.kids) : undefined;
   return {
     scenario: s, row, active: !!row?.active, priced, guests, snapped: guests !== Math.round(i.guests), budget, byWindow,
-    capacity: c && { ...c, cocktail: s.capacity?.cocktail, ok: c.spare >= 0 },
+    capacity: c && { ...c, cocktail: s.capacity?.cocktail, ok: c.spare >= 0 && (c.kidsSpare == null || c.kidsSpare >= 0) },
     fit: fitScore(s.id, i.musthaves, i.fit),
   };
 }

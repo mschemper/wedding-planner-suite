@@ -60,13 +60,16 @@ export function fitText(f: FitScore): string {
 /** Fit bar width, 0-100 (empty when nothing is answered). */
 export const fitPct = (f: FitScore) => (f.score == null ? 0 : Math.round(f.score * 100));
 
-/** "66 adults seated of 82 ✓ · kids upstairs" / "over by 4 (cap 82)"; cocktail cap appended when set. */
+/** "66 adults of 82 ✓ · 9 kids of 20 upstairs ✓" / "adults over by 4 (cap 82)"; cocktail cap appended when set. */
 export function capacityText(v: VenueSummary): string {
   const c = v.capacity;
   if (!c) return v.scenario.capacity?.cocktail ? `No seated cap published · cocktail ${v.scenario.capacity.cocktail}` : "No seated cap published";
-  const who = v.scenario.kidsRoom ? "adults" : "guests";
-  let t = c.ok ? `${c.used} ${who} seated of ${c.cap} ✓` : `Over by ${-c.spare} (${c.used} ${who} vs cap ${c.cap})`;
-  if (v.scenario.kidsRoom) t += " · kids upstairs";
+  const who = v.scenario.kidsRoom ? "adults" : "guests (adults + kids)";
+  let t = c.spare >= 0 ? `${c.used} ${who} of ${c.cap} ✓` : `${v.scenario.kidsRoom ? "Adults" : "Guests"} over by ${-c.spare} (${c.used} vs cap ${c.cap})`;
+  if (v.scenario.kidsRoom) {
+    const kid = (n: number) => `${n} kid${n === 1 ? "" : "s"}`;
+    t += c.kidsCap == null ? ` · ${kid(c.kids)} upstairs` : c.kidsSpare! >= 0 ? ` · ${kid(c.kids)} of ${c.kidsCap} upstairs ✓` : ` · kids over by ${-c.kidsSpare!} (${c.kids} vs ${c.kidsCap} upstairs)`;
+  }
   if (c.cocktail) t += ` · cocktail ${c.cocktail}`;
   return t;
 }

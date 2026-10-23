@@ -67,7 +67,7 @@ export interface Scenario {
   max: number;
   def: number;
   /** guest counts the venue cannot practically host; shown as warnings, still computed */
-  capacity?: { practicalMin?: number; hardMax?: number; /** standing / cocktail-style maximum */ cocktail?: number };
+  capacity?: { practicalMin?: number; hardMax?: number; /** standing / cocktail-style maximum */ cocktail?: number; /** kids' room seats (kidsRoom venues) */ kids?: number };
   /** venue has a separate room for the kids' party (kids do not count toward the main room) */
   kidsRoom?: boolean;
   /** false = no published price yet ("Awaiting rate sheet"): no total is shown; items may be empty */

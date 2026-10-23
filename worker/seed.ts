@@ -11,7 +11,7 @@ export interface SeedRow {
 }
 
 /** Parents before children: parties before people, musthaves before fit. */
-const ORDER: TableName[] = ["parties", "people", "venues", "musthaves", "fit", "tasks", "quotes", "params"];
+const ORDER: TableName[] = ["parties", "people", "custom_venues", "venues", "musthaves", "fit", "tasks", "quotes", "params"];
 
 export function seedRows(d: SeedSet, who: string, now = new Date().toISOString()): SeedRow[] {
   const out: SeedRow[] = [];

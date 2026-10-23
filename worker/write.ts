@@ -1,6 +1,7 @@
 // One save = one D1 batch (one transaction). DESIGN-v3 §2 + DESIGN-v4 §3: version check → 409, validatePeople on the post-write
 // state → 422 (only errors this save introduces), server-allocated ids, partner mirroring, refs cleared on person delete, audit + trim.
 import type { ApiErrorBody, Issue, Op, TableName } from "../src/api/types";
+import { CUSTOM_ID_MIN, itemIssues } from "../src/data/custom";
 import { mergeSettings } from "../src/data/params";
 import type { PeopleData } from "../src/people/types";
 import { validatePeople } from "../src/people/validate";
@@ -50,6 +51,10 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     if (o.op !== "create" && (typeof o.id !== "string" || !Number.isInteger(o.version))) return fail(400, "bad_request", "update/delete need id and version");
     if (o.op === "create" && !SPECS[o.table].create) return fail(400, "bad_request", `${o.table} rows cannot be created`);
     if (o.op === "delete" && !SPECS[o.table].del) return fail(400, "bad_request", `${o.table} rows cannot be deleted${o.table === "musthaves" ? " — archive instead" : ""}`);
+    if (o.table === "custom_venues" && o.op !== "delete" && o.row && "items" in o.row) {
+      const bad = itemIssues(o.row.items);
+      if (bad.length) return fail(400, "bad_request", bad.slice(0, 3).join("; "));
+    }
   }
   const orig = await loadState(db);
   const st = clone(orig);
@@ -70,6 +75,15 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
       id = `${spec.prefix}${String(nextSeq(used, spec.prefix)).padStart(spec.width ?? 3, "0")}`;
       used.add(id);
     } else if (o.table === "quotes") id = crypto.randomUUID();
+    else if (o.table === "venues" || o.table === "custom_venues") {
+      // v7: only venues added in the app; the code scenarios' rows are seeded
+      const n = Number(row.scenario_id);
+      if (!Number.isInteger(n) || n < CUSTOM_ID_MIN) return fail(400, "bad_request", `only added venues (id ${CUSTOM_ID_MIN}+) can be created`);
+      id = String(n);
+      if (st[o.table].has(id)) return fail(409, "conflict", `venue ${id} already exists — reload`, { row: { table: o.table, id } });
+      if (o.table === "venues" && !st.custom_venues.has(id) && !(ops as Op[]).some((x) => x.op === "create" && x.table === "custom_venues" && Number((x.row ?? {}).scenario_id) === n))
+        return fail(400, "bad_request", `venue ${id} needs its custom_venues row`);
+    }
     else if (o.table === "params") {
       id = String(row.key ?? "");
       if (st.params.has(id)) return fail(409, "conflict", `${id} was already changed`, { row: { table: "params", id, updated_by: String(st.params.get(id)!.updated_by) } });
@@ -87,7 +101,7 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     const refs = REFS[o.table] ?? [];
     if (o.op === "create") {
       const raw: Rec = { ...(o.row ?? {}) };
-      if (o.table !== "params") delete raw[pk];
+      if (o.table !== "params" && o.table !== "venues" && o.table !== "custom_venues") delete raw[pk];
       const n = normalize(o.table, raw, true);
       if (!n.ok) return fail(400, "bad_request", n.msg);
       for (const c of refs) if (c in n.row) n.row[c] = resolve(n.row[c]);
@@ -99,7 +113,7 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
         if (isTmp(tmp)) ids[tmp] = id;
       }
       if (map.has(id) || touches.has(key(o.table, id))) return fail(409, "conflict", `${id} already exists — reload`, { row: { table: o.table, id } });
-      const row: Rec = { ...n.row, [pk]: id, version: 1, updated_at: now, updated_by: who };
+      const row: Rec = { ...n.row, [pk]: SPECS[o.table].cols[0].type === "int" ? Number(id) : id, version: 1, updated_at: now, updated_by: who };
       map.set(id, row);
       touches.set(key(o.table, id), { table: o.table, id, op: "create", read: null, after: row });
       continue;

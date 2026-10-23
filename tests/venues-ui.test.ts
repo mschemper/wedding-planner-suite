@@ -63,10 +63,14 @@ describe("text", () => {
   });
   it("capacity: ok, over, none", () => {
     const base = sums.active[0];
-    const ok = { ...base, scenario: { ...base.scenario, kidsRoom: true }, capacity: { used: 66, cap: 82, spare: 16, fits: 0, ok: true, cocktail: 100 } };
-    expect(capacityText(ok)).toBe("66 adults seated of 82 ✓ · kids upstairs · cocktail 100");
-    const over = { ...base, scenario: { ...base.scenario, kidsRoom: false }, capacity: { used: 90, cap: 82, spare: -8, fits: 0, ok: false } };
-    expect(capacityText(over)).toBe("Over by 8 (90 guests vs cap 82)");
+    const ok = { ...base, scenario: { ...base.scenario, kidsRoom: true }, capacity: { used: 66, cap: 82, spare: 16, fits: 0, kids: 9, kidsCap: 20, kidsSpare: 11, ok: true, cocktail: 100 } };
+    expect(capacityText(ok)).toBe("66 adults of 82 ✓ · 9 kids of 20 upstairs ✓ · cocktail 100");
+    const kidsOver = { ...ok, capacity: { ...ok.capacity, kids: 23, kidsSpare: -3, ok: false } };
+    expect(capacityText(kidsOver)).toBe("66 adults of 82 ✓ · kids over by 3 (23 vs 20 upstairs) · cocktail 100");
+    const noKidsCap = { ...ok, capacity: { ...ok.capacity, kids: 1, kidsCap: null, kidsSpare: null } };
+    expect(capacityText(noKidsCap)).toBe("66 adults of 82 ✓ · 1 kid upstairs · cocktail 100");
+    const over = { ...base, scenario: { ...base.scenario, kidsRoom: false }, capacity: { used: 90, cap: 82, spare: -8, fits: 0, kids: 0, kidsCap: null, kidsSpare: null, ok: false } };
+    expect(capacityText(over)).toBe("Guests over by 8 (90 vs cap 82)");
     expect(capacityText({ ...base, capacity: undefined, scenario: { ...base.scenario, capacity: undefined } })).toBe("No seated cap published");
   });
   it("window parts: totals, unavailable, unpriced", () => {

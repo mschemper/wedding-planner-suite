@@ -1,6 +1,7 @@
 // Table specs (= migrations 0001 quotes/params + 0002 v4 tables), row (de)serialisation and per-row shape checks.
 import type { ApiData, ParamRow, TableName } from "../src/api/types";
 import { parseParamValue } from "../src/data/params";
+import { CUSTOM_ID_MIN } from "../src/data/custom";
 import { SCENARIOS } from "../src/data/scenarios";
 import { AGES, KIDS_RULES, KINDS, KNOWN_BY, DECISIONS, LOCALS, OVERRIDES, RSVPS, SIDES } from "../src/people/types";
 import { CATEGORIES, OWNERS, TASK_STATUSES, VENUE_STATUSES, VERDICTS } from "../src/plan/types";
@@ -50,7 +51,7 @@ export const SPECS: Record<TableName, Spec> = {
       e("known_by", KNOWN_BY, undefined, false), b("reciprocal")],
   },
   venues: {
-    pk: "scenario_id", create: false, del: false,
+    pk: "scenario_id", create: true, del: false, // create only for added venues (id >= 1000, write.ts)
     cols: [i("scenario_id", { required: true }), b("active"), e("status", VENUE_STATUSES, "researching"), t("hold_date", { date: true }),
       t("tour_date", { date: true }), t("contact_name"), t("contact_email"), t("contact_phone"), t("next_step"), t("notes")],
   },
@@ -75,6 +76,13 @@ export const SPECS: Record<TableName, Spec> = {
       t("received_on", { date: true }), e("status", ["requested", "received", "accepted"], undefined, true), t("notes")],
   },
   params: { pk: "key", create: true, del: true, cols: [t("key", { required: true }), { name: "value", type: "json" }] },
+  // v7 (0004): venues added in the app; client picks scenario_id >= 1000 (write.ts), archived through venues.active, never deleted
+  custom_venues: {
+    pk: "scenario_id", create: true, del: false,
+    cols: [i("scenario_id", { required: true }), t("name", { required: true }), t("location"), e("kind", ["local", "destination"], "local"), t("description"),
+      i("capacity_seated"), i("capacity_kids"), i("capacity_cocktail"), i("confidence", { def: 40, required: true }),
+      { name: "items", type: "json", def: [] }, { name: "sources", type: "json", def: [] }, t("notes"), t("researched_at", { date: true })],
+  },
 };
 
 export const TABLE_NAMES = Object.keys(SPECS) as TableName[];
@@ -143,11 +151,14 @@ export const stateToApi = (st: State, me: string): ApiData => ({
   fit: [...st.fit.values()],
   tasks: [...st.tasks.values()],
   quotes: [...st.quotes.values()],
+  custom_venues: [...st.custom_venues.values()],
   params: [...st.params.values()] as unknown as ParamRow[],
   me,
 }) as unknown as ApiData;
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+/** A code scenario, or an added venue id (v7; that its row exists is checked in write.ts). */
+const knownScenario = (id: unknown) => SCENARIOS.some((s) => s.id === id) || (Number.isInteger(id) && (id as number) >= CUSTOM_ID_MIN);
 
 /** Normalises a client patch: trims strings, "" → null (cleared), fills defaults on create. Returns an error for a bad shape. */
 export function normalize(table: TableName, patch: Rec, isCreate: boolean): { ok: true; row: Rec } | { ok: false; msg: string } {
@@ -182,14 +193,14 @@ export function normalize(table: TableName, patch: Rec, isCreate: boolean): { ok
     if (c.required && missing && !(table === "params" && c.name === "key")) return { ok: false, msg: `${c.name} is required` };
   }
   if (table === "quotes") {
-    if ("scenario_id" in row && !SCENARIOS.some((s) => s.id === row.scenario_id)) return { ok: false, msg: "unknown scenario_id" };
+    if ("scenario_id" in row && !knownScenario(row.scenario_id)) return { ok: false, msg: "unknown scenario_id" };
     if ("amount" in row && row.amount != null && (row.amount as number) < 0) return { ok: false, msg: "amount must be a number ≥ 0" };
     if (row.options != null && (typeof row.options !== "object" || Array.isArray(row.options) || Object.values(row.options as Rec).some((v) => typeof v !== "string")))
       return { ok: false, msg: "options must map option key → choice" };
   }
   if (table === "parties" && row.tier != null && !((row.tier as number) >= 1 && (row.tier as number) <= 4)) return { ok: false, msg: "tier must be 1–4" };
   if (table === "parties" && row.unnamed_kids != null && !((row.unnamed_kids as number) >= 0 && (row.unnamed_kids as number) <= 20)) return { ok: false, msg: "unnamed_kids must be 0–20" };
-  if ((table === "fit" || table === "tasks") && row.scenario_id != null && !SCENARIOS.some((s) => s.id === row.scenario_id))
+  if ((table === "fit" || table === "tasks") && row.scenario_id != null && !knownScenario(row.scenario_id))
     return { ok: false, msg: "unknown scenario_id" };
   if (table === "params") {
     const p = parseParamValue(String(row.key ?? ""), row.value);

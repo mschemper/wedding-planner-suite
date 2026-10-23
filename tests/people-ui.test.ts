@@ -8,7 +8,7 @@ import { buildRings, fillPoint } from "../src/people/rings";
 import { FRIEND_TIER_LABEL, tierCtx } from "../src/people/tier";
 import type { Party, PeopleData } from "../src/people/types";
 import {
-  authorName, branchEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
+  authorName, branchEdit, bulkEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
   householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, partnerNotice, personOps, quickFriendIssues,
   quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
 } from "../src/ui/people/model";
@@ -281,5 +281,19 @@ describe("envelopes and export", () => {
     const s = exportSheets(D, ctx);
     expect(s.peopleRows).toHaveLength(D.people.length);
     expect(s.envelopeRows.length).toBeGreaterThan(0);
+  });
+});
+
+describe("bulk edit (v7)", () => {
+  it("patches only households (or people) that change", () => {
+    const ps = [party("H-M1"), party("H-M2")];
+    const inv = bulkEdit(ps, D.people, { kind: "invite", value: ps[0].invite });
+    expect(inv.patches.map((p) => p.id)).toEqual(ps[1].invite === ps[0].invite ? [] : ["H-M2"]);
+    const ring = bulkEdit(ps, D.people, { kind: "tier", value: 2 });
+    expect(ring.patches).toHaveLength(2);
+    expect(ring.label).toBe("2 households → ring 2");
+    const local = bulkEdit(ps, D.people, { kind: "local", value: "away" });
+    expect(local.patches.every((p) => p.table === "people" && p.row?.local === "away")).toBe(true);
+    expect(local.patches.length).toBe(D.people.filter((p) => (p.party_id === "H-M1" || p.party_id === "H-M2") && p.local !== "away").length);
   });
 });

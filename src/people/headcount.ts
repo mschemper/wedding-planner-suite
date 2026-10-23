@@ -97,6 +97,11 @@ export interface Cutoff {
   used: number;
   cap: number;
   spare: number;
+  /** invited kids in the kids' room (0 when the venue has none) */
+  kids: number;
+  /** kids' room seats; null = no kids' room or no published cap */
+  kidsCap: number | null;
+  kidsSpare: number | null;
   /** how many ranked if-room parties fit (in rank order) */
   fits: number;
 }
@@ -105,7 +110,7 @@ export interface Cutoff {
  * Who fits a venue's main room at full acceptance (planner's caution).
  * Kids count toward the main room only when the venue has no kids' room.
  */
-export function cutoff(hc: Headcount, cap: number, hasKidsRoom: boolean): Cutoff {
+export function cutoff(hc: Headcount, cap: number, hasKidsRoom: boolean, kidsCap?: number | null): Cutoff {
   const main = (t: Tally) => t.adults + (hasKidsRoom ? 0 : t.kids);
   let used = main(hc.invited);
   let fits = 0;
@@ -114,5 +119,7 @@ export function cutoff(hc: Headcount, cap: number, hasKidsRoom: boolean): Cutoff
     used += main(r.tally);
     fits++;
   }
-  return { used: main(hc.invited), cap, spare: cap - main(hc.invited), fits };
+  const kids = hasKidsRoom ? hc.invited.kids : 0;
+  const kc = hasKidsRoom && kidsCap ? kidsCap : null;
+  return { used: main(hc.invited), cap, spare: cap - main(hc.invited), fits, kids, kidsCap: kc, kidsSpare: kc == null ? null : kc - kids };
 }

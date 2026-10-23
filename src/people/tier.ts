@@ -10,7 +10,7 @@ export const FRIEND_TIER_LABEL: Record<number, string> = { 1: "Must invite", 2: 
 const REL_TIER: Partial<Record<Relation, number>> = {
   self: 1, partner: 1, parent: 1, sibling: 1, child: 1, "step-child": 1,
   grandparent: 2, "aunt/uncle": 2, "niece/nephew": 2, grandchild: 2,
-  cousin: 3,
+  cousin: 3, "great-grandparent": 3, "great-aunt/uncle": 3, "cousin once removed": 4,
 };
 
 export interface TierCtx {

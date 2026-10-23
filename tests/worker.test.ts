@@ -186,6 +186,24 @@ describe("writes", () => {
     expect(r.data.venues.find((v) => v.scenario_id === 17)!.status).toBe("booked");
   });
 
+  it("added venues (v7): custom row + shortlist row + task in one save; rules", async () => {
+    const venue = { scenario_id: 1000, name: "Garden Hall", location: "Chicago", kind: "local", confidence: 55, sources: ["https://example.com"],
+      items: [{ cat: "Venue & site", desc: "Rental", type: "fixed", amount: 6000 }, { cat: "Food & beverage", desc: "Catering", type: "perGuest", rate: 95 }] };
+    // a seeded scenario's row cannot be created; a venues row needs its custom_venues row; bad items are refused
+    expect((await write([{ table: "venues", op: "create", row: { scenario_id: 17 } }])).status).toBe(400);
+    expect((await write([{ table: "venues", op: "create", row: { scenario_id: 1000, active: true } }])).status).toBe(400);
+    expect((await write([{ table: "custom_venues", op: "create", row: { ...venue, items: [{ cat: "Venue & site", desc: "x", type: "fixed", amount: -5 }] } }])).status).toBe(400);
+    const r = await ok([
+      { table: "custom_venues", op: "create", row: venue },
+      { table: "venues", op: "create", row: { scenario_id: 1000, active: true, status: "researching" } },
+      { table: "tasks", op: "create", row: { title: "Contact Garden Hall", category: "venue", scenario_id: 1000 } },
+    ]);
+    expect(r.data.custom_venues.map((v) => [v.scenario_id, v.name, v.items.length])).toEqual([[1000, "Garden Hall", 2]]);
+    expect(r.data.venues.find((v) => v.scenario_id === 1000)!.active).toBe(true);
+    expect((await write([{ table: "custom_venues", op: "create", row: venue }])).status).toBe(409);
+    expect((await write([{ table: "custom_venues", op: "delete", id: "1000", version: 1 }])).status).toBe(400);
+  });
+
   it("tasks: create and check off", async () => {
     let r = await ok([{ table: "tasks", op: "create", row: { title: "Book florist", owner: "Angela", category: "vendor", due: "2026-12-01" } }]);
     const id = r.ids["tmp:x"] ?? r.data.tasks.find((t) => t.title === "Book florist")!.id;

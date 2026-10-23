@@ -305,6 +305,7 @@ export function matchesRow(r: RingRow, f: RowFilter): boolean {
 
 const CLOSE: Partial<Record<Relation, number>> = {
   self: 1, partner: 1, parent: 1, sibling: 1, child: 1, "step-child": 1, grandparent: 2, "aunt/uncle": 2, "niece/nephew": 2, grandchild: 2, cousin: 3,
+  "great-grandparent": 3, "great-aunt/uncle": 3, "cousin once removed": 4,
 };
 
 /** Friends: "College · known by Mark". */
@@ -456,4 +457,27 @@ export function quickFriendOps(f: QuickFriend, tierParties: Party[]): Op[] {
   ];
   if (f.partner.trim()) ops.push(person("tmp:p2", f.partner.trim(), { partner_id: "tmp:p1", plus_one: false }));
   return ops;
+}
+
+// ---------- bulk edit on Decide (v7) ----------
+export type BulkChange =
+  | { kind: "invite"; value: Decision }
+  | { kind: "tier"; value: number | null }
+  | { kind: "kids"; value: KidsRule }
+  | { kind: "local"; value: Person["local"] };
+
+/** One edit for several households: patches only where something changes, and a label for Undo / History. */
+export function bulkEdit(parties: Party[], people: Person[], change: BulkChange): { patches: Patch[]; label: string } {
+  const ids = new Set(parties.map((x) => x.id));
+  const n = parties.length;
+  const what = `${n} household${n === 1 ? "" : "s"}`;
+  if (change.kind === "local") {
+    const patches = people.filter((p) => p.party_id && ids.has(p.party_id) && !p.placeholder && p.local !== change.value)
+      .map((p) => ({ table: "people" as const, id: p.id, row: { local: change.value } }));
+    return { patches, label: `${what} → ${change.value}` };
+  }
+  const key = change.kind === "invite" ? "invite" : change.kind;
+  const patches = parties.filter((x) => (x[key] ?? null) !== change.value).map((x) => ({ table: "parties" as const, id: x.id, row: { [key]: change.value } }));
+  const text = change.kind === "invite" ? DECISION_LABEL[change.value] : change.kind === "kids" ? `kids ${KIDS_LABEL[change.value]}` : change.value == null ? "ring automatic" : `ring ${change.value}`;
+  return { patches, label: `${what} → ${text}` };
 }
