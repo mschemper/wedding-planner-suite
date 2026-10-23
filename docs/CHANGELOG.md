@@ -2,7 +2,7 @@
 
 ## v6 - Easy people + review fixes (22 Oct 2026)
 
-**Not deployed yet** (branch `review-v6`). No D1 migration. Review: docs/REVIEW-v6.md. Mark picked (22 Oct): ＋ menu on rows and in sheets, placement suggestions in the tray, person sheet "basics + More", calmer + denser visuals, compact Plan must-haves, 2-line phone rows.
+**Deployed** 22 Oct 2026 (Worker version 71d3393a). No D1 migration. Review: docs/REVIEW-v6.md. Mark picked (22 Oct): ＋ menu on rows and in sheets, placement suggestions in the tray, person sheet "basics + More", calmer + denser visuals, compact Plan must-haves, 2-line phone rows.
 
 **People**
   * Add relative: ＋ on every Family row, in the person sheet and on each household member: Partner / Child / Sibling / Parent. Name + age + household; links, side, branch, generation and kids' room are filled in. A sibling of someone with no parents is linked through one "parents" placeholder.

@@ -2,14 +2,15 @@
 
 **Read this first in a new session** (after AGENTS.md). It is the one file that says what is true right now. What isn't done yet is in `docs/BACKLOG.md`, how things got this way is in `docs/HISTORY.md`, and which files a change touches is in `docs/CODEMAP.md`. Update this at the end of any session that changes it.
 
-Last updated: 22 October 2026 (v6 built on branch `review-v6`, not deployed; live data read for REVIEW-v6).
+Last updated: 22 October 2026 (v6 deployed; live data read for REVIEW-v6).
 
 ## Version
 
 | | |
 |---|---|
-| Built, not deployed | **v6 Easy people + review fixes** (package.json 6.0.0, branch `review-v6`; no migration). Deploy = merge to main, tag v6, `npm run build`, `npx wrangler deploy`, verify `/api/version` = 6.0.0 |
-| Released | **v5 People tab** (tag `v5`, package.json 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452; signed-in `/api/version` = 5.0.0; unauthenticated `/` → Access login (verified) |
+| Released | **v6 Easy people + review fixes** (tag `v6`, package.json 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e at 100%; unauthenticated `/` and `/api/version` → Access login (verified); signed-in `/api/version` = 6.0.0 not yet checked (needs Mark signed in) |
+| Previous release | v5 People tab (tag `v5`). Rollback = check out `v5`, `npm run build`, `npx wrangler deploy` (no schema change in v6) |
+| Older | **v5 People tab** (tag `v5`, package.json 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452; signed-in `/api/version` = 5.0.0; unauthenticated `/` → Access login (verified) |
 | Previous release | v4 "Garden" (tag `v4`). Rollback = check out `v4`, `npm run build`, `npx wrangler deploy` (0003 columns are additive; v4 ignores them) |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Design | docs/DESIGN-v4.md, docs/DESIGN-v5.md (People), reviews docs/REVIEW-v4-people.md, docs/REVIEW-v6.md; mockups docs/mockups/ |
@@ -71,6 +72,7 @@ Last updated: 22 October 2026 (v6 built on branch `review-v6`, not deployed; liv
 - Migrations applied: 0001, 0002, 0003 (22 Oct 2026). v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
 - Friend tiers set on live from the workbook InviteTier (A→Must, B→Want, C→Nice to have), 22 Oct 2026.
 - Backup before v4: `data/private/d1-backup-v3.sql`; bookmark before 0002: `00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a`.
+- Backup before v6: `data/private/d1-backup-v5.sql` (22 Oct 2026).
 - Backup before v5: `data/private/d1-backup-v4.sql` (7 in-app edits); bookmark before 0003: `0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8`.
 - Redeploy: `npm run build` then `npx wrangler deploy`. New migration: `npx wrangler d1 migrations apply DB --remote`. Re-seed people: `npm run import:v4`, `npm run seed:v4 -- --replace`, `wrangler d1 execute DB --remote --file data/private/seed-v4.sql`, delete the file (replace wipes in-app edits: export first).
 - Free-tier limits for D1/Workers/Access not re-checked: confirm in the dashboard.
