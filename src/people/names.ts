@@ -30,3 +30,32 @@ export function lastNamesFromHousehold(partyName: string, members: Pick<Person, 
   }
   return out;
 }
+
+/**
+ * Envelope name a household gets automatically (v8): living adults with "&" and each one's own surname ("Fran & Len Van
+ * Noord", "Erica Schemper & Erik Vorhes"); a single adult with a plus-one gets "& Guest"; kids only when there are no
+ * adults. "" when nobody living is in the household.
+ */
+export function envelopeName(members: Pick<Person, "first" | "nick" | "last" | "deceased" | "placeholder" | "age" | "plus_one">[]): string {
+  const live = members.filter((m) => !m.deceased && !m.placeholder);
+  const adults = live.filter((m) => m.age === "adult");
+  const base = pairName(adults.length ? adults : live);
+  return base && adults.length === 1 && adults[0].plus_one ? `${base} & Guest` : base;
+}
+
+/** The automatic name for a household's members, in envelope order: blood relative (linked to parents) first, then record order. */
+export function householdEnvelope(members: Person[]): string {
+  const sorted = [...members].sort((a, b) => Number((b.parent_ids ?? []).length > 0) - Number((a.parent_ids ?? []).length > 0)
+    || (a.sort ?? 0) - (b.sort ?? 0) || a.id.localeCompare(b.id));
+  return envelopeName(sorted);
+}
+
+export interface NameFix { partyId: string; from: string; to: string }
+/** Automatic households whose stored name differs from what their people say (the one-time tidy, v8). */
+export function nameFixes(d: { people: Person[]; parties: { id: string; name: string; name_custom?: boolean }[] }): NameFix[] {
+  return d.parties.flatMap((x) => {
+    if (x.name_custom) return [];
+    const to = householdEnvelope(d.people.filter((p) => p.party_id === x.id));
+    return to && to !== x.name ? [{ partyId: x.id, from: x.name, to }] : [];
+  });
+}

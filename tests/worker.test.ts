@@ -273,3 +273,31 @@ describe("venue research (v7, fake Claude client — no network)", () => {
     expect((await post({ name: "X" }, async () => reply("not json"))).status).toBe(502);
   });
 });
+
+describe("household names follow their people (v8)", () => {
+  const partyName = (d: ApiData, id: string) => d.parties.find((x) => x.id === id)!.name;
+  it("renaming a person renames an automatic household; a custom name stays", async () => {
+    let r = await ok([{ table: "people", op: "update", id: "M009", version: 1, row: { last: "Newname" } }]);
+    expect(partyName(r.data, "H-M4")).toBe("Hazel Newname & Iris Other");
+    r = await ok([{ table: "parties", op: "update", id: "H-M4", version: r.data.parties.find((x) => x.id === "H-M4")!.version, row: { name: "The Newnames", name_custom: true } }]);
+    expect(partyName(r.data, "H-M4")).toBe("The Newnames");
+    const v = r.data.people.find((p) => p.id === "M010")!.version;
+    r = await ok([{ table: "people", op: "update", id: "M010", version: v, row: { first: "Ivy" } }]);
+    expect(partyName(r.data, "H-M4")).toBe("The Newnames");
+    // back to automatic
+    r = await ok([{ table: "parties", op: "update", id: "H-M4", version: r.data.parties.find((x) => x.id === "H-M4")!.version, row: { name_custom: false } }]);
+    expect(partyName(r.data, "H-M4")).toBe("Hazel Newname & Ivy Other");
+  });
+  it("a new household is named from its people; moving someone renames both", async () => {
+    let r = await ok([
+      { table: "parties", op: "create", row: { id: "tmp:h", name: "whatever", invite: "undecided" } },
+      { table: "people", op: "create", row: { id: "tmp:p", first: "Pat", last: "Doe", side: "Mark", party_id: "tmp:h" } },
+    ]);
+    const hid = r.ids["tmp:h"];
+    expect(partyName(r.data, hid)).toBe("Pat Doe");
+    const v = r.data.people.find((p) => p.id === "M010")!.version;
+    r = await ok([{ table: "people", op: "update", id: "M010", version: v, row: { party_id: hid } }]);
+    expect(partyName(r.data, hid)).toBe(`${r.data.people.find((p) => p.id === "M010")!.first} Other & Pat Doe`);
+    expect(partyName(r.data, "H-M4")).toBe("Hazel Example");
+  });
+});

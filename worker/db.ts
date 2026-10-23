@@ -48,7 +48,7 @@ export const SPECS: Record<TableName, Spec> = {
     pk: "id", prefix: "H", width: 3, create: true, del: true,
     cols: [t("id"), t("name", { required: true }), e("invite", DECISIONS, "undecided"), e("kids", KIDS_RULES, "policy"), i("rank"),
       b("talk"), t("talk_note"), t("notes"), i("tier"), i("unnamed_kids", { def: 0, required: true }), t("circle"),
-      e("known_by", KNOWN_BY, undefined, false), b("reciprocal")],
+      e("known_by", KNOWN_BY, undefined, false), b("reciprocal"), b("name_custom")],
   },
   venues: {
     pk: "scenario_id", create: true, del: false, // create only for added venues (id >= 1000, write.ts)
