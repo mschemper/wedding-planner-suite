@@ -17,7 +17,7 @@ export type SheetTarget =
 
 export type SheetRequest = SheetTarget extends infer T ? (T extends unknown ? Omit<T, "key"> : never) : never;
 
-function PersonPicker({ label, people, selected, max, onChange, exclude, autoFocus, describe }: {
+export function PersonPicker({ label, people, selected, max, onChange, exclude, autoFocus, describe }: {
   label: string; people: Person[]; selected: string[]; max: number; onChange(ids: string[]): void; exclude: Set<string>; autoFocus?: boolean;
   /** extra text under a search hit (e.g. "partner of X") */
   describe?(p: Person): string | null;
