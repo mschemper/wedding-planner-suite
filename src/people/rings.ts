@@ -2,6 +2,7 @@
 import { tallyByParty, type PartyTally, type Tally } from "./headcount";
 import type { InviteCtx } from "./invite";
 import { FAMILY_TIER_LABEL, isFriendParty, tierCtx, tierOf, type TierCtx } from "./tier";
+import { pairName } from "./names";
 import type { Party, PeopleData, Person } from "./types";
 
 export interface RingRow {
@@ -86,8 +87,6 @@ export function namesLine(row: Pick<RingRow, "members" | "party">): string {
   const living = row.members.filter((p) => !p.deceased);
   const adults = living.filter((p) => p.age === "adult");
   const kids = living.filter((p) => p.age === "child").length + (row.party.unnamed_kids ?? 0);
-  const first = (p: Person) => p.nick || p.first;
-  const lastNames = new Set(adults.map((p) => p.last).filter(Boolean));
-  const base = adults.length ? adults.map(first).join(" & ") + (lastNames.size === 1 ? ` ${[...lastNames][0]}` : "") : row.party.name;
+  const base = adults.length ? pairName(adults) : row.party.name;
   return kids ? `${base} + ${kids} kid${kids === 1 ? "" : "s"}` : base;
 }

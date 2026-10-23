@@ -10,7 +10,8 @@ import { summarizeAll } from "../src/plan/venueSummary";
 import type { Fit } from "../src/plan/types";
 import {
   capacityText, cycleFitWrite, dateChoice, draftOf, fitPct, fitText, noteWrite, parseHeld, parseWindows, safeUrl, statusRank, statusTone,
-  quoteIssue, telHref, venuePatch, windowParts,
+  quoteIssue, telHref, venuePatch, windowParts, addVenueOps, blankDraft, blankItem, capacityShort, confidenceWords, draftFromResearch, draftIssues,
+  guestSplit, percentFromText, percentText, splitText, venueFromDraft,
 } from "../src/ui/venues/model";
 
 const hc = headcount(fixture as unknown as PeopleData, "ours");
@@ -63,10 +64,14 @@ describe("text", () => {
   });
   it("capacity: ok, over, none", () => {
     const base = sums.active[0];
-    const ok = { ...base, scenario: { ...base.scenario, kidsRoom: true }, capacity: { used: 66, cap: 82, spare: 16, fits: 0, ok: true, cocktail: 100 } };
-    expect(capacityText(ok)).toBe("66 adults seated of 82 ✓ · kids upstairs · cocktail 100");
-    const over = { ...base, scenario: { ...base.scenario, kidsRoom: false }, capacity: { used: 90, cap: 82, spare: -8, fits: 0, ok: false } };
-    expect(capacityText(over)).toBe("Over by 8 (90 guests vs cap 82)");
+    const ok = { ...base, scenario: { ...base.scenario, kidsRoom: true }, capacity: { used: 66, cap: 82, spare: 16, fits: 0, kids: 9, kidsCap: 20, kidsSpare: 11, ok: true, cocktail: 100 } };
+    expect(capacityText(ok)).toBe("66 adults of 82 ✓ · 9 kids of 20 upstairs ✓ · cocktail 100");
+    const kidsOver = { ...ok, capacity: { ...ok.capacity, kids: 23, kidsSpare: -3, ok: false } };
+    expect(capacityText(kidsOver)).toBe("66 adults of 82 ✓ · kids over by 3 (23 vs 20 upstairs) · cocktail 100");
+    const noKidsCap = { ...ok, capacity: { ...ok.capacity, kids: 1, kidsCap: null, kidsSpare: null } };
+    expect(capacityText(noKidsCap)).toBe("66 adults of 82 ✓ · 1 kid upstairs · cocktail 100");
+    const over = { ...base, scenario: { ...base.scenario, kidsRoom: false }, capacity: { used: 90, cap: 82, spare: -8, fits: 0, kids: 0, kidsCap: null, kidsSpare: null, ok: false } };
+    expect(capacityText(over)).toBe("Guests over by 8 (90 vs cap 82)");
     expect(capacityText({ ...base, capacity: undefined, scenario: { ...base.scenario, capacity: undefined } })).toBe("No seated cap published");
   });
   it("window parts: totals, unavailable, unpriced", () => {
@@ -128,5 +133,56 @@ describe("quote form (REVIEW-v6 Q2)", () => {
     expect(quoteIssue({ ...q, amount: "0", vendor: "Firehouse", notes: "in package" })).toBe("");
     expect(quoteIssue({ ...q, status: "requested" })).toBe("");
     expect(quoteIssue({ ...q, amount: "abc" })).toMatch(/number/);
+  });
+});
+
+describe("add venue", () => {
+  const item = { ...blankItem(), desc: "Rental fee", value: "$4,500" };
+  const draft = () => ({ ...blankDraft("Test Hall", "Evanston"), website: "https://example.com", seated: "120", kids: "20", items: [item, { ...blankItem(), desc: "Service", type: "percent" as const, value: "22" }], researched_at: "2026-10-22", summary: "Short." });
+  it("percent text <-> fraction", () => {
+    expect(percentFromText("22")).toBe(0.22);
+    expect(percentFromText("22.5%")).toBe(0.225);
+    expect(percentFromText("x")).toBeNull();
+    expect(percentText(0.22)).toBe("22");
+  });
+  it("draft becomes a CustomVenue", () => {
+    const v = venueFromDraft(draft(), 1000);
+    expect(v.items[0]).toMatchObject({ type: "fixed", amount: 4500 });
+    expect(v.items[1]).toMatchObject({ type: "percent", rate: 0.22 });
+    expect(v.capacity_seated).toBe(120);
+    expect(v.sources[0]).toBe("https://example.com");
+  });
+  it("issues block empty name and bad numbers", () => {
+    expect(draftIssues(draft())).toEqual([]);
+    expect(draftIssues({ ...draft(), name: " " })[0]).toMatch(/name/);
+    expect(draftIssues({ ...draft(), items: [{ ...item, value: "" }] }).length).toBeGreaterThan(0);
+    expect(draftIssues({ ...draft(), items: [{ ...item, type: "percent", value: "80" }] }).length).toBeGreaterThan(0);
+    expect(draftIssues({ ...draft(), confidence: "150" }).length).toBeGreaterThan(0);
+  });
+  it("ops: venue, shortlist row, task due in 7 days, id past existing customs", () => {
+    const ops = addVenueOps(draft(), [1, 18, 1000, 1001], "2026-10-22");
+    expect(ops.map((o) => o.table)).toEqual(["custom_venues", "venues", "tasks"]);
+    expect((ops[0] as unknown as { row: { scenario_id: number } }).row.scenario_id).toBe(1002);
+    expect((ops[1] as { row: Record<string, unknown> }).row).toMatchObject({ scenario_id: 1002, active: true, status: "researching" });
+    expect((ops[2] as { row: Record<string, unknown> }).row).toMatchObject({ due: "2026-10-29", owner: "Both", category: "venue", source: "manual", scenario_id: 1002, title: "Contact Test Hall for pricing, F&B minimum and 2027 dates" });
+    expect(addVenueOps(draft(), [], "2026-12-28")[2]).toMatchObject({ row: { due: "2027-01-04", scenario_id: 1000 } });
+  });
+  it("research draft round-trips", () => {
+    const d = draftFromResearch({ name: "A", location: null, website: null, kind: "local", description: null, capacity_seated: 80, capacity_kids: null, capacity_cocktail: null, confidence: 55,
+      summary: "s", sources: ["https://a.test"], researched_at: "2026-10-22", items: [{ cat: "Venue & site", desc: "Fee", type: "percent", rate: 0.2, taxable: false }] });
+    expect(d.items[0].value).toBe("20");
+    expect(venueFromDraft(d, 1000).items[0].rate).toBe(0.2);
+    expect(confidenceWords(55)).toMatch(/rough/);
+  });
+  it("adults/kids split adds up to the guest count", () => {
+    expect(guestSplit(hc, "custom", 75)).toBeNull();
+    const s = guestSplit(hc, "expected", 63);
+    if (s) { expect(s.adults + s.kids).toBe(63); expect(splitText(s)).toMatch(/\d+ adults?, \d+ kids?\)/); }
+    expect(splitText(null)).toBe("");
+    const t = { heads: 10, adults: 8, kids: 2, expected: 5 };
+    expect(guestSplit({ ...hc, invited: t }, "ceiling", 10)).toEqual({ adults: 8, kids: 2 });
+  });
+  it("capacityShort", () => {
+    expect(sums.active.map(capacityShort).every((t) => typeof t === "string" && t.length > 0)).toBe(true);
   });
 });

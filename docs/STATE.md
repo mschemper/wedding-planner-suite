@@ -8,6 +8,7 @@ Last updated: 22 October 2026 (v6 deployed; live data read for REVIEW-v6).
 
 | | |
 |---|---|
+| Built, not deployed | **v7** (package.json 7.0.0, branch `v7`): Conservatory look, hidden ancestors, adults vs kids, Add venue research, bulk edit. Deploy = D1 export backup → `npx wrangler d1 migrations apply DB --remote` (0004) → Mark sets `npx wrangler secret put ANTHROPIC_API_KEY` (optional; research only) → merge to main, tag v7 → `npm run build` → `npx wrangler deploy` → `/api/version` = 7.0.0 |
 | Released | **v6 Easy people + review fixes** (tag `v6`, package.json 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e at 100%; unauthenticated `/` and `/api/version` → Access login (verified); signed-in `/api/version` = 6.0.0 not yet checked (needs Mark signed in) |
 | Previous release | v5 People tab (tag `v5`). Rollback = check out `v5`, `npm run build`, `npx wrangler deploy` (no schema change in v6) |
 | Older | **v5 People tab** (tag `v5`, package.json 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452; signed-in `/api/version` = 5.0.0; unauthenticated `/` → Access login (verified) |
@@ -23,7 +24,7 @@ Last updated: 22 October 2026 (v6 deployed; live data read for REVIEW-v6).
 | Date | **Flexible. Late spring (May 1 – Jun 30, 2027) or early fall (Sep 1 – Oct 31, 2027)** (Mark, 21 Oct). Settings `dateWindows` (refs Sat Jun 12, Sat Sep 18). |
 | Held | **Firehouse Chicago, Sat Jun 12, 2027**, placed after the 20 Oct tour, pending the previous couple's answer (`heldDate`). |
 | Shortlist (D1 `venues.active`) | Firehouse Chicago (held), Ravenswood Event Center (no published prices), River Room at Burning Bush Brewery, The Joinery. All others archived. |
-| Firehouse facts | Official 15-hour package: Sat $11,000 Nov–May, $12,000 Jun–Oct; seated 82, cocktail 100; Bunk Room $500 (kids); approved caterers; no valet (lot one block away); fetched 21 Oct 2026. F&B minimum, fees, 2027 availability unknown. |
+| Firehouse facts | Official 15-hour package: Sat $11,000 Nov–May, $12,000 Jun–Oct; seated 82 adults, cocktail 100; Bunk Room $500, up to 20 kids (Mark, 22 Oct); approved caterers; no valet (lot one block away); fetched 21 Oct 2026. F&B minimum, fees, 2027 availability unknown. |
 | Kids | Parallel supervised kids' party upstairs ("Sylvie's party"); kids policy default "our kids only", households can override. |
 | Music | Joel Paterson and Friends $2,000 in the model; no contract in email; Firehouse timeline assumes a DJ (task T009). |
 | Pricing source | Reconciled Master v2.0 (11 Jun 2026) + venue pages (Oct 2026); ±10–15% vs contracts |

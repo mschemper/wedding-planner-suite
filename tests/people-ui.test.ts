@@ -8,9 +8,9 @@ import { buildRings, fillPoint } from "../src/people/rings";
 import { FRIEND_TIER_LABEL, tierCtx } from "../src/people/tier";
 import type { Party, PeopleData } from "../src/people/types";
 import {
-  authorName, branchEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
+  authorName, branchEdit, bulkEdit, capacityFor, clampKids, decisionEdit, describeAudit, draftFrom, draftIssues, envelopes, exportSheets, friendTiers, hasKids,
   householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, partnerNotice, personOps, quickFriendIssues,
-  quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
+  friendLastNameFixes, quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
 } from "../src/ui/people/model";
 import { loadPrefs } from "../src/ui/prefs";
 
@@ -163,17 +163,27 @@ describe("friends", () => {
     expect(solo).toHaveLength(2);
     expect(solo[0]).toMatchObject({ table: "parties", op: "create", row: { id: "tmp:hh", name: "Sam + guest", invite: "undecided", tier: 1, circle: "Work", known_by: "Angela", rank: 5 } });
     expect(solo[1]).toMatchObject({ table: "people", op: "create", row: { id: "tmp:p1", first: "Sam", side: "Angela", kind: "friend", party_id: "tmp:hh", plus_one: true } });
-    const pair = quickFriendOps({ first: "Sam", partner: "Alex", plusOne: true, circle: "", known_by: "Both", tier: 2 }, []);
+    const pair = quickFriendOps({ first: "Sam", last: "Lee", partner: "Alex", partnerLast: "Kim", plusOne: true, circle: "", known_by: "Both", tier: 2 }, []);
     expect(pair).toHaveLength(3);
-    expect(pair[0]).toMatchObject({ row: { name: "Sam & Alex", circle: null, rank: 1 } });
-    expect(pair[1]).toMatchObject({ row: { plus_one: false } });
-    expect(pair[2]).toMatchObject({ table: "people", row: { id: "tmp:p2", first: "Alex", partner_id: "tmp:p1", party_id: "tmp:hh", side: "Both" } });
+    expect(pair[0]).toMatchObject({ row: { name: "Sam Lee & Alex Kim", circle: null, rank: 1 } });
+    expect(pair[1]).toMatchObject({ row: { plus_one: false, last: "Lee" } });
+    expect(pair[2]).toMatchObject({ table: "people", row: { id: "tmp:p2", first: "Alex", last: "Kim", partner_id: "tmp:p1", party_id: "tmp:hh", side: "Both" } });
+    expect(quickFriendName({ first: "Sam", last: "Lee", partner: "Alex", partnerLast: "Lee", plusOne: false, circle: "", known_by: "Both", tier: 2 })).toBe("Sam & Alex Lee");
   });
   it("quick add validation and name", () => {
     const f = { first: "", partner: "", plusOne: false, circle: "", known_by: "Both" as const, tier: 2 };
     expect(quickFriendIssues(f)).toHaveLength(1);
     expect(quickFriendIssues({ ...f, first: "A" })).toEqual([]);
     expect(quickFriendName({ ...f, first: "A" })).toBe("A");
+  });
+  it("fills friends' last names from household names (v7)", () => {
+    const d = clone();
+    const f1 = d.people.find((p) => p.id === "F-1-1")!;
+    f1.last = null;
+    d.parties.find((x) => x.id === "F-1")!.name = `${f1.first} Hollis & Quill Friend`;
+    const fx = friendLastNameFixes(d);
+    expect(fx.patches).toEqual([{ table: "people", id: "F-1-1", row: { last: "Hollis" } }]);
+    expect(fx.lines).toEqual([`${f1.first} → ${f1.first} Hollis`]);
   });
 });
 
@@ -281,5 +291,19 @@ describe("envelopes and export", () => {
     const s = exportSheets(D, ctx);
     expect(s.peopleRows).toHaveLength(D.people.length);
     expect(s.envelopeRows.length).toBeGreaterThan(0);
+  });
+});
+
+describe("bulk edit (v7)", () => {
+  it("patches only households (or people) that change", () => {
+    const ps = [party("H-M1"), party("H-M2")];
+    const inv = bulkEdit(ps, D.people, { kind: "invite", value: ps[0].invite });
+    expect(inv.patches.map((p) => p.id)).toEqual(ps[1].invite === ps[0].invite ? [] : ["H-M2"]);
+    const ring = bulkEdit(ps, D.people, { kind: "tier", value: 2 });
+    expect(ring.patches).toHaveLength(2);
+    expect(ring.label).toBe("2 households → ring 2");
+    const local = bulkEdit(ps, D.people, { kind: "local", value: "away" });
+    expect(local.patches.every((p) => p.table === "people" && p.row?.local === "away")).toBe(true);
+    expect(local.patches.length).toBe(D.people.filter((p) => (p.party_id === "H-M1" || p.party_id === "H-M2") && p.local !== "away").length);
   });
 });

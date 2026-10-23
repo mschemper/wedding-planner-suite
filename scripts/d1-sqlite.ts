@@ -56,7 +56,7 @@ export class SqliteD1 implements D1Database {
     }
   }
   /** Applies migrations/*.sql in order. */
-  migrate(files = ["migrations/0001_init.sql", "migrations/0002_garden.sql", "migrations/0003_people_v5.sql"]): this {
+  migrate(files = ["migrations/0001_init.sql", "migrations/0002_garden.sql", "migrations/0003_people_v5.sql", "migrations/0004_custom_venues.sql"]): this {
     for (const f of files) this.raw.exec(readFileSync(f, "utf8"));
     return this;
   }

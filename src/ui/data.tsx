@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { ApiFailure, api } from "../api/client";
 import type { ApiData, ApiErrorBody, AuditEntry, Issue, Op, ParamRow, TableName } from "../api/types";
 import { DEFAULT_PARAMS, mergeParams, mergeSettings, type Params, type Settings } from "../data/params";
+import { customScenario } from "../data/custom";
 import { buildScenarios } from "../data/scenarios";
 import { SEED_FIT, SEED_MUSTHAVES, SEED_VENUES } from "../data/seed-v4";
 import type { Quote, Scenario } from "../engine/types";
@@ -81,7 +82,7 @@ export function useData(): DataCtx {
   return c;
 }
 
-const pkOf = (t: TableName) => (t === "venues" ? "scenario_id" : t === "params" ? "key" : "id");
+const pkOf = (t: TableName) => (t === "venues" || t === "custom_venues" ? "scenario_id" : t === "params" ? "key" : "id");
 const EMPTY_PEOPLE: PeopleData = { people: [], parties: [] };
 
 export function DataProvider({ children }: { children: ReactNode }) {
@@ -178,7 +179,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       fit: raw?.fit ?? (OFFLINE ? SEED_FIT : []),
       tasks: raw?.tasks ?? [],
       quotes: raw?.quotes ?? [],
-      paramRows, params, settings, scenarios: buildScenarios(params),
+      paramRows, params, settings, scenarios: [...buildScenarios(params), ...(raw?.custom_venues ?? []).map(customScenario)],
       invite, headcount: headcount(people, settings.kidsPolicy, invite),
       version, save, edit, undoState, undo, dismissUndo: () => setUndo(null), reload,
     };

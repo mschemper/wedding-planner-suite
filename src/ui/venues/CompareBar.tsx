@@ -42,7 +42,7 @@ export function CompareBar() {
           <div className="vn-gap"><GuestPicker stops={HOME_STOPS} value={prefs.guests} onChange={(g) => set({ guests: g })} min={20} max={300} /></div>
         )}
       </div>
-      <p className="vn-meta">Pricing {cmp.guestsLabel} on {fmtDate(cmp.date)}.</p>
+      <p className="vn-meta">Pricing {cmp.guestsLabel} on {fmtDate(cmp.date)}. Kids are priced as adults.</p>
     </Card>
   );
 }

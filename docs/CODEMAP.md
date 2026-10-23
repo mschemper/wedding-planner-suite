@@ -43,4 +43,9 @@ Organised by the thing you're changing, not by folder.
 | Branch display names | `src/data/params.ts` `branchName` / settings `branchNames` | `tests/people-v5.test.ts` |
 | Plan tab (tasks, paste, must-haves) | `src/ui/plan/*` | `tests/plan-ui.test.ts` |
 | D1 seed | `scripts/seed-v4.ts`, `worker/seed.ts` | DESIGN-v4 §7.5 |
+| Hidden ancestors (junctions), place by relation | `src/people/outline.ts`, `src/people/relatives.ts` `placeOps`; UI `src/ui/people/PlaceRelation.tsx`, `Family.tsx` | `tests/people-v7.test.ts` |
+| Names with different surnames, friends' last names | `src/people/names.ts` | `tests/people-v7.test.ts` |
+| Bulk edit on Decide | `src/ui/people/model.ts` `bulkEdit`, `Decide.tsx` | `tests/people-ui.test.ts` |
+| Added venues (custom_venues), research | `src/data/custom.ts`, `worker/research.ts`, `worker/write.ts`, `src/ui/venues/AddVenue.tsx` | `tests/worker.test.ts`, `tests/engine.test.ts`, `tests/venues-ui.test.ts` |
+| Theme (Conservatory Modern) | `src/ui/styles.css`, `src/ui/garden/motifs.tsx`, `index.html` | `tests/contrast.test.ts`; docs/DESIGN-v7.md |
 | Quote form checks (vendor, $0 reason) | `src/ui/venues/model.ts` `quoteIssue`, `QuoteForm.tsx` | `tests/venues-ui.test.ts` |

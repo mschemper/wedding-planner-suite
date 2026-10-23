@@ -1,4 +1,5 @@
 // API contract shared by worker/ and the client (DESIGN-v3 §3; v4 tables DESIGN-v4 §3). Pure types.
+import type { CustomVenue } from "../data/custom";
 import type { Quote } from "../engine/types";
 import type { Party, Person } from "../people/types";
 import type { Fit, MustHave, Task, VenueRow } from "../plan/types";
@@ -12,7 +13,7 @@ export interface RowMeta {
 }
 export type Versioned<T> = T & RowMeta;
 
-export type TableName = "people" | "parties" | "venues" | "musthaves" | "fit" | "tasks" | "quotes" | "params";
+export type TableName = "people" | "parties" | "venues" | "musthaves" | "fit" | "tasks" | "quotes" | "params" | "custom_venues";
 
 export interface ParamRow extends RowMeta {
   key: string;
@@ -27,6 +28,8 @@ export interface ApiData {
   fit: Versioned<Fit>[];
   tasks: Versioned<Task>[];
   quotes: Versioned<Quote>[];
+  /** v7: venues added in the app (researched or typed in) */
+  custom_venues: Versioned<CustomVenue>[];
   params: ParamRow[];
   /** the signed-in email */
   me: string;

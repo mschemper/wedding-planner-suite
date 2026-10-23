@@ -118,3 +118,25 @@
 .vn-budget .cmp-label select { min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); padding: 4px 8px; }
 .vn-budget .compare-box { background: var(--ground); }
 .vn-budget .layout { margin-top: 14px; }
+
+/* top bar actions + notice */
+.vn-top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.vn-notice { margin-bottom: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--ground); font-size: 14px; }
+
+/* add venue sheet */
+.av-form { display: grid; gap: 12px; }
+.av-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .av-grid { grid-template-columns: 1fr 1fr; } }
+.av-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.av-foot { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.av-progress { font-size: 15px; color: var(--ink); }
+.av-summary { font-size: 15px; line-height: 1.5; }
+.av-items { display: grid; gap: 12px; }
+.av-item { border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 12px; display: grid; gap: 8px; grid-template-columns: 1fr; min-width: 0; }
+@media (min-width: 640px) { .av-item { grid-template-columns: 1fr 1fr; } .av-item .av-check, .av-item .k-btn { grid-column: 1 / -1; } }
+.av-item legend { padding: 0 6px; font-weight: 600; }
+.av-check { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; }
+.av-check input { width: 22px; height: 22px; }
+.av-total { font-family: var(--serif); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.av-issues { padding-left: 28px; margin-top: 12px; }
+.av-grid > *, .av-item > * { min-width: 0; }

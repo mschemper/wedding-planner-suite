@@ -48,7 +48,7 @@ describe("rings", () => {
     const r = rings.flatMap((x) => x.rows).find((x) => x.party.id === "H-M2")!;
     expect(namesLine(r)).toBe("Birch & Cedar Example + 2 kids");
     const m4 = rings.flatMap((x) => x.rows).find((x) => x.party.id === "H-M4")!;
-    expect(namesLine(m4)).toBe("Hazel & Iris + 2 kids");
+    expect(namesLine(m4)).toBe("Hazel Example & Iris Other + 2 kids");
   });
 });
 

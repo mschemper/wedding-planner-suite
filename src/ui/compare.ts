@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { summarizeAll, type VenueSummary } from "../plan/venueSummary";
 import { useData } from "./data";
 import { usePrefs } from "./usePrefs";
+import { guestSplit, splitText } from "./venues/model";
 
 export interface Compare {
   guests: number;
@@ -23,9 +24,10 @@ export function useCompare(): Compare {
   // Nothing decided yet → fall back to the custom count so venues still price sensibly.
   const g = guests > 0 ? guests : prefs.guests;
   const date = prefs.date ?? settings.heldDate ?? settings.dateWindows[0].ref;
+  const split = splitText(guestSplit(hc, prefs.guestBasis, g));
   const guestsLabel = guests <= 0 ? `${g} guests (nothing decided yet)`
-    : prefs.guestBasis === "custom" ? `${g} guests` : prefs.guestBasis === "ceiling" ? `${g} if everyone invited comes`
-    : prefs.guestBasis === "considered" ? `≈ ${g} expected if the undecided are invited` : `≈ ${g} expected`;
+    : prefs.guestBasis === "custom" ? `${g} guests` : prefs.guestBasis === "ceiling" ? `${g} if everyone invited comes${split}`
+    : prefs.guestBasis === "considered" ? `≈ ${g} expected if the undecided are invited${split}` : `≈ ${g} expected${split}`;
   const s = useMemo(
     () => summarizeAll({ scenarios, venues, musthaves, fit, quotes, headcount: hc, guests: g, date, windows: settings.dateWindows, contingency: prefs.contingency }),
     [scenarios, venues, musthaves, fit, quotes, hc, g, date, settings.dateWindows, prefs.contingency],

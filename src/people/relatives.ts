@@ -2,6 +2,7 @@
 // Every builder returns save ops (one batch, tmp ids) so a link change is atomic.
 import type { Op } from "../api/types";
 import { anchorFor, derivedRelation, graph, relationRoot } from "./kin";
+import { pairName } from "./names";
 import type { Age, PeopleData, Person } from "./types";
 
 export type RelKind = "partner" | "child" | "sibling" | "parent";
@@ -9,7 +10,7 @@ export const REL_LABEL: Record<RelKind, string> = { partner: "Partner", child: "
 
 type Row = Record<string, unknown>;
 export type Versioned<T> = T & { version: number };
-export type VersionOf = (id: string) => number | undefined;
+export type VersionOf = (table: "people" | "parties", id: string) => number | undefined;
 
 /** Defaults for a relative of `of` (side, branch, kind, generation, links). */
 export function relativeDefaults(of: Person, rel: RelKind): Partial<Person> {
@@ -119,7 +120,7 @@ export interface Suggestion {
 }
 
 const first = (p: Person) => p.nick || p.first;
-const unitNames = (ps: Person[]) => ps.map(first).join(" & ") + (ps[0]?.last && ps.every((p) => p.last === ps[0].last) ? ` ${ps[0].last}` : "");
+const unitNames = (ps: Person[]) => pairName(ps) || ps.map(first).join(" & ");
 const inLaw = (p: Person) => /in-law|by marriage|spouse|partner|wife|husband/i.test(p.label ?? "");
 
 /** Expected relation of the parents, given the child's relation to the couple. */
@@ -217,4 +218,93 @@ export function mergeOps(from: Versioned<{ id: string }>, into: string, members:
 export function movesWith(p: Person, byId: Map<string, Person>): Person[] {
   const q = p.partner_id ? byId.get(p.partner_id) : undefined;
   return q && q.party_id === p.party_id ? [p, q] : [p];
+}
+
+// ---------- place by relation (v7): "Fran is Lugene's aunt" ----------
+export const PLACE_RELATIONS = ["sibling", "child", "parent", "aunt/uncle", "niece/nephew", "cousin", "grandparent"] as const;
+export type PlaceRelation = (typeof PLACE_RELATIONS)[number];
+export const PLACE_LABEL: Record<PlaceRelation, string> = {
+  sibling: "brother / sister", child: "son / daughter", parent: "mother / father", "aunt/uncle": "aunt / uncle",
+  "niece/nephew": "niece / nephew", cousin: "cousin", grandparent: "grandmother / grandfather",
+};
+const GEN_DELTA: Record<PlaceRelation, number> = { sibling: 0, child: 1, parent: -1, "aunt/uncle": -1, "niece/nephew": 1, cousin: 0, grandparent: -2 };
+
+/**
+ * One save that makes `who` the <relation> of `anchor`. Missing links go through tree-only placeholders that the tree never
+ * shows (ancestors who are deceased or not attending): e.g. aunt → "<anchor>'s parents" → "<anchor>'s grandparents" → who.
+ * Existing parents are reused; the person's generation follows. Returns [] when the link is impossible (anchor has 2 parents
+ * and "parent" is asked, or who === anchor).
+ */
+export function placeOps(who: Versioned<Person>, anchor: Versioned<Person>, rel: PlaceRelation, d: PeopleData, version: VersionOf): Op[] {
+  if (who.id === anchor.id) return [];
+  const byId = new Map(d.people.map((p) => [p.id, p]));
+  const parents = new Map<string, string[]>(); // working parent lists (existing ids or tmp placeholders)
+  const creates: Op[] = [];
+  let n = 0;
+  const parentsOf = (id: string) => parents.get(id) ?? byId.get(id)?.parent_ids ?? [];
+  const label = (id: string) => { const p = byId.get(id); return p ? p.nick || p.first : "Relative"; };
+  const placeholder = (name: string, ofId: string, gen: number): string => {
+    const id = `tmp:ph${++n}`;
+    const of = byId.get(ofId) ?? anchor;
+    creates.push({ table: "people", op: "create", row: {
+      id, first: name, last: null, side: of.side, branch: of.branch ?? null, kind: "family", gen, party_id: null, parent_ids: [],
+      age: "adult", placeholder: true, deceased: false, rsvp: "none", local: "unknown", plus_one: false, kids_room: false,
+    } });
+    byId.set(id, { ...(of as Person), id, first: name, placeholder: true, parent_ids: [], partner_id: null, party_id: null, gen });
+    return id;
+  };
+  /** parents of `id`, creating one hidden "<name>'s parents" node when there are none */
+  const ensureParents = (id: string): string[] => {
+    const cur = parentsOf(id);
+    if (cur.length) return cur;
+    const g = (byId.get(id)?.gen ?? 0) - 1;
+    const ph = placeholder(`${byId.get(id)?.first.endsWith("'s parents") ? `${byId.get(id)!.first.replace(/'s parents$/, "")}'s grandparents` : `${label(id)}'s parents`}`, id, g);
+    parents.set(id, [ph]);
+    return [ph];
+  };
+  const gen = (anchor.gen ?? 0) + GEN_DELTA[rel];
+  let whoParents: string[] | null = null;
+  switch (rel) {
+    case "sibling": whoParents = ensureParents(anchor.id); break;
+    case "child": whoParents = [anchor.id, ...(anchor.partner_id ? [anchor.partner_id] : [])]; break;
+    case "parent": {
+      const cur = parentsOf(anchor.id).filter((x) => !byId.get(x)?.placeholder);
+      if (cur.length >= 2) return [];
+      parents.set(anchor.id, [...cur, who.id]);
+      break;
+    }
+    case "aunt/uncle": whoParents = ensureParents(ensureParents(anchor.id)[0]); break;
+    case "grandparent": {
+      const p = ensureParents(anchor.id)[0];
+      const cur = parentsOf(p).filter((x) => !byId.get(x)?.placeholder);
+      if (cur.length >= 2) return [];
+      parents.set(p, [...cur, who.id]);
+      break;
+    }
+    case "niece/nephew": {
+      const sib = placeholder(`${label(anchor.id)}'s sibling`, anchor.id, anchor.gen ?? 0);
+      parents.set(sib, ensureParents(anchor.id));
+      whoParents = [sib];
+      break;
+    }
+    case "cousin": {
+      const aunt = placeholder(`${label(anchor.id)}'s aunt or uncle`, anchor.id, (anchor.gen ?? 0) - 1);
+      parents.set(aunt, ensureParents(ensureParents(anchor.id)[0]));
+      whoParents = [aunt];
+      break;
+    }
+  }
+  // placeholders get their final parent lists on create; real people are updated (one op each)
+  for (const c of creates) if (c.op === "create") c.row.parent_ids = parents.get(String(c.row.id)) ?? [];
+  const ops: Op[] = [...creates];
+  const whoRow: Record<string, unknown> = { gen };
+  if (whoParents) whoRow.parent_ids = whoParents;
+  ops.push({ table: "people", op: "update", id: who.id, version: who.version, row: whoRow });
+  for (const [id, list] of parents) {
+    if (id.startsWith("tmp:") || id === who.id) continue;
+    const v = id === anchor.id ? anchor.version : version("people", id);
+    if (v === undefined) return [];
+    ops.push({ table: "people", op: "update", id, version: v, row: { parent_ids: list } });
+  }
+  return ops;
 }

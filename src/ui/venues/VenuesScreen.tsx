@@ -1,10 +1,11 @@
 // Venues tab (DESIGN-v4 §2): compare bar, shortlist, must-have matrix, venue detail, archive, assumptions.
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, EmptyState } from "../kit/kit";
 import { useCompare } from "../compare";
 import { useData } from "../data";
 import { useNav } from "../nav";
 import { usePrefs } from "../usePrefs";
+import { AddVenueButton } from "./AddVenue";
 import { Archive } from "./Archive";
 import { AssumptionsButton } from "./Assumptions";
 import { CompareBar } from "./CompareBar";
@@ -17,7 +18,9 @@ export function VenuesScreen() {
   const { prefs, set } = usePrefs();
   const { focus, clearFocus } = useNav();
   const { status, scenarios } = useData();
+  const { openVenue } = useNav();
   const cmp = useCompare();
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     if (focus.venue != null) { set({ selected: focus.venue }); clearFocus(); }
@@ -29,16 +32,18 @@ export function VenuesScreen() {
 
   if (status === "loading") return <Card title="Venues"><EmptyState>Loading venues…</EmptyState></Card>;
 
+  const note = notice && <p className="vn-notice" role="status">{notice} <button type="button" className="vn-note-btn" onClick={() => setNotice("")}>Dismiss</button></p>;
   if (sel) {
-    return <VenueDetail v={sel} scenarios={scenarios} guests={cmp.guests} date={cmp.date} onBack={() => set({ selected: null })} />;
+    return <>{note}<VenueDetail v={sel} scenarios={scenarios} guests={cmp.guests} date={cmp.date} onBack={() => set({ selected: null })} /></>;
   }
 
   return (
     <>
       <div className="vn-top">
         <h2 className="vn-h2">Venues</h2>
-        <AssumptionsButton />
+        <span className="vn-top-actions"><AddVenueButton onAdded={(id, n) => { setNotice(`Added ${n} as a potential venue. A task to contact them is due in a week (see Plan).`); openVenue(id); }} /><AssumptionsButton /></span>
       </div>
+      {note}
       <CompareBar />
       <Shortlist active={cmp.active} onOpen={open} />
       <FitMatrix active={cmp.active} />

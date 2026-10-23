@@ -32,8 +32,10 @@ describe("contrast (WCAG AA 4.5:1 for text)", () => {
         expect(ratio(t[fg], t[bg])).toBeGreaterThanOrEqual(4.5);
       });
     }
-    it(`${name}: selected tab / primary button text on --euc`, () => {
-      expect(ratio(t["on-euc"], t.euc)).toBeGreaterThanOrEqual(4.5);
-    });
+    for (const [fg, bg] of [["on-euc", "euc"], ["on-gold", "marigold"], ["on-peony", "peony"]] as const) {
+      it(`${name}: --${fg} on --${bg} (buttons, selected tab, segmented controls)`, () => {
+        expect(ratio(t[fg], t[bg])).toBeGreaterThanOrEqual(4.5);
+      });
+    }
   }
 });

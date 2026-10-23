@@ -71,3 +71,7 @@ Newest first. Each entry: what changed and why.
 ## v1 — June–July 2026 · Wedding Budget Studio (claude.ai)
 
 - Single-file React app with 16 scenarios from Reconciled Master v2.0. The original and the Reconciled Master .docx are in the claude.ai project "Wedding Planner Suite".
+
+## v7 data (22 Oct 2026)
+- Firehouse Chicago kids' room capacity 20 (Bunk Room), adults seated 82. Source: Mark, 22 Oct 2026 (chat). `capacity.kids` added to Scenario; capacity checks adults and kids separately. Kids stay priced as adults (Mark's choice).
+- Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.

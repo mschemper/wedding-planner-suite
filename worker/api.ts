@@ -4,6 +4,7 @@ import type { ApiErrorBody, AuditEntry, WriteRequest } from "../src/api/types";
 import { authenticate } from "./auth";
 import { loadState, stateToApi } from "./db";
 import type { Env } from "./env";
+import { claudeCreate, researchVenue, ResearchError, type CreateFn, type ResearchInput } from "./research";
 import { applyWrite } from "./write";
 import pkg from "../package.json";
 
@@ -11,7 +12,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
 const err = (status: number, error: ApiErrorBody["error"], message: string) => json({ error, message } satisfies ApiErrorBody, status);
 
-export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey): Promise<Response> {
+export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey, deps: { research?: CreateFn } = {}): Promise<Response> {
   const url = new URL(req.url);
   if (req.method !== "GET" && req.method !== "HEAD") {
     const origin = req.headers.get("Origin");
@@ -36,6 +37,24 @@ export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey):
       const out = await applyWrite(env.DB, body?.ops, auth.email);
       if (!out.ok) return json(out.body, out.status);
       return json({ ids: out.ids, data: stateToApi(await loadState(env.DB), auth.email) });
+    }
+
+    if (url.pathname === "/api/research" && req.method === "POST") {
+      const create = deps.research ?? (env.ANTHROPIC_API_KEY ? claudeCreate(env.ANTHROPIC_API_KEY) : null);
+      if (!create) return err(503, "server", "Venue research needs an Anthropic API key (Cloudflare secret ANTHROPIC_API_KEY). You can still add the venue by hand.");
+      let body: ResearchInput;
+      try {
+        body = (await req.json()) as ResearchInput;
+      } catch {
+        return err(400, "bad_request", "Body is not JSON");
+      }
+      try {
+        return json(await researchVenue(body, create));
+      } catch (e) {
+        if (e instanceof ResearchError) return err(e.status, e.status === 400 ? "bad_request" : "server", e.message);
+        console.error("research error", e);
+        return err(502, "server", "Research failed — try again, or add the venue by hand.");
+      }
     }
 
     if (url.pathname === "/api/audit" && req.method === "GET") {

@@ -1,4 +1,4 @@
-// Shell (DESIGN-v4 §2, §6): garland header, four tabs (top pills; bottom bar on phones), prefs + nav contexts, Undo toast.
+// Shell (DESIGN-v4 §2, §6): garden header, four tabs (top pills; bottom bar on phones), prefs + nav contexts, Undo toast.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useData } from "./data";
 import { Garland, LeafDivider } from "./garden/motifs";

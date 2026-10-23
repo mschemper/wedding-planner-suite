@@ -90,3 +90,22 @@ describe("guards and compare", () => {
     expect(matchOptions(scenarioById(2), { bar: "Full Bar" }, scenarioById(12))).toEqual({ scope: "Full scope" });
   });
 });
+
+describe("added venues (v7)", () => {
+  it("prices a custom venue like a code scenario; no lines = awaiting rates", async () => {
+    const { customScenario } = await import("../src/data/custom");
+    const { computeBudget } = await import("../src/engine/compute");
+    const sc = customScenario({ scenario_id: 1001, name: "Hall", kind: "local", confidence: 50, sources: ["https://x.test", "notaurl"], researched_at: "2026-10-22",
+      capacity_seated: 120, capacity_kids: 15,
+      items: [
+        { cat: "Venue & site", desc: "Rental", type: "fixed", amount: 5000 },
+        { cat: "Food & beverage", desc: "Catering", type: "perGuest", rate: 100 },
+        { cat: "Food & beverage", desc: "Tax + service", type: "percent", rate: 0.2 },
+      ] });
+    expect(sc).toMatchObject({ id: 1001, priced: true, kidsRoom: true, capacity: { hardMax: 120, kids: 15 }, sources: ["https://x.test"], tag: "Researched" });
+    const b = computeBudget(sc, 50);
+    // 5000 + 50 × 100 + 20% of catering (taxable) = 11,000
+    expect(Math.round(b.total)).toBe(11000);
+    expect(customScenario({ scenario_id: 1002, name: "TBD", kind: "local", confidence: 30, sources: [], items: [] }).priced).toBe(false);
+  });
+});

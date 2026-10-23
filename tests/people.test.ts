@@ -50,7 +50,9 @@ describe("headcount", () => {
   });
   it("cutoff: kids skip the main room only where there is a kids' room", () => {
     const h = headcount(D, "all");
-    expect(cutoff(h, 82, true)).toMatchObject({ used: 11, spare: 71, fits: 2 });
+    expect(cutoff(h, 82, true)).toMatchObject({ used: 11, spare: 71, fits: 2, kidsCap: null });
+    expect(cutoff(h, 82, true, 20)).toMatchObject({ kids: h.invited.kids, kidsCap: 20, kidsSpare: 20 - h.invited.kids });
+    expect(cutoff(h, 82, false, 20)).toMatchObject({ kids: 0, kidsCap: null });
     expect(cutoff(h, 14, false)).toMatchObject({ used: 14, spare: 0, fits: 0 });
   });
 });
@@ -78,7 +80,7 @@ describe("relation words", () => {
     const cases: [string, string | null][] = [
       ["Grandson", "grandchild"], ["Godson", null], ["Mason", null], ["Aunt's stepson", null], ["Brother-in-law's mother", null],
       ["Nephew's girlfriend", null], ["Aunt / father's sibling", "aunt/uncle"], ["Lugene's aunt / extended family", null],
-      ["Cousin-in-law", "cousin"], ["Stepmother", "parent"], ["Stepson", "step-child"], ["Great-aunt", null], ["Grandmother", "grandparent"],
+      ["Cousin-in-law", "cousin"], ["Stepmother", "parent"], ["Stepson", "step-child"], ["Great-aunt", "great-aunt/uncle"], ["Cousin once removed", "cousin once removed"], ["Great-grandmother", "great-grandparent"], ["Grandmother", "grandparent"],
       ["Sister-in-law", "sibling"], ["Uncle by marriage", "aunt/uncle"], ["Daughter", "child"],
     ];
     for (const [t, r] of cases) expect([t, relationRoot(t)]).toEqual([t, r]);

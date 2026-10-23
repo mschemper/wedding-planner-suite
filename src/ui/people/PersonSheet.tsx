@@ -8,6 +8,7 @@ import { LOCALS, RSVPS, SIDES, displayName, type Age, type Person } from "../../
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Segmented, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
+import { PlaceRelation } from "./PlaceRelation";
 import { draftFrom, draftIssues, defaultHouseholdName, partnerNotice, personOps, personSummary, type PersonDraft } from "./model";
 
 export type SheetTarget =
@@ -211,6 +212,13 @@ export function PersonSheet({ target, onClose, rel, onRelative }: {
                 <Button key={k} onClick={() => onRelative(original.id, k)}><span aria-hidden="true">＋</span> {REL_LABEL[k]}</Button>
               ))}
             </div>
+          </div>
+        )}
+
+        {original && original.kind === "family" && !isPlaceholder && (
+          <div className="k-field wide">
+            <span className="k-field-label">Place by relation</span>
+            <PlaceRelation person={original} onDone={onClose} />
           </div>
         )}
 

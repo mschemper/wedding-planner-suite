@@ -414,8 +414,8 @@ export function buildScenarios(p: Params = DEFAULT_PARAMS): Scenario[] {
     id: 17, name: "Firehouse Chicago", location: "Edgewater · 1545 W Rosemont Ave", kind: "local",
     desc: "Restored 1906 firehouse: outdoor stone ceremony platform, garden cocktail hour, main-floor reception, upstairs rooms.",
     tag: "Firehouse", confidence: 70, min: 40, max: 100, def: 75,
-    capacity: { hardMax: 82, cocktail: 100 }, kidsRoom: true,
-    flag: "Holding Sat Jun 12, 2027 (pending the previous couple). Seated dinner caps at 82: kids upstairs keep adults under it. Valet not included; parking is a lot one block away.",
+    capacity: { hardMax: 82, cocktail: 100, kids: 20 }, kidsRoom: true,
+    flag: "Holding Sat Jun 12, 2027 (pending the previous couple). Seated dinner caps at 82 adults; up to 20 kids upstairs (Mark, 22 Oct 2026). Valet not included; parking is a lot one block away.",
     seasons: [
       { name: "peak", from: "06-01", to: "10-31" },
       { name: "off-peak", from: "11-01", to: "05-31" },

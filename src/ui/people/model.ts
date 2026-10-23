@@ -5,6 +5,7 @@ import { cutoff, type Headcount } from "../../people/headcount";
 import { effectiveInvite, heads, kidsIn, type InviteCtx } from "../../people/invite";
 import { anchorFor, graph, relationRoot, relationText, type Relation } from "../../people/kin";
 import type { Ring, RingRow } from "../../people/rings";
+import { lastNamesFromHousehold, pairName } from "../../people/names";
 import { genFromLinks } from "../../people/relatives";
 import { tierLabel } from "../../people/tier";
 import {
@@ -305,6 +306,7 @@ export function matchesRow(r: RingRow, f: RowFilter): boolean {
 
 const CLOSE: Partial<Record<Relation, number>> = {
   self: 1, partner: 1, parent: 1, sibling: 1, child: 1, "step-child": 1, grandparent: 2, "aunt/uncle": 2, "niece/nephew": 2, grandchild: 2, cousin: 3,
+  "great-grandparent": 3, "great-aunt/uncle": 3, "cousin once removed": 4,
 };
 
 /** Friends: "College · known by Mark". */
@@ -432,12 +434,13 @@ export function friendTiers(rings: Ring[], labels: Record<number, string>): Frie
   }));
 }
 
-export interface QuickFriend { first: string; partner: string; plusOne: boolean; circle: string; known_by: KnownBy; tier: number }
+export interface QuickFriend { first: string; last?: string; partner: string; partnerLast?: string; plusOne: boolean; circle: string; known_by: KnownBy; tier: number }
 export const quickFriendIssues = (f: QuickFriend) => (f.first.trim() ? [] : ["First name is required."]);
+/** Household name with each person's own surname (v7): "Sam Lee & Alex Kim", "Sam & Alex Lee", "Sam Lee + guest". */
 export const quickFriendName = (f: QuickFriend) => {
-  const a = f.first.trim();
-  const b = f.partner.trim();
-  return b ? `${a} & ${b}` : f.plusOne ? `${a} + guest` : a;
+  const a = { first: f.first.trim(), nick: null, last: f.last?.trim() || null, deceased: false };
+  const b = { first: f.partner.trim(), nick: null, last: f.partnerLast?.trim() || null, deceased: false };
+  return b.first ? pairName([a, b]) : f.plusOne ? `${pairName([a])} + guest` : pairName([a]);
 };
 
 /** One save: friend household + 1–2 people (tmp ids). Rank = last in its tier. */
@@ -452,8 +455,47 @@ export function quickFriendOps(f: QuickFriend, tierParties: Party[]): Op[] {
       id: "tmp:hh", name: quickFriendName(f), invite: "undecided", kids: "policy", talk: false, tier: f.tier, circle, known_by: f.known_by, reciprocal: false,
       rank: 1 + Math.max(0, ...tierParties.map((x) => x.rank ?? 0)),
     } },
-    person("tmp:p1", f.first.trim(), { plus_one: !f.partner.trim() && f.plusOne }),
+    person("tmp:p1", f.first.trim(), { last: f.last?.trim() || null, plus_one: !f.partner.trim() && f.plusOne }),
   ];
-  if (f.partner.trim()) ops.push(person("tmp:p2", f.partner.trim(), { partner_id: "tmp:p1", plus_one: false }));
+  if (f.partner.trim()) ops.push(person("tmp:p2", f.partner.trim(), { last: f.partnerLast?.trim() || null, partner_id: "tmp:p1", plus_one: false }));
   return ops;
+}
+
+// ---------- bulk edit on Decide (v7) ----------
+export type BulkChange =
+  | { kind: "invite"; value: Decision }
+  | { kind: "tier"; value: number | null }
+  | { kind: "kids"; value: KidsRule }
+  | { kind: "local"; value: Person["local"] };
+
+/** One edit for several households: patches only where something changes, and a label for Undo / History. */
+export function bulkEdit(parties: Party[], people: Person[], change: BulkChange): { patches: Patch[]; label: string } {
+  const ids = new Set(parties.map((x) => x.id));
+  const n = parties.length;
+  const what = `${n} household${n === 1 ? "" : "s"}`;
+  if (change.kind === "local") {
+    const patches = people.filter((p) => p.party_id && ids.has(p.party_id) && !p.placeholder && p.local !== change.value)
+      .map((p) => ({ table: "people" as const, id: p.id, row: { local: change.value } }));
+    return { patches, label: `${what} → ${change.value}` };
+  }
+  const key = change.kind === "invite" ? "invite" : change.kind;
+  const patches = parties.filter((x) => (x[key] ?? null) !== change.value).map((x) => ({ table: "parties" as const, id: x.id, row: { [key]: change.value } }));
+  const text = change.kind === "invite" ? DECISION_LABEL[change.value] : change.kind === "kids" ? `kids ${KIDS_LABEL[change.value]}` : change.value == null ? "ring automatic" : `ring ${change.value}`;
+  return { patches, label: `${what} → ${text}` };
+}
+
+/** Friends with no last name whose household name has it (v7): person id → last name, plus readable lines for the preview. */
+export function friendLastNameFixes(d: PeopleData): { patches: Patch[]; lines: string[] } {
+  const patches: Patch[] = [];
+  const lines: string[] = [];
+  for (const party of d.parties) {
+    const members = d.people.filter((p) => p.party_id === party.id && p.kind === "friend" && !p.placeholder);
+    if (!members.length) continue;
+    for (const [id, last] of lastNamesFromHousehold(party.name, members)) {
+      const p = members.find((m) => m.id === id)!;
+      patches.push({ table: "people", id, row: { last } });
+      lines.push(`${p.nick || p.first} → ${p.nick || p.first} ${last}`);
+    }
+  }
+  return { patches, lines };
 }
