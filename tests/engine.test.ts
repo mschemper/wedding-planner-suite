@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeBudget, diffByCategory, guestStops, interp, matchOptions, seasonOf, snapGuests } from "../src/engine/compute";
+import { addedCost, computeBudget, diffByCategory, guestStops, interp, matchOptions, seasonOf, snapGuests } from "../src/engine/compute";
 import { SCENARIOS, scenarioById } from "../src/data/scenarios";
 
 describe("interp", () => {
@@ -107,5 +107,17 @@ describe("added venues (v7)", () => {
     // 5000 + 50 × 100 + 20% of catering (taxable) = 11,000
     expect(Math.round(b.total)).toBe(11000);
     expect(customScenario({ scenario_id: 1002, name: "TBD", kind: "local", confidence: 30, sources: [], items: [] }).priced).toBe(false);
+  });
+});
+
+describe("household cost (v9)", () => {
+  it("is the difference between two totals; null when unpriced or unavailable", () => {
+    const s = SCENARIOS.find((x) => x.priced !== false && x.items.length && 60 >= x.min && 62 <= x.max)!;
+    const c = addedCost(s, 60, 2)!;
+    expect(c.amount).toBe(computeBudget(s, 62).total - computeBudget(s, 60).total);
+    expect(c.amount).toBeGreaterThan(0);
+    expect(addedCost({ ...s, priced: false }, 60, 2)).toBeNull();
+    const cap = s.capacity?.hardMax;
+    if (cap) expect(addedCost(s, cap, 50)).toBeNull();
   });
 });

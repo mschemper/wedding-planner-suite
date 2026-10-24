@@ -177,6 +177,18 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
 }
 
 /** Line-item diff keyed by category; used by the compare panel. */
+/**
+ * What `add` more guests cost (v9, per-household cost): total at guests + add minus total at guests, same options and date.
+ * null when the scenario is unpriced or either count can't be hosted. `extrapolated` = a line ran past the source (≈).
+ */
+export function addedCost(sc: Scenario, guests: number, add: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): { amount: number; extrapolated: boolean } | null {
+  if (sc.priced === false || !sc.items.length) return null;
+  const a = computeBudget(sc, guests, opts, co);
+  const b = computeBudget(sc, guests + add, opts, co);
+  if (a.unavailable || b.unavailable) return null;
+  return { amount: b.total - a.total, extrapolated: b.rows.some((r) => r.extrapolated) };
+}
+
 export function diffByCategory(a: Budget, b: Budget): { cat: Category; a: number; b: number; delta: number }[] {
   const cats = new Set<Category>([...a.byCat.keys(), ...b.byCat.keys()]);
   const sum = (bu: Budget, c: Category) => (bu.byCat.get(c) ?? []).reduce((s, r) => s + r.amount, 0);

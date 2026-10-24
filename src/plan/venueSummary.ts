@@ -1,5 +1,5 @@
 // One summary per venue for Today + Venues (DESIGN-v4 §4). Pure: engine + headcount + fit; no React.
-import { computeBudget, defaultOpts, snapGuests } from "../engine/compute";
+import { addedCost, computeBudget, defaultOpts, snapGuests } from "../engine/compute";
 import type { Budget, Quote, Scenario } from "../engine/types";
 import type { DateWindow } from "../data/params";
 import { cutoff, type Cutoff, type Headcount } from "../people/headcount";
@@ -38,6 +38,11 @@ export interface SummaryInput {
 }
 
 const inRange = (s: Scenario, g: number) => g >= s.min && g <= s.max;
+
+/** v9: what one household (`add` heads) adds at this venue, priced like its summary (date, quotes, contingency). */
+export function householdCost(s: Scenario, i: Pick<SummaryInput, "quotes" | "date" | "contingency">, guests: number, add: number) {
+  return addedCost(s, Math.round(guests), add, defaultOpts(s), { date: i.date, contingency: i.contingency, quotes: i.quotes });
+}
 
 export function summarize(s: Scenario, i: SummaryInput): VenueSummary {
   const row = i.venues.find((v) => v.scenario_id === s.id);

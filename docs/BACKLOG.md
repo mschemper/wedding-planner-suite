@@ -53,6 +53,15 @@ D1 `inbox` of proposals written via /api/write with an Access service token; dai
 
 ### F22. Data health card, per-household cost — S each (REVIEW-v6 I2, I5; bulk edit shipped v7)
 
+### F23. Date heatmap — M (v9 review I3, Mark: yes)
+Every Saturday in both date windows coloured by venue season price, holidays, sunset time and historic Chicago weather (Open-Meteo archive, free, fetched once into a data file). Planned v10.
+
+### F24. Seating chart — L (v9 review I9, Mark: yes)
+Drag households onto tables; starting plan from the family tree keeps branches together; flagged pairs apart. Needs a tables migration. Overlaps F17.
+
+### F25. Inspiration board — M (v9 review I15, Mark: yes)
+Photo uploads to an R2 bucket (new binding + Worker route; size limit), pinned to venues/vendors. Needs Mark's OK to create the bucket.
+
 ### F16. Automatic Gmail sync for tasks — L (out of v4 scope)
 Needs a Google OAuth app + stored tokens. Today: docs/skills/email-sweep.md → Plan "Paste tasks".
 
