@@ -1,0 +1,417 @@
+<title>Wedding Planner v9 Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;700;800&family=Outfit:wght@400;500;600&family=Young+Serif&family=Figtree:wght@400;600;700&family=Syne:wght@600;700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column; three option boards in a wrapping grid; then two review lists with feedback toggles. Page chrome is quiet so the options carry the colour. */
+:root {
+  --bg: #F1F0EA; --panel: #FFFFFF; --fg: #1E2A22; --soft: #55615A; --rule: #D5D8CE; --accent: #2E5339; --on-accent: #FFFFFF;
+  --yes: #2E6B3F; --maybe: #8A6512; --no: #9B3B2E;
+  --f-head: "League Spartan", "Futura", "Century Gothic", system-ui, sans-serif;
+  --f-body: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121814; --panel: #1A231D; --fg: #E9EDE6; --soft: #A9B4AC; --rule: #2F3B33; --accent: #8FC79C; --on-accent: #0E1A12;
+  --yes: #8FD19E; --maybe: #E8C063; --no: #F0907F; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121814; --panel: #1A231D; --fg: #E9EDE6; --soft: #A9B4AC; --rule: #2F3B33; --accent: #8FC79C; --on-accent: #0E1A12;
+  --yes: #8FD19E; --maybe: #E8C063; --no: #F0907F; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--f-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--f-head); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -.3px; }
+h2 { font-size: 24px; font-weight: 700; }
+h3 { font-size: 18px; font-weight: 700; }
+p { margin: 0; max-width: 70ch; }
+.lede { color: var(--soft); font-size: 17px; }
+.head { display: grid; gap: 10px; }
+.done { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--rule); background: var(--panel); }
+.tag b { color: var(--yes); }
+section { display: grid; gap: 16px; }
+.sechead { display: grid; gap: 6px; border-top: 3px solid var(--fg); padding-top: 12px; }
+.sechead p { color: var(--soft); }
+
+/* option boards */
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 20px; }
+.optwrap { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.optlabel { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.optlabel h3 { font-size: 20px; }
+.optlabel span { color: var(--soft); font-size: 14px; }
+.optnote { font-size: 14px; color: var(--soft); }
+.sw { display: flex; gap: 0; border-radius: 4px; overflow: hidden; height: 22px; border: 1px solid var(--rule); }
+.sw i { flex: 1; }
+.modes { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.modes button { font: 600 14px var(--f-body); border: 0; background: var(--panel); color: var(--fg); padding: 8px 14px; min-height: 40px; cursor: pointer; }
+.modes button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+/* a mock app, coloured by its option tokens */
+.mock { background: var(--g); color: var(--i); font-family: var(--fb); border-radius: 10px; overflow: hidden; border: 1px solid var(--ln); }
+.mock .top { position: relative; height: 150px; overflow: hidden; text-align: center; background: var(--hdr); }
+.mock .top svg.deco { position: absolute; }
+.mock .ttl { position: relative; padding-top: 34px; }
+.mock .ttl b { display: block; font-family: var(--fd); font-weight: var(--fdw); font-size: 30px; letter-spacing: var(--fdls); color: var(--hdrink); text-transform: var(--fdtt); line-height: 1; }
+.mock .ttl small { display: block; margin-top: 8px; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--hdrink); opacity: .85; font-weight: 600; }
+.mock .tabs { display: flex; justify-content: center; gap: 4px; padding: 10px 8px 4px; flex-wrap: wrap; }
+.mock .tab { font: 600 13px var(--fb); letter-spacing: 1px; text-transform: uppercase; padding: 8px 12px; border-radius: var(--rt); color: var(--i); }
+.mock .tab.on { background: var(--p); color: var(--on); }
+.mock .body { padding: 8px 12px 14px; display: grid; gap: 10px; }
+.mock .card { background: var(--c); border: 1px solid var(--ln); border-radius: var(--r); padding: 12px 14px; position: relative; overflow: hidden; }
+.mock .card h4 { margin: 0; font-family: var(--fd); font-weight: var(--fdw); font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--i); }
+.mock .big { font-family: var(--fd); font-size: 30px; font-weight: var(--fdw); color: var(--pink); line-height: 1.1; margin-top: 4px; }
+.mock .mut { color: var(--m); font-size: 13px; }
+.mock .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.mock .chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.mock .chip.a { background: var(--a1); color: var(--a1on); }
+.mock .chip.b { background: var(--a3); color: var(--a3on); }
+.mock .row { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--ln); }
+.mock .row:first-of-type { border-top: 0; }
+.mock .row b { font-weight: 600; font-size: 15px; display: block; }
+.mock .pill { font: 600 13px var(--fb); padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--p); color: var(--pink); background: transparent; white-space: nowrap; }
+.mock .pill.in { background: var(--p); color: var(--on); }
+.mock .pill.room { border-color: var(--a3); background: var(--a3); color: var(--a3on); }
+.mock .corner { position: absolute; right: -14px; bottom: -18px; width: 86px; height: 86px; opacity: .9; }
+
+/* option tokens: day */
+.opt-a { --g:#F3EEE2; --c:#FBF8F1; --i:#1F2B22; --m:#56604F; --ln:#D9D1BE; --p:#2C4F35; --on:#FFFFFF; --pink:#2C4F35;
+  --a1:#8496CF; --a1on:#141B33; --a3:#D9A441; --a3on:#2A1D00; --coral:#D9714F; --leaf:#2C4F35; --leaf2:#4F7A4D; --hyd1:#8496CF; --hyd2:#A98BC9; --hyd3:#C7D3EE; --slit:#F3EEE2;
+  --hdr:#F3EEE2; --hdrink:#1F2B22; --fd:"League Spartan","Futura",system-ui,sans-serif; --fdw:800; --fdls:3px; --fdtt:uppercase; --fb:"Outfit",system-ui,sans-serif; --r:14px; --rt:999px; }
+.opt-b { --g:#EDE6D6; --c:#F8F3E8; --i:#1C2A21; --m:#52594E; --ln:#D3C7AE; --p:#1E3D2B; --on:#F4E9CF; --pink:#1E3D2B;
+  --a1:#E3A1B4; --a1on:#3A0F1C; --a3:#B88A2E; --a3on:#FFFFFF; --coral:#C6643F; --leaf:#24472F; --leaf2:#3E6B47; --hyd1:#E3A1B4; --hyd2:#B9A3D6; --hyd3:#F2CCD6; --slit:#1E3D2B;
+  --hdr:#1E3D2B; --hdrink:#F4E9CF; --fd:"Young Serif",Georgia,serif; --fdw:400; --fdls:.5px; --fdtt:none; --fb:"Figtree",system-ui,sans-serif; --r:6px; --rt:4px; }
+.opt-c { --g:#F5F2EA; --c:#FFFFFF; --i:#17251C; --m:#4E5B52; --ln:#D6D9CF; --p:#2F5A3A; --on:#FFFFFF; --pink:#2F5A3A;
+  --a1:#5B7FC0; --a1on:#FFFFFF; --a3:#E58A3A; --a3on:#2A1300; --coral:#E58A3A; --leaf:#2F5A3A; --leaf2:#6C9A5B; --hyd1:#5B7FC0; --hyd2:#8E6BB8; --hyd3:#A9C4E8; --slit:#F5F2EA;
+  --hdr:#F5F2EA; --hdrink:#17251C; --fd:"Syne",system-ui,sans-serif; --fdw:800; --fdls:1px; --fdtt:uppercase; --fb:"Work Sans",system-ui,sans-serif; --r:2px; --rt:2px; }
+/* option tokens: dusk */
+.dusk .opt-a { --g:#14241A; --c:#1C3123; --i:#EEE9DC; --m:#B5C0B0; --ln:#2F4A37; --p:#9CCB8E; --on:#0F1E13; --pink:#B7DDA9;
+  --a1:#9DAEE3; --a1on:#141B33; --a3:#E6B75A; --a3on:#2A1D00; --leaf:#5E9A62; --leaf2:#3D6E45; --hyd1:#9DAEE3; --hyd2:#BBA0DA; --hyd3:#5D6FA6; --slit:#14241A; --hdr:#14241A; --hdrink:#EEE9DC; }
+.dusk .opt-b { --g:#10201A; --c:#173025; --i:#F2E8D0; --m:#C2BCA6; --ln:#2C4A3A; --p:#D9B45A; --on:#1E1500; --pink:#E9C877;
+  --a1:#EDB3C3; --a1on:#3A0F1C; --a3:#D9B45A; --a3on:#1E1500; --leaf:#3E7A52; --leaf2:#2A5A3B; --hyd1:#EDB3C3; --hyd2:#C7B3E3; --hyd3:#8E5A6C; --slit:#0B1712; --hdr:#0B1712; --hdrink:#F2E8D0; }
+.dusk .opt-c { --g:#111C16; --c:#18271E; --i:#EDF0EA; --m:#AEBAB1; --ln:#2B3E31; --p:#8CC79A; --on:#0D1A11; --pink:#A6D9B2;
+  --a1:#86A6E0; --a1on:#0D1530; --a3:#F0A15A; --a3on:#2A1300; --leaf:#6FAE7C; --leaf2:#3E7349; --hyd1:#86A6E0; --hyd2:#B095D6; --hyd3:#3F5A8A; --slit:#111C16; --hdr:#111C16; --hdrink:#EDF0EA; }
+
+/* review lists */
+.items { display: grid; gap: 10px; }
+.group { display: grid; gap: 10px; }
+.group > h3 { font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--soft); margin-top: 8px; }
+.item { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; }
+.item .id { font: 700 15px var(--f-head); color: var(--accent); padding-top: 2px; }
+.item h4 { margin: 0; font: 600 17px/1.3 var(--f-body); }
+.item p { color: var(--soft); font-size: 15px; margin-top: 4px; }
+.item .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.item .meta span { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 3px; border: 1px solid var(--rule); color: var(--soft); }
+.vote { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.vote button { font: 600 13px var(--f-body); border: 0; border-left: 1px solid var(--rule); background: var(--panel); color: var(--fg); min-width: 52px; min-height: 40px; padding: 0 10px; cursor: pointer; }
+.vote button:first-child { border-left: 0; }
+.vote button[aria-pressed="true"][data-v="yes"] { background: var(--yes); color: var(--panel); }
+.vote button[aria-pressed="true"][data-v="maybe"] { background: var(--maybe); color: var(--panel); }
+.vote button[aria-pressed="true"][data-v="no"] { background: var(--no); color: var(--panel); }
+@media (max-width: 620px) { .item { grid-template-columns: 40px minmax(0, 1fr); } .item .vote { grid-column: 2; justify-self: start; margin-top: 6px; } }
+button:focus-visible, textarea:focus-visible { outline: 3px solid var(--maybe); outline-offset: 2px; }
+
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.compare figure { margin: 0; display: grid; gap: 8px; }
+.compare figcaption { font-size: 14px; color: var(--soft); }
+
+.answer { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 10px; }
+.answer textarea { width: 100%; min-height: 90px; font: 15px/1.5 var(--f-body); color: var(--fg); background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 10px; }
+.answer pre { margin: 0; white-space: pre-wrap; font: 14px/1.5 ui-monospace, Consolas, monospace; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 10px; max-height: 260px; overflow: auto; }
+.btn { font: 600 15px var(--f-body); background: var(--accent); color: var(--on-accent); border: 0; border-radius: 4px; padding: 10px 18px; min-height: 44px; cursor: pointer; justify-self: start; }
+@media (prefers-reduced-motion: no-preference) { .vote button, .modes button { transition: background .12s; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- split-leaf monstera: heart blade, midrib, fenestration slits cut in the ground colour -->
+    <symbol id="monstera" viewBox="0 0 100 100">
+      <path d="M50 96C22 84 3 60 7 34C11 12 36 3 50 17C64 3 89 12 93 34C97 60 78 84 50 96Z" fill="var(--leaf)"/>
+      <g stroke="var(--slit)" stroke-width="4.5" stroke-linecap="round" fill="none">
+        <path d="M50 92V24"/><path d="M50 74L13 62"/><path d="M50 60L8 44"/><path d="M50 46L18 22"/>
+        <path d="M50 74L87 62"/><path d="M50 60L92 44"/><path d="M50 46L82 22"/>
+      </g>
+      <ellipse cx="34" cy="52" rx="4" ry="2.4" fill="var(--slit)"/><ellipse cx="66" cy="52" rx="4" ry="2.4" fill="var(--slit)"/>
+      <path d="M50 96V100" stroke="var(--leaf2)" stroke-width="4"/>
+    </symbol>
+    <!-- hydrangea: dome of four-petal florets -->
+    <symbol id="hydrangea" viewBox="0 0 100 100">
+      <g>
+        <circle cx="50" cy="50" r="40" fill="var(--hyd3)"/>
+        <g fill="var(--hyd1)"><circle cx="30" cy="40" r="9"/><circle cx="52" cy="28" r="9"/><circle cx="72" cy="42" r="9"/><circle cx="44" cy="60" r="9"/><circle cx="66" cy="66" r="9"/><circle cx="26" cy="64" r="8"/></g>
+        <g fill="var(--hyd2)"><circle cx="40" cy="22" r="7"/><circle cx="62" cy="50" r="8"/><circle cx="48" cy="78" r="7"/><circle cx="78" cy="60" r="6"/><circle cx="20" cy="50" r="6"/></g>
+        <g fill="var(--slit)"><circle cx="30" cy="40" r="2"/><circle cx="52" cy="28" r="2"/><circle cx="72" cy="42" r="2"/><circle cx="44" cy="60" r="2"/><circle cx="66" cy="66" r="2"/><circle cx="62" cy="50" r="2"/></g>
+      </g>
+    </symbol>
+    <!-- atomic starburst -->
+    <symbol id="star" viewBox="0 0 40 40">
+      <g stroke="var(--a3)" stroke-width="2" stroke-linecap="round"><path d="M20 2V38M2 20H38M7 7L33 33M33 7L7 33"/></g>
+      <circle cx="20" cy="20" r="4" fill="var(--a3)"/>
+    </symbol>
+    <!-- palm frond -->
+    <symbol id="frond" viewBox="0 0 120 60">
+      <path d="M4 56C40 40 80 22 116 6" stroke="var(--leaf2)" stroke-width="3" fill="none"/>
+      <g fill="var(--leaf2)">
+        <path d="M20 49L14 30L28 44Z"/><path d="M36 42L32 20L44 37Z"/><path d="M52 35L50 12L60 30Z"/><path d="M68 28L68 6L76 24Z"/><path d="M84 21L86 2L92 18Z"/>
+        <path d="M22 50L38 58L30 46Z"/><path d="M38 43L56 50L46 39Z"/><path d="M54 36L72 42L62 32Z"/><path d="M70 29L88 34L78 25Z"/>
+      </g>
+    </symbol>
+    <!-- boomerang (1950s laminate) -->
+    <symbol id="boomer" viewBox="0 0 60 30"><path d="M2 26C14 4 28 2 30 14C32 2 46 4 58 26C46 16 38 18 30 22C22 18 14 16 2 26Z" fill="var(--coral)"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="head">
+    <h1>Wedding Planner v9 review</h1>
+    <p class="lede">Three takes on a mid-century jungle look in hunter green, a list of feature ideas, and fixes for the People tab. Pick and vote below, then copy your answers back into the chat.</p>
+    <div class="done">
+      <span class="tag"><b>Done</b> Ask the planner removed</span>
+      <span class="tag"><b>Done</b> Venue web research removed (Add venue is by hand)</span>
+      <span class="tag"><b>Done</b> No Claude API key needed anywhere</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="s-look">
+    <div class="sechead">
+      <h2 id="s-look">1 · Pick a look</h2>
+      <p>All three use hunter green as the anchor, monstera and hydrangea motifs, and 1950s–60s modern shapes. They differ in mood. Mock data is synthetic.</p>
+    </div>
+    <div class="modes" role="group" aria-label="Show mocks in">
+      <button type="button" id="m-day" aria-pressed="true">Day</button>
+      <button type="button" id="m-dusk" aria-pressed="false">Dusk</button>
+    </div>
+    <div class="opts" id="opts">
+
+      <div class="optwrap">
+        <div class="optlabel"><h3>A · Conservatory</h3><span>light, airy, Palm Springs</span></div>
+        <div class="mock opt-a">
+          <div class="top">
+            <svg class="deco" style="left:-18px;top:-10px;width:130px;height:130px;transform:rotate(-24deg)"><use href="#monstera"/></svg>
+            <svg class="deco" style="right:-10px;top:8px;width:96px;height:96px"><use href="#hydrangea"/></svg>
+            <svg class="deco" style="left:120px;top:18px;width:22px;height:22px"><use href="#star"/></svg>
+            <svg class="deco" style="right:104px;bottom:20px;width:16px;height:16px"><use href="#star"/></svg>
+            <div class="ttl"><b>Mark &amp; Angela</b><small>Chicago · 2027</small></div>
+          </div>
+          <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+          <div class="body">
+            <div class="card"><h4>When</h4><div class="big">6 months</div><div class="mut">until the spring window opens</div>
+              <div class="chips"><span class="chip a">Held · Sat Jun 12</span><span class="chip b">Late spring</span></div>
+              <svg class="corner"><use href="#hydrangea"/></svg></div>
+            <div class="card"><h4>Undecided</h4>
+              <div class="row"><svg width="24" height="24"><use href="#monstera"/></svg><div><b>Alder &amp; Juniper Sample</b><span class="mut">Father · 2 adults</span></div><span class="pill in">Invite</span></div>
+              <div class="row"><svg width="24" height="24"><use href="#hydrangea"/></svg><div><b>Olive Demo</b><span class="mut">Cousin · 1 adult</span></div><span class="pill room">If room</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="sw" aria-hidden="true"><i style="background:#2C4F35"></i><i style="background:#4F7A4D"></i><i style="background:#8496CF"></i><i style="background:#A98BC9"></i><i style="background:#D9A441"></i><i style="background:#D9714F"></i><i style="background:#F3EEE2"></i></div>
+        <p class="optnote">Linen ground, hunter green type and buttons, periwinkle and lilac hydrangeas, mustard starbursts. Geometric Futura-style headings. Pill buttons, soft corners. Dusk turns into a night greenhouse.</p>
+      </div>
+
+      <div class="optwrap">
+        <div class="optlabel"><h3>B · Jungalow Lounge</h3><span>dark band, brass, tiki-era</span></div>
+        <div class="mock opt-b">
+          <div class="top">
+            <svg class="deco" style="left:-30px;top:-6px;width:150px;height:76px;transform:rotate(14deg)"><use href="#frond"/></svg>
+            <svg class="deco" style="left:-12px;top:44px;width:120px;height:120px;transform:rotate(-18deg);--slit:#1E3D2B;--leaf:#3E6B47"><use href="#monstera"/></svg>
+            <svg class="deco" style="right:-22px;top:-14px;width:150px;height:76px;transform:scaleX(-1) rotate(14deg)"><use href="#frond"/></svg>
+            <svg class="deco" style="right:6px;top:58px;width:84px;height:84px"><use href="#hydrangea"/></svg>
+            <div class="ttl"><b>Mark &amp; Angela</b><small>Chicago · 2027</small></div>
+          </div>
+          <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+          <div class="body">
+            <div class="card"><h4>When</h4><div class="big">6 months</div><div class="mut">until the spring window opens</div>
+              <div class="chips"><span class="chip a">Held · Sat Jun 12</span><span class="chip b">Late spring</span></div>
+              <svg class="corner" style="--slit:var(--c)"><use href="#monstera"/></svg></div>
+            <div class="card"><h4>Undecided</h4>
+              <div class="row"><svg width="24" height="24" style="--slit:var(--c)"><use href="#monstera"/></svg><div><b>Alder &amp; Juniper Sample</b><span class="mut">Father · 2 adults</span></div><span class="pill in">Invite</span></div>
+              <div class="row"><svg width="24" height="24"><use href="#hydrangea"/></svg><div><b>Olive Demo</b><span class="mut">Cousin · 1 adult</span></div><span class="pill room">If room</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="sw" aria-hidden="true"><i style="background:#1E3D2B"></i><i style="background:#3E6B47"></i><i style="background:#B88A2E"></i><i style="background:#E3A1B4"></i><i style="background:#B9A3D6"></i><i style="background:#C6643F"></i><i style="background:#EDE6D6"></i></div>
+        <p class="optnote">A deep hunter green header band with layered palm and monstera leaves, cream cards, brass buttons in dusk, pink hydrangeas. Soft slab-serif headings. Most dramatic; closest to a 1960s supper club.</p>
+      </div>
+
+      <div class="optwrap">
+        <div class="optlabel"><h3>C · Harper Garden</h3><span>flat, geometric, crisp</span></div>
+        <div class="mock opt-c">
+          <div class="top">
+            <svg class="deco" style="left:12px;top:14px;width:90px;height:90px"><use href="#monstera"/></svg>
+            <svg class="deco" style="left:84px;top:70px;width:56px;height:56px"><use href="#hydrangea"/></svg>
+            <svg class="deco" style="right:16px;top:20px;width:78px;height:78px"><use href="#hydrangea"/></svg>
+            <svg class="deco" style="right:74px;top:92px;width:60px;height:30px"><use href="#boomer"/></svg>
+            <svg class="deco" style="right:110px;top:16px;width:18px;height:18px"><use href="#star"/></svg>
+            <div class="ttl"><b>Mark &amp; Angela</b><small>Chicago · 2027</small></div>
+          </div>
+          <div class="tabs"><span class="tab on">Today</span><span class="tab">Venues</span><span class="tab">People</span><span class="tab">Plan</span></div>
+          <div class="body">
+            <div class="card"><h4>When</h4><div class="big">6 months</div><div class="mut">until the spring window opens</div>
+              <div class="chips"><span class="chip a">Held · Sat Jun 12</span><span class="chip b">Late spring</span></div>
+              <svg class="corner" style="width:60px;height:30px;right:10px;bottom:10px"><use href="#boomer"/></svg></div>
+            <div class="card"><h4>Undecided</h4>
+              <div class="row"><svg width="24" height="24"><use href="#monstera"/></svg><div><b>Alder &amp; Juniper Sample</b><span class="mut">Father · 2 adults</span></div><span class="pill in">Invite</span></div>
+              <div class="row"><svg width="24" height="24"><use href="#hydrangea"/></svg><div><b>Olive Demo</b><span class="mut">Cousin · 1 adult</span></div><span class="pill room">If room</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="sw" aria-hidden="true"><i style="background:#2F5A3A"></i><i style="background:#6C9A5B"></i><i style="background:#5B7FC0"></i><i style="background:#8E6BB8"></i><i style="background:#E58A3A"></i><i style="background:#F5F2EA"></i><i style="background:#FFFFFF"></i></div>
+        <p class="optnote">Charley Harper–style flat shapes on a bright paper ground: green leaves, cobalt and violet hydrangeas, orange boomerangs. Wide display headings, square corners. Cleanest to read on a phone.</p>
+      </div>
+    </div>
+    <p class="optnote">Whichever you pick: Bloom decision icons become leaf and flower shapes (invite = open monstera, if room = hydrangea bud, undecided = dashed outline), the Chicago skyline and flag go away, and every colour still passes the contrast test in day and dusk.</p>
+  </section>
+
+  <section aria-labelledby="s-people">
+    <div class="sechead">
+      <h2 id="s-people">2 · People tab: what to fix</h2>
+      <p>From walking through Decide, Family and Friends at desktop and phone width with sample data. The biggest win is P1: a one-household-at-a-time Decide flow for the 42 undecided households.</p>
+    </div>
+    <div class="items" id="people"></div>
+    <div class="compare">
+      <figure>
+        <div class="mock opt-a"><div class="body">
+          <div class="card"><h4>Today's row (phone)</h4>
+            <div class="row" style="grid-template-columns:28px 1fr auto"><svg width="24" height="24"><use href="#monstera"/></svg><div><b>Alder Example &amp; Juniper Sample</b><span class="mut">Father</span></div><span class="mut">2 ⋯</span></div>
+            <div style="display:flex;gap:4px;justify-content:flex-end;padding-bottom:6px"><span class="pill in">Invite</span><span class="pill">If room</span><span class="pill">No</span></div>
+          </div></div></div>
+        <figcaption>Now: name, relation, seats, kids chip, talk chip, three buttons and a ⋯ menu. On a phone each row takes two lines.</figcaption>
+      </figure>
+      <figure>
+        <div class="mock opt-a"><div class="body">
+          <div class="card"><h4>Decide · 3 of 42</h4>
+            <div class="big" style="font-size:22px">Alder &amp; Juniper Sample</div>
+            <div class="mut">Mark's father · 2 adults · local · adds ≈ $410</div>
+            <div class="mut">Room after this: 69 of 82 seats</div>
+            <div class="chips" style="margin-top:12px"><span class="pill in">1 · Invite</span><span class="pill room">2 · If room</span><span class="pill">3 · No</span><span class="pill">Skip</span></div>
+          </div></div></div>
+        <figcaption>Proposed: one household at a time, with relation, cost and seats left. Tap or press 1, 2 or 3; the next one slides in.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-ideas">
+    <div class="sechead">
+      <h2 id="s-ideas">3 · Ideas to make the planner better</h2>
+      <p>None of these needs a Claude API key or any paid service. Sizes follow the release guide (XS to L). Vote on each.</p>
+    </div>
+    <div class="items" id="ideas"></div>
+  </section>
+
+  <section aria-labelledby="s-send">
+    <div class="sechead">
+      <h2 id="s-send">4 · Send your answers</h2>
+      <p>Your votes stay in this browser. Add notes, copy, and paste into the chat.</p>
+    </div>
+    <div class="answer">
+      <label for="notes"><b>Notes</b> (anything about the looks, e.g. "A but with B's header")</label>
+      <textarea id="notes"></textarea>
+      <pre id="out" aria-live="polite"></pre>
+      <button type="button" class="btn" id="copy">Copy answers</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const PEOPLE = [
+  ["Streamline", [
+    ["P1", "One-at-a-time Decide", "A focused card for each undecided household: relation, seats, local/away, what it adds to the budget, and seats left at the chosen venue. Invite / If room / No / Skip with taps or keys 1–3. Clears the 42 undecided much faster than scrolling rings.", "M"],
+    ["P2", "Fold Friends into Decide", "Friends repeats Decide's friend rings with a second vocabulary (Must invite / Want to / Nice to have). Make it a filter on Decide; keep quick-add as an Add menu item.", "S"],
+    ["P3", "Move the family tree out of the daily path", "Family is tree upkeep, not decisions. Keep it as a 'Family tree' view behind one button, and send unplaced relatives there from a Tidy-up list.", "S"],
+    ["P4", "One Tidy-up list", "Name fixes, 44 unplaced relatives, 113 guests with unknown local/away and talk-about flags are scattered banners and trays. Gather them into one counted 'Tidy up' chip that walks through each.", "S"],
+    ["P5", "One edit surface", "Household card, person sheet and relative sheet overlap. Route the couple and tree-only people into the household card too, so there is one place to edit.", "M"],
+  ]],
+  ["Visual design", [
+    ["P6", "Slim the room check on phones", "The sticky strip (venue picker, kids menu, bar, legend) covers about a third of a phone screen. Collapse it to one line, '11 in · 4 undecided · 82 seats', and expand on tap.", "XS"],
+    ["P7", "Decision as one pill", "Each row shows the decision three times: bloom icon, three-button control and row colour. Make the icon a pill that opens Invite / If room / No, so phone rows fit on one line.", "S"],
+    ["P8", "Plain seat counts", "'2', '0 + 1 kid' and '—' are hard to read. Show '2 adults · 1 kid' with small icons, and '—' as 'no one coming'.", "XS"],
+    ["P9", "Quieter ring headings", "Uppercase 22px ring titles outshout household names. Use smaller labels with a decided/total bar per ring.", "XS"],
+    ["P10", "Tuck Export and History away", "Export and History are rare. Move them into one ⋯ menu so the top row is just the views and Add.", "XS"],
+  ]],
+];
+const IDEAS = [
+  ["Decide faster", [
+    ["I1", "Cost of each household", "Show what inviting a household adds to the budget at the chosen venue (per-head food, drink, rentals), on the row and in the one-at-a-time Decide. Backlog F22.", "S"],
+    ["I2", "Mark & Angela vote separately", "Each of you votes on undecided households when signed in; the app agrees where you agree and lists only the disagreements to talk about.", "M"],
+    ["I3", "Date heatmap", "A calendar of every Saturday in both windows, coloured by venue season price, holidays, sunset time and historic Chicago weather (free Open-Meteo data, stored once).", "M"],
+    ["I4", "Guest-count slider across venues", "Drag a guest count and watch every shortlisted venue's total move, with the points where one goes over capacity or changes price tier.", "S"],
+  ]],
+  ["Money", [
+    ["I5", "Payment schedule and cash flow", "Deposits and due dates from each quote or contract, a month-by-month chart of what is due, and reminders before each payment.", "M"],
+    ["I6", "Budget vs actual", "Once something is booked, record the contract price and payments; the estimate becomes actual and the leftover shows per category.", "S"],
+    ["I7", "Vendor tracker", "Vendors with category, contact, quote, status and contract link; replaces free-text quote notes. Backlog F19.", "M"],
+  ]],
+  ["Guests", [
+    ["I8", "RSVP page for guests", "A public page with one code per household: accept or decline, meal choice, kids, song request. Answers land in the planner. Backlog F17.", "L"],
+    ["I9", "Seating chart", "Drag households onto tables. The family tree suggests a starting plan that keeps branches together; flagged pairs stay apart.", "L"],
+    ["I10", "Travel and hotel block", "For 'away' households: who needs rooms, which nights, and how full the hotel block is.", "S"],
+    ["I11", "Thank-you tracker", "After the wedding: gifts received per household and whether the card went out.", "S"],
+  ]],
+  ["Everyday use", [
+    ["I12", "Calendar feed", "Tasks, tours and payment dates as a calendar subscription (works with Google Calendar, no sign-in setup).", "S"],
+    ["I13", "Install on phone, offline reading", "Make the planner installable to the home screen and readable offline, with a reminder for tasks due this week.", "M"],
+    ["I14", "Day-of timeline", "A run-of-show from vendor arrival to last dance, shared read-only with vendors and the wedding party.", "M"],
+    ["I15", "Inspiration board", "Upload photos (florals, attire, tables) to Cloudflare storage and pin them to venues or vendors.", "M"],
+  ]],
+];
+const KEY = "wps-v9-review";
+let state = { votes: {}, look: "", notes: "" };
+try { state = Object.assign(state, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+function render(host, groups) {
+  const el = document.getElementById(host);
+  el.innerHTML = groups.map(([g, rows]) => `<div class="group"><h3>${g}</h3>${rows.map(([id, t, d, s]) => `
+    <div class="item"><span class="id">${id}</span><div><h4>${t}</h4><p>${d}</p><div class="meta"><span>Size ${s}</span></div></div>
+    <div class="vote" role="group" aria-label="Vote on ${id}">${["yes","maybe","no"].map(v => `<button type="button" data-id="${id}" data-v="${v}" aria-pressed="${state.votes[id] === v}">${v[0].toUpperCase() + v.slice(1)}</button>`).join("")}</div></div>`).join("")}</div>`).join("");
+}
+render("people", PEOPLE);
+render("ideas", IDEAS);
+
+const looks = { a: "A · Conservatory", b: "B · Jungalow Lounge", c: "C · Harper Garden" };
+document.querySelectorAll(".optwrap").forEach((w, i) => {
+  const k = "abc"[i];
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "btn"; b.dataset.look = k;
+  w.appendChild(b);
+});
+function paintLooks() {
+  document.querySelectorAll("[data-look]").forEach(b => {
+    const on = state.look === b.dataset.look;
+    b.textContent = on ? "Picked ✓" : "Pick " + looks[b.dataset.look].split(" · ")[0];
+    b.setAttribute("aria-pressed", on);
+    b.style.opacity = state.look && !on ? ".55" : "1";
+  });
+}
+function output() {
+  const lines = ["v9 review answers", "Look: " + (looks[state.look] || "not picked")];
+  for (const [label, groups] of [["People", PEOPLE], ["Ideas", IDEAS]]) {
+    const all = groups.flatMap(g => g[1]);
+    for (const v of ["yes", "maybe", "no"]) {
+      const ids = all.filter(r => state.votes[r[0]] === v).map(r => r[0]);
+      if (ids.length) lines.push(`${label} ${v}: ${ids.join(", ")}`);
+    }
+  }
+  if (state.notes.trim()) lines.push("Notes: " + state.notes.trim());
+  document.getElementById("out").textContent = lines.join("\n");
+}
+document.addEventListener("click", e => {
+  const v = e.target.closest(".vote button");
+  if (v) { const id = v.dataset.id; state.votes[id] = state.votes[id] === v.dataset.v ? undefined : v.dataset.v;
+    v.parentElement.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", state.votes[id] === b.dataset.v)); save(); output(); return; }
+  const l = e.target.closest("[data-look]");
+  if (l) { state.look = state.look === l.dataset.look ? "" : l.dataset.look; save(); paintLooks(); output(); }
+});
+const opts = document.getElementById("opts");
+const setMode = d => { opts.classList.toggle("dusk", d); document.getElementById("m-day").setAttribute("aria-pressed", !d); document.getElementById("m-dusk").setAttribute("aria-pressed", d); };
+document.getElementById("m-day").onclick = () => setMode(false);
+document.getElementById("m-dusk").onclick = () => setMode(true);
+const notes = document.getElementById("notes");
+notes.value = state.notes;
+notes.addEventListener("input", () => { state.notes = notes.value; save(); output(); });
+document.getElementById("copy").onclick = async (e) => {
+  const t = document.getElementById("out").textContent;
+  try { await navigator.clipboard.writeText(t); e.target.textContent = "Copied"; }
+  catch (err) { const r = document.createRange(); r.selectNodeContents(document.getElementById("out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); e.target.textContent = "Selected: press Ctrl+C"; }
+  setTimeout(() => e.target.textContent = "Copy answers", 2500);
+};
+paintLooks(); output();
+</script>
