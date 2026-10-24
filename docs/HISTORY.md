@@ -80,6 +80,7 @@ Newest first. Each entry: what changed and why.
 - v6 Easy people + review fixes (tag v6, 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e.
 - v5 People tab (tag v5, 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452. Rollback = check out v5, build, deploy.
 - v4 Garden (tag v4): rollback = check out v4, build, deploy (0003 columns additive; v4 ignores them).
+- v7 Conservatory look (tag v7, 7.0.0): deployed 22 Oct 2026, Worker version 66408ed9-8730-4dc2-9c89-842225e14794.
 - v7 hotfix (research line repair, commit dd4d6f1): Worker version 905d2070-023d-4dae-b1f1-b0c7b2d986d6.
 - Designs/reviews by release: DESIGN-v3/v4/v5/v7/v8/v9, REVIEW-v2/v3/v4-people/v6, v9 review (mockups/v9-review.html); mockups docs/mockups/. Looks: Twinkle garden (v4, DESIGN-v4 §6) -> Conservatory Modern (v7) -> Prairie & Steel (v8) -> Jungalow Lounge (v9, current).
 

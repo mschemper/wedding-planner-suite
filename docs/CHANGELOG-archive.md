@@ -2,6 +2,29 @@
 
 Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.md.
 
+## v7 - Conservatory garden look, hidden ancestors, adults vs kids, Add venue research (22 Oct 2026)
+
+**Deployed** 22 Oct 2026 (Worker version 66408ed9). D1 migration 0004 (add-only: `custom_venues`). Needs the Cloudflare secret `ANTHROPIC_API_KEY` for web research (without it, venues are added by hand). Theme options: docs/mockups/v7-theme-options.html; Mark picked B · Conservatory Modern. Design note: docs/DESIGN-v7.md.
+
+**Look**: Conservatory Modern — Garfield Park Conservatory + 1950s botanical prints: flat coral / blush / mustard blooms and teal stems in the header and card corners, DM Serif Display + Jost, rounded cards, teal pill tabs; day and dusk.
+
+**Family tree**
+  * Ancestors who are deceased or won't attend are never shown. Living relatives they connect are joined by a dashed line (e.g. Ada sits one level above Pat, linked through his parents).
+  * "Place by relation": "Ada is Pat's aunt / cousin / sibling / parent / niece / grandparent" — the hidden links are created for you. In the "Not placed yet" tray (By relation…) and in the person sheet.
+  * New relations: great-aunt/uncle, cousin once removed, great-grandparent (+ by marriage).
+  * Partners keep their own surnames everywhere: "Cleo Example & Dev Other", "Ada & Ben Sample".
+
+**Friends**: last names in quick add (each partner's own); "N friends have no last name" with a one-step fill from the household name (preview, Undo).
+
+**Adults vs kids**: venue capacity checks adults and kids separately (Firehouse 82 adults + 20 kids upstairs); room check, ring headers, venue cards, Today and pricing labels show the split. Kids are still priced as adults (Mark's choice).
+
+**Decide**: "Select several" → set decision, ring, kids rule or local/away for many households in one step (Undo).
+
+**Venues**: "Add venue" → name (+ city) → Claude researches the web (Opus 5.5 + web search, ~1 min) → preview with capacity, line items, sources, confidence, ≈ total → "Add as potential venue" adds it to the shortlist and a task to contact the venue. Manual entry when research is unavailable.
+
+
+_Older releases: docs/CHANGELOG-archive.md. Keep only the last two here; move the oldest at each release (docs/RELEASE.md checklist)._
+
 ## v6 - Easy people + review fixes (22 Oct 2026)
 
 **Deployed** 22 Oct 2026 (Worker version 71d3393a). No D1 migration. Review: docs/REVIEW-v6.md. Mark picked (22 Oct): ＋ menu on rows and in sheets, placement suggestions in the tray, person sheet "basics + More", calmer + denser visuals, compact Plan must-haves, 2-line phone rows.

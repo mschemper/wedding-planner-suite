@@ -1,6 +1,6 @@
 {
   "name": "wedding-planner-suite",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "Mark & Angela wedding planning suite: budget studio + guest data layer",
   "scripts": {
     "dev": "vite",

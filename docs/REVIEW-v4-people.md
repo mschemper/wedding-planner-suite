@@ -11,7 +11,7 @@ Reviewed live v4 with real data (126 people, 55 households) at 1280px; v4 code `
 P1 H. No order of importance. Decide lists 55 households A–Z: a sister sits between two cousins-in-law. Decisions follow closeness (immediate → close → extended → distant); the list ignores it.
 P2 H. Too tall to scan. Each household card is 4–7 rows (header, one row per person, kids control, Talk-about button): 55 cards ≈ 20 screens. Nothing fits in one view; no sense of progress.
 P3 H. Garden lines are noise. Parent/partner lines cross whole beds; dashed partner lines run through names and read as strikethrough. 15–18 "Set parents" links per bed shout louder than the people.
-P4 H. Workbook jargon leaks: branch titles "Lugene Schemper (Mark's father)", labels "Niece/nephew · child", "Child 1/2/3", generic "friend".
+P4 H. Workbook jargon leaks: branch titles "<name> (Mark's father)", labels "Niece/nephew · child", "Child 1/2/3", generic "friend".
 P5 M. One state shown three ways: subtitle text ("Undecided"), the segmented control, the bloom icon. Undecided = nothing lit, which reads as "not loaded".
 P6 M. Generation rows are wrong where gen came from the workbook: great-aunts and their spouses sit in "Grandparents".
 P7 M. Friends get the family treatment: same tall cards, no closeness, circle shown only as a heading ("Angela's · Friend"), ranking/tier from the workbook dropped, no "how we know them", no way to compare friends against each other.

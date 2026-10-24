@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 23 Oct 2026 (v8 shipped; v9 in progress on branch `v9`: Claude API features removed — Ask, venue research, F21 dropped).
+Last reviewed: 23 Oct 2026 (v9 shipped: Claude API features removed, Jungalow look, People review items; ideas F23–F25 queued).
 
 ---
 
@@ -51,7 +51,7 @@ Migration 0004: `vendors` (category, email domains), quote `source`, `valid_unti
 ### F20. Email inbox in the app — L (REVIEW-v6 E3)
 D1 `inbox` of proposals written via /api/write with an Access service token; daily scheduled sweep; Accept / Dismiss on Today.
 
-### F22. Data health card, per-household cost — S each (REVIEW-v6 I2, I5; bulk edit shipped v7)
+### F22. Data health card — S (REVIEW-v6 I2; per-household cost shipped v9 in one-by-one Decide; bulk edit v7)
 
 ### F23. Date heatmap — M (v9 review I3, Mark: yes)
 Every Saturday in both date windows coloured by venue season price, holidays, sunset time and historic Chicago weather (Open-Meteo archive, free, fetched once into a data file). Planned v10.

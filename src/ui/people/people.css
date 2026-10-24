@@ -83,6 +83,14 @@
   .pp-pill { padding: 4px 8px; }
 }
 @media (max-width: 400px) { .pp-pill-caret { display: none; } }
+/* small phones: seats drop under the name so names keep the width */
+@media (max-width: 459px) {
+  .pp-hrow { grid-template-columns: minmax(0, 1fr) auto 44px; }
+  .pp-hrow.has-pick { grid-template-columns: 28px minmax(0, 1fr) auto 44px; }
+  .pp-hrow > .pp-seats { grid-column: -4; grid-row: 2; max-width: none; text-align: left; margin-top: -8px; padding-bottom: 6px; color: var(--muted); }
+  .pp-hrow > :not(.pp-seats):not(.pp-hmain) { grid-row: 1 / span 2; }
+  .pp-hrow > .pp-hmain { grid-row: 1; }
+}
 
 /* v9: ring headings (quiet label + decided/total bar), friend tier sub-headings */
 .pp-prog { display: inline-flex; align-items: center; gap: 8px; }
