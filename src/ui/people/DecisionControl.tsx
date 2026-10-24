@@ -1,21 +1,19 @@
-// Shared household decision widgets: ? / bloom mark, 3-way control, kids chip menu.
+// Shared household decision widgets: ? / bloom mark, v9 decision pill, kids chip menu.
 import type { InviteCtx } from "../../people/invite";
 import type { Decision, KidsRule, Party } from "../../people/types";
 import { Bloom } from "../garden/motifs";
-import { Segmented } from "../kit/kit";
 import type { Actions } from "./actions";
-import { KIDS_RULE_TEXT, kidsResolved } from "./model";
+import { DECISION_LABEL, KIDS_RULE_TEXT, kidsResolved } from "./model";
 import { Menu } from "./Menu";
 
-type DecideOpt = Exclude<Decision, "undecided">;
-const OPTS: { value: DecideOpt; label: string; tone: "euc" | "gold" | "plain" }[] = [
-  { value: "invite", label: "Invite", tone: "euc" }, { value: "ifroom", label: "If room", tone: "gold" }, { value: "no", label: "No", tone: "plain" },
-];
+const PILL_ORDER: Decision[] = ["invite", "ifroom", "no", "undecided"];
 
-/** Tap the lit option again to return to undecided. */
-export function DecisionControl({ party, act }: { party: Party; act: Actions }) {
+/** v9: the current decision as one pill (Bloom + text) that opens a menu. Choosing the lit item is a no-op (never toggles back). */
+export function DecisionPill({ party, act }: { party: Party; act: Actions }) {
   return (
-    <Segmented label={`Invite decision for ${party.name}`} options={OPTS} value={party.invite === "undecided" ? null : party.invite} onChange={(v) => act.decide(party, v)} />
+    <Menu label={`Decision for ${party.name}: ${DECISION_LABEL[party.invite]}. Change.`} align="right" triggerClass="pp-pill"
+      trigger={<><DecisionMark state={party.invite} /><span className="pp-pill-text">{DECISION_LABEL[party.invite]}</span><span aria-hidden="true" className="pp-pill-caret">▾</span></>}
+      items={PILL_ORDER.map((d) => ({ key: d, label: DECISION_LABEL[d], checked: party.invite === d, onSelect: () => { if (party.invite !== d) act.decide(party, d); } }))} />
   );
 }
 

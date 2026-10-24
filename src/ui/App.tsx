@@ -1,7 +1,7 @@
 // Shell (DESIGN-v4 §2, §6): garden header, four tabs (top pills; bottom bar on phones), prefs + nav contexts, Undo toast.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useData } from "./data";
-import { FlagBand, Garland, LeafDivider } from "./garden/motifs";
+import { Garland, LeafDivider } from "./garden/motifs";
 import { UndoToast } from "./kit/kit";
 import { NavContext, type Nav, type Tab } from "./nav";
 import { PeopleScreen } from "./people/PeopleScreen";
@@ -67,9 +67,8 @@ export function App() {
             {prefs.theme === "dusk" ? "☾" : prefs.theme === "day" ? "☀" : "◐"}
           </button>
           <h1 className="g-title">Mark &amp; Angela</h1>
-          <div className="g-sub">Chicago · Prairie Garden · 2027</div>
+          <div className="g-sub">Chicago · 2027</div>
           <LeafDivider />
-          <FlagBand />
           <nav className="g-tabs" role="tablist" aria-label="Sections" onKeyDown={onKey}>
             {TABS.map((t) => (
               <button key={t.id} ref={(el) => { tabRefs.current[t.id] = el; }} role="tab" id={`tab-${t.id}`} aria-selected={prefs.tab === t.id}

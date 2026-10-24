@@ -10,7 +10,7 @@ Index + hard rules. Detail lives in docs/: point, never copy. Facts that change 
 5. ADHD output mode always on (ayghri/i-have-adhd @839872f, MIT). Off only on "stop adhd mode"/"normal mode", that session only. Conflict -> P0 wins (P0.1 allows >1 question). Digest, apply every reply: first line = next action or answer; numbered steps, fewest that work; end with ONE <2-min next action; restate state ("step 3 of 5 done"); specific time estimates; show what now works; no preamble/recap/closer/tangents (offer separately); errors = cause + fix, no "uh oh"; lists max 5 visible; "explain" requests run long. Full rules docs/skills/i-have-adhd/SKILL.md: read only if the digest is unclear.
 
 ## What this is
-Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + Static Assets + D1 + Access): https://wedding-planner.wedding-planner-suite.workers.dev. v8 look Prairie & Steel (docs/DESIGN-v8.md): tabs Today, Venues (shortlist, budget per venue, must-have fit, quotes), People (household invite decisions, family garden, friends, envelopes), Plan (tasks, must-haves). Budget engine prices 18 scenarios by guest count, date (venue seasons), options, quotes (source: Reconciled Master v2.0 + venue pages). Offline build = read-only budget.
+Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + Static Assets + D1 + Access): https://wedding-planner.wedding-planner-suite.workers.dev. Look: docs/STATE.md "Look". Tabs Today, Venues (shortlist, budget per venue, must-have fit, quotes), People (household invite decisions, one-by-one Decide, family tree, tidy-up, envelopes), Plan (tasks, must-haves). Budget engine prices 18 scenarios by guest count, date (venue seasons), options, quotes (source: Reconciled Master v2.0 + venue pages). Offline build = read-only budget.
 
 ## Session start (in order)
 0. Cowork only: repo not mounted -> device_request_folder_access C:\Users\msche\Documents\Projects\wedding-planner-suite.
@@ -20,7 +20,7 @@ Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + S
 4. docs/RELEASE.md -- usage-first sizing (incl. subagents) without asking Mark, then its checklist, traps, docs hygiene. Follow all.
 5. Read on demand only, not at start: docs/CODEMAP.md (files per subject; task touches unfamiliar files), docs/GIT.md (before push/bundle), docs/DEPLOY.md (deploy session), docs/CHANGELOG.md + CHANGELOG-archive.md (write at release; read only to look up a past change), docs/USAGE.md (write at release).
 6. Before changing pricing or guests: docs/DATA_MODEL.md; findings behind current code: docs/REVIEW-v3.md, docs/REVIEW-v2.md. Hosting plans: docs/PLATFORMS.md. Old rationale, old backups, release log: docs/HISTORY.md.
-7. Design/review docs are history unless the task names them. Current look = docs/DESIGN-v8.md. Others (DESIGN-v3/v4/v5/v7, REVIEW-v4-people/v6): index in docs/HISTORY.md "Release log".
+7. Design/review docs are history unless the task names them. Current look = the DESIGN doc named in docs/STATE.md "Look". Others (older DESIGN-*, REVIEW-*): index in docs/HISTORY.md "Release log".
 
 ## Architecture constraints
 - `src/engine/`, `src/people/`, `src/plan/` pure TS: no React, no I/O. UI never computes money, headcount or relationships.
@@ -45,8 +45,8 @@ Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + S
 - Time estimates to Mark: Sonnet subagent ~25-30 min each, even in parallel.
 
 ## Design rules
-- Prairie & Steel look (DESIGN-v8). Colours only as tokens in `src/ui/styles.css` `:root` (day) + dusk set; never literal colours in components. Text colours: `--ink`, `--muted`, `--*-ink` only; `tests/contrast.test.ts` gates AA.
-- Josefin Sans headings + body (DESIGN-v8 Type); 16px body, 13px floor.
+- Current look (docs/STATE.md "Look"). Colours only as tokens in `src/ui/styles.css` `:root` (day) + dusk set; never literal colours in components. Text colours: `--ink`, `--muted`, `--*-ink` only; `tests/contrast.test.ts` gates AA.
+- Fonts per the current DESIGN doc "Type"; 16px body, 13px floor.
 - Shared primitives `src/ui/kit/kit.tsx` and motifs `src/ui/garden/motifs.tsx` are lead-owned: compose, don't restyle. Screen CSS lives in the screen's own folder.
 - State never by colour alone (Bloom shapes, verdict icons + text). Touch targets >= 44px. 360px wide works; tabs become a bottom bar < 640px.
 - Every estimate shows its uncertainty: confidence %, ranges, understatement, extrapolation (≈). Unpriced venues say so.

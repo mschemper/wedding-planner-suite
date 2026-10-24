@@ -47,7 +47,7 @@ Organised by the thing you're changing, not by folder.
 | Names with different surnames, friends' last names | `src/people/names.ts` | `tests/people-v7.test.ts` |
 | Bulk edit on Decide | `src/ui/people/model.ts` `bulkEdit`, `Decide.tsx` | `tests/people-ui.test.ts` |
 | Added venues (custom_venues) | `src/data/custom.ts`, `worker/write.ts`, `src/ui/venues/AddVenue.tsx` | `tests/worker.test.ts`, `tests/engine.test.ts`, `tests/venues-ui.test.ts` |
-| Theme (Prairie & Steel, v8) | `src/ui/styles.css`, `src/ui/garden/motifs.tsx`, `index.html` | `tests/contrast.test.ts`; docs/DESIGN-v8.md |
+| Theme (Jungalow Lounge, v9) | `src/ui/styles.css`, `src/ui/garden/motifs.tsx`, `index.html` | `tests/contrast.test.ts`; docs/DESIGN-v9.md |
 | Household card (household + people in one save) | `src/ui/people/HouseholdCard.tsx`, `HouseholdPicker.tsx`; logic `src/ui/people/model.ts` `cardOps` | `tests/people-ui.test.ts` "household card" |
 | Household names follow people | `src/people/names.ts` `householdEnvelope`, `worker/write.ts` step 4b, `src/ui/people/NameTidy.tsx` | `tests/worker.test.ts` "household names", `tests/people-v7.test.ts` |
 | Quote form checks (vendor, $0 reason) | `src/ui/venues/model.ts` `quoteIssue`, `QuoteForm.tsx` | `tests/venues-ui.test.ts` |

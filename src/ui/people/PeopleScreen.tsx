@@ -1,4 +1,4 @@
-// People tab (DESIGN-v5 §3): Decide (rings) · Family (outline) · Friends (shortlist), sticky room check, Add + Export menus, History.
+// People tab (DESIGN-v5 §3): Decide (rings, friends inside) · Family (outline), sticky room check. v9 top row: views · Add · Tidy up · More (export, history).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildRings } from "../../people/rings";
 import { tierCtx } from "../../people/tier";
@@ -11,13 +11,13 @@ import { useActions } from "./actions";
 import { Decide } from "./Decide";
 import { exportJson, exportXlsx } from "./exportFiles";
 import { Family } from "./Family";
-import { Friends } from "./Friends";
 import { History } from "./History";
 import { HouseholdCard, type CardTarget } from "./HouseholdCard";
 import { HouseholdPicker } from "./HouseholdPicker";
-import { NameTidy } from "./NameTidy";
+import { QuickAddFriend } from "./QuickAddFriend";
+import { TidySheet } from "./TidyUp";
 import { Menu } from "./Menu";
-import { relationFinder, relationSummary } from "./model";
+import { relationFinder, relationSummary, tidyItems } from "./model";
 import { PersonSheet, type SheetRequest, type SheetTarget } from "./PersonSheet";
 import { RelativeSheet, type RelativeTarget } from "./RelativeSheet";
 import type { RelKind } from "../../people/relatives";
@@ -25,7 +25,7 @@ import { RoomCheck, useRoom } from "./RoomCheck";
 import "./people.css";
 
 const VIEWS: { value: PeopleView; label: string }[] = [
-  { value: "decide", label: "Decide" }, { value: "family", label: "Family" }, { value: "friends", label: "Friends" },
+  { value: "decide", label: "Decide" }, { value: "family", label: "Family" },
 ];
 
 export function PeopleScreen() {
@@ -38,6 +38,8 @@ export function PeopleScreen() {
   const [picking, setPicking] = useState(false);
   const [relT, setRelT] = useState<RelativeTarget | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [quick, setQuick] = useState(false);
+  const [tidyOpen, setTidyOpen] = useState(false);
   const [note, setNote] = useState("");
   const seq = useRef(0);
   const open = useCallback((t: SheetRequest) => setTarget({ ...t, key: String(++seq.current) } as SheetTarget), []);
@@ -51,6 +53,7 @@ export function PeopleScreen() {
   const rel = useMemo(() => relationFinder(people.people), [people.people]);
   const relOfRow = useCallback((r: Parameters<typeof relationSummary>[0]) => relationSummary(r, rel), [rel]);
   const relOfId = useCallback((id: string) => { const p = people.people.find((x) => x.id === id); return p ? rel(p) : ""; }, [people.people, rel]);
+  const tidy = useMemo(() => tidyItems(people, rings), [people, rings]);
   const room = useRoom(rings);
   const view: PeopleView = prefs.peopleView ?? "decide";
 
@@ -78,22 +81,26 @@ export function PeopleScreen() {
           <Menu label="Add" trigger={<>Add <span aria-hidden="true">▾</span></>} align="right" items={[
             { key: "h", label: "New household (family)…", onSelect: () => openCard({ partyId: null, kind: "family", side: "Mark" }) },
             { key: "f", label: "New household (friends)…", onSelect: () => openCard({ partyId: null, kind: "friend", side: "Both" }) },
+            { key: "q", label: "Quick-add a friend…", onSelect: () => setQuick(true) },
             { key: "p", label: "Someone to an existing household…", onSelect: () => setPicking(true) },
           ]} />
-          <Menu label="Export" trigger={<>Export <span aria-hidden="true">▾</span></>} align="right" items={[
+          {tidy.total > 0 && <Button onClick={() => setTidyOpen(true)}>Tidy up · {tidy.total}</Button>}
+          <Menu label="More" trigger={<>⋯ More</>} align="right" items={[
+            { key: "h-x", heading: "Export" },
             { key: "j", label: "JSON backup", onSelect: () => setNote(exportJson(people)) },
             { key: "x", label: "Spreadsheet (.xlsx)", onSelect: () => { setNote("Building spreadsheet…"); void exportXlsx(people, invite).then(setNote); } },
+            { key: "h-h", heading: "Changes" },
+            { key: "hist", label: showHistory ? "Hide history" : "History", onSelect: () => setShowHistory((x) => !x) },
           ]} />
-          <Button kind="quiet" onClick={() => setShowHistory((s) => !s)}>{showHistory ? "Hide history" : "History"}</Button>
         </div>
       </div>
       {note && <p className="small" role="status">{note}</p>}
-      <NameTidy />
       <RoomCheck room={room} act={act} />
       {showHistory && <History />}
       {view === "decide" && <Decide rings={rings} room={room} rel={relOfRow} act={act} onHousehold={openHousehold} onPerson={editPerson} />}
       {view === "family" && <Family rel={rel} act={act} onHousehold={openHousehold} onPerson={editPerson} onRelative={openRelative} />}
-      {view === "friends" && <Friends rings={rings} act={act} onHousehold={openHousehold} />}
+      {quick && <QuickAddFriend rings={rings} onClose={() => setQuick(false)} />}
+      {tidyOpen && <TidySheet tidy={tidy} people={people} act={act} onClose={() => setTidyOpen(false)} onFamily={() => set({ peopleView: "family" })} onHousehold={openHousehold} />}
       {hh && <HouseholdCard key={`h${hh.key}`} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onOpen={(id, f) => openCard({ partyId: id, focus: f })} onRelative={openRelative} />}
       {picking && <HouseholdPicker onClose={() => setPicking(false)} onPick={(id) => { setPicking(false); openCard({ partyId: id, addNew: true }); }} onNew={() => { setPicking(false); openCard({ partyId: null }); }} />}
       <PersonSheet key={target?.key ?? "none"} target={target} onClose={() => setTarget(null)} rel={rel} onRelative={openRelative} />

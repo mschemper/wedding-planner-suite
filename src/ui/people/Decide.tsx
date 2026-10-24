@@ -1,15 +1,16 @@
-// Decide view (DESIGN-v5 §3, mockup A1): one section per closeness ring, rows with a 3-way decision, room line at the fill point.
-// v7: ring headers split adults and kids; "Select several" bulk mode (decision / ring / kids rule / local-away in one edit).
+// Decide view (DESIGN-v5 §3, mockup A1): one section per closeness ring, rows with a decision pill, room line at the fill point.
+// v7: ring headers split adults and kids; "Select several" bulk mode. v9: Friends ring has tier sub-headings, progress bars, "Decide one by one".
 import { useMemo, useState, type ReactNode } from "react";
-import type { Ring } from "../../people/rings";
-import { FilterChip, Segmented, Card, EmptyState } from "../kit/kit";
+import type { Ring, RingRow } from "../../people/rings";
+import { Button, FilterChip, Segmented, Card, EmptyState } from "../kit/kit";
 import { useData } from "../data";
 import { SaveError } from "../SaveError";
 import type { Actions } from "./actions";
 import { HouseholdRow } from "./HouseholdRow";
-import { DECISION_LABEL, KIDS_RULE_TEXT, matchesRow, NO_FILTER, type RowFilter, type SideFilter } from "./model";
+import { decideQueue, DECISION_LABEL, KIDS_RULE_TEXT, matchesRow, NO_FILTER, ringProgress, type RowFilter, type SideFilter } from "./model";
+import { OneByOne } from "./OneByOne";
 import { DECISIONS, KIDS_RULES, LOCALS, type Decision, type KidsRule, type Local, type Party } from "../../people/types";
-import { FAMILY_TIER_LABEL } from "../../people/tier";
+import { FAMILY_TIER_LABEL, FRIEND_TIER_LABEL } from "../../people/tier";
 import type { Room } from "./RoomCheck";
 
 const SIDES: { value: SideFilter; label: string }[] = [
@@ -21,7 +22,12 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
 }) {
   const { invite } = useData();
   const [f, setF] = useState<RowFilter>(NO_FILTER);
-  const parties = useMemo(() => new Map(rings.map((r) => [r.key, r.rows.map((x) => x.party)])), [rings]);
+  // order lists for move up / down: a family ring, or one friend tier
+  const parties = useMemo(() => new Map(rings.flatMap((r) => r.friend
+    ? [1, 2, 3].map((t) => [`${r.key}:${t}`, r.rows.filter((x) => x.tier === t).map((x) => x.party)] as [string, Party[]])
+    : [[r.key, r.rows.map((x) => x.party)] as [string, Party[]]])), [rings]);
+  const [walk, setWalk] = useState(false);
+  const queued = useMemo(() => decideQueue(rings, f.side).length, [rings, f.side]);
   const undecidedAll = useMemo(() => rings.reduce((n, r) => n + r.undecidedRows, 0), [rings]);
   const shown = useMemo(() => rings.map((r) => ({ ring: r, rows: r.rows.filter((x) => matchesRow(x, f)) })).filter((x) => x.rows.length), [rings, f]);
   const cap = room.check?.cap;
@@ -47,6 +53,8 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
   return (
     <div className="pp-stack">
       <SaveError result={act.error} onDismiss={act.clearError} />
+      {queued > 0 && <div className="pp-walk"><Button kind="primary" onClick={() => setWalk(true)}>Decide one by one ({queued} undecided)</Button></div>}
+      {walk && <OneByOne rings={rings} side={f.side} room={room} rel={rel} act={act} onClose={() => setWalk(false)} />}
       <div className="pp-filters" role="group" aria-label="Filters">
         <FilterChip on={f.undecidedOnly} onClick={() => setF((x) => ({ ...x, undecidedOnly: !x.undecidedOnly }))} count={undecidedAll}>Undecided only</FilterChip>
         <Segmented<SideFilter> label="Side" size="sm" options={SIDES.map((s) => ({ ...s, tone: "euc" as const }))} value={f.side} onChange={(v) => setF((x) => ({ ...x, side: v }))} />
@@ -65,26 +73,42 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
         </div>
       )}
       {shown.length === 0 && <Card><EmptyState>{f.undecidedOnly && !f.q && f.side === "all" ? "Everyone is decided." : "No households match."}</EmptyState></Card>}
-      {shown.map(({ ring, rows }) => (
-        <section key={ring.key} className="pp-ring" aria-label={ring.label}>
-          <header className="pp-ring-head">
-            <h2>{ring.label}</h2>
-            <span className="pp-ring-meta">
-              {ring.rows.length} household{ring.rows.length === 1 ? "" : "s"} · {seatSplit(ring)}
-              {ring.undecidedRows > 0 && <> · <b>{ring.undecidedRows} undecided</b></>}
-            </span>
-            {ring.undecidedRows > 0 && <button type="button" className="k-btn pp-invite-all" onClick={() => act.inviteAll(ring)}>Invite all undecided</button>}
-          </header>
-          <ul className="pp-hlist">
-            {rows.map((row) => (
-              <FragmentRow key={row.party.id} line={room.fill?.party === row.party.id && cap ? `— ${room.sel?.name} fills here (${cap} ${room.kidsRoom ? "adults " : ""}seated) —` : null}>
-                <HouseholdRow row={row} relation={rel(row)} ctx={invite} act={act} ringParties={parties.get(ring.key) ?? []} onHousehold={onHousehold} onPerson={onPerson}
-                  pick={bulk ? { on: picked.has(row.party.id), toggle: () => toggle(row.party.id) } : undefined} />
-              </FragmentRow>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {shown.map(({ ring, rows }) => {
+        const prog = ringProgress(ring.rows);
+        const rowEl = (row: RingRow, key: string) => (
+          <FragmentRow key={row.party.id} line={room.fill?.party === row.party.id && cap ? `— ${room.sel?.name} fills here (${cap} ${room.kidsRoom ? "adults " : ""}seated) —` : null}>
+            <HouseholdRow row={row} relation={rel(row)} ctx={invite} act={act} ringParties={parties.get(key) ?? []} onHousehold={onHousehold} onPerson={onPerson}
+              pick={bulk ? { on: picked.has(row.party.id), toggle: () => toggle(row.party.id) } : undefined} />
+          </FragmentRow>
+        );
+        return (
+          <section key={ring.key} className="pp-ring" aria-label={ring.label}>
+            <header className="pp-ring-head">
+              <h2>{ring.label}</h2>
+              <span className="pp-prog" title={prog.text}>
+                <span className="pp-prog-bar" role="img" aria-label={prog.text}><i style={{ width: `${prog.pct}%` }} /></span>
+                <span className="pp-prog-text">{prog.text}</span>
+              </span>
+              <span className="pp-ring-meta">
+                {ring.rows.length} household{ring.rows.length === 1 ? "" : "s"} · {seatSplit(ring)}
+                {ring.undecidedRows > 0 && <> · <b>{ring.undecidedRows} undecided</b></>}
+              </span>
+              {ring.undecidedRows > 0 && <button type="button" className="k-btn pp-invite-all" onClick={() => act.inviteAll(ring)}>Invite all undecided</button>}
+            </header>
+            {ring.friend ? [1, 2, 3].map((t) => {
+              const tr = rows.filter((x) => x.tier === t);
+              if (!tr.length) return null;
+              const tp = ringProgress(ring.rows.filter((x) => x.tier === t));
+              return (
+                <div key={t} className="pp-tier" role="group" aria-label={FRIEND_TIER_LABEL[t]}>
+                  <h3 className="pp-tier-head">{FRIEND_TIER_LABEL[t]} <span className="pp-tier-count">{tp.text}</span></h3>
+                  <ul className="pp-hlist">{tr.map((row) => rowEl(row, `${ring.key}:${t}`))}</ul>
+                </div>
+              );
+            }) : <ul className="pp-hlist">{rows.map((row) => rowEl(row, ring.key))}</ul>}
+          </section>
+        );
+      })}
     </div>
   );
 }

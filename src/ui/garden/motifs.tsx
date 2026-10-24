@@ -1,186 +1,124 @@
-// Prairie & Steel motifs (DESIGN-v8): Wright leaded-glass florals + Chicago. Inline SVG, colours only via CSS tokens. Decorative ones are aria-hidden. No required animation.
+// Jungalow Lounge motifs (DESIGN-v9): split-leaf monstera, palm fronds, hydrangea heads, brass starbursts. Inline SVG,
+// colours only via CSS tokens. Decorative ones are aria-hidden. No required animation.
 import type { CSSProperties } from "react";
 
-/** Six-pointed star path (Chicago flag), centred on 0,0. */
-function starPath(R: number, r = R * 0.5): string {
-  const pts: string[] = [];
-  for (let i = 0; i < 12; i++) {
-    const rad = i % 2 === 0 ? R : r;
-    const a = (Math.PI / 6) * i - Math.PI / 2;
-    pts.push(`${(rad * Math.cos(a)).toFixed(2)} ${(rad * Math.sin(a)).toFixed(2)}`);
-  }
-  return `M${pts.join("L")}Z`;
-}
-const STAR = (R: number) => starPath(R);
+type At = { x: number; y: number; s?: number; r?: number; flip?: boolean };
+const tf = ({ x, y, s = 1, r = 0, flip }: At) => `translate(${x} ${y}) rotate(${r}) scale(${flip ? -s : s} ${s})`;
 
-const LEAD = { stroke: "var(--lead)", strokeWidth: 1.3, strokeLinejoin: "round" } as const;
-
-/** Wright-style leaded-glass tulip panel, 52 x 120 at (0,0). `petal` = centre petal token. */
-function Pane({ petal = "var(--peony)" }: { petal?: string }) {
+/** Split-leaf monstera, 100 x 100 around its own box; slits are cut in `cut` (the colour behind it). */
+function Monstera({ fill = "var(--leaf)", cut = "var(--band)", ...at }: At & { fill?: string; cut?: string }) {
   return (
-    <g {...LEAD}>
-      <rect x="1" y="1" width="50" height="118" fill="var(--lake)" fillOpacity=".4" />
-      <rect x="1" y="100" width="50" height="19" fill="var(--sage)" />
-      <polygon points="26,60 10,76 8,68 26,86" fill="var(--euc)" />
-      <polygon points="26,60 42,76 44,68 26,86" fill="var(--euc)" />
-      <path d="M26 56V119" fill="none" />
-      <polygon points="10,18 18,32 26,58 11,48" fill="var(--marigold)" />
-      <polygon points="42,18 34,32 26,58 41,48" fill="var(--marigold)" />
-      <polygon points="26,10 35,32 26,58 17,32" fill={petal} />
-      <rect x="22" y="3" width="8" height="7" fill="var(--marigold)" />
-      <path d="M1 100H51M1 32H17M35 32H51" fill="none" />
-      <rect x="1" y="1" width="50" height="118" fill="none" strokeWidth="2" />
+    <g transform={tf(at)}>
+      <path d="M50 96C22 84 3 60 7 34C11 12 36 3 50 17C64 3 89 12 93 34C97 60 78 84 50 96Z" fill={fill} />
+      <g stroke={cut} strokeWidth="4.5" strokeLinecap="round" fill="none">
+        <path d="M50 90V24M50 74L13 62M50 60L8 44M50 46L18 22M50 74L87 62M50 60L92 44M50 46L82 22" />
+      </g>
+      <ellipse cx="34" cy="52" rx="4" ry="2.4" fill={cut} />
+      <ellipse cx="66" cy="52" rx="4" ry="2.4" fill={cut} />
     </g>
   );
 }
 
-/** Cropped tulip pane (52 x 64) for card corners and mini headers. */
-function PaneHead({ petal = "var(--peony)" }: { petal?: string }) {
+/** Palm frond, 120 x 60: a curved rib with alternating leaflets. */
+function Frond({ fill = "var(--leaf-2)", ...at }: At & { fill?: string }) {
   return (
-    <g {...LEAD}>
-      <rect x="1" y="1" width="50" height="62" fill="var(--lake)" fillOpacity=".4" />
-      <polygon points="9,14 17,28 26,52 10,43" fill="var(--marigold)" />
-      <polygon points="43,14 35,28 26,52 42,43" fill="var(--marigold)" />
-      <polygon points="26,6 35,28 26,52 17,28" fill={petal} />
-      <path d="M26 52V63M1 28H17M35 28H51" fill="none" />
-      <rect x="1" y="1" width="50" height="62" fill="none" strokeWidth="2" />
+    <g transform={tf(at)} fill={fill}>
+      <path d="M4 56C40 40 80 22 116 6" stroke={fill} strokeWidth="3" fill="none" />
+      <path d="M20 49L14 30L28 44ZM36 42L32 20L44 37ZM52 35L50 12L60 30ZM68 28L68 6L76 24ZM84 21L86 2L92 18Z" />
+      <path d="M22 50L38 58L30 46ZM38 43L56 50L46 39ZM54 36L72 42L62 32ZM70 29L88 34L78 25Z" />
     </g>
   );
 }
 
-/** Marina City: a corncob tower of rounded balcony bands with a core. */
-function Cob({ x, y, h }: { x: number; y: number; h: number }) {
-  const n = Math.floor((h - 8) / 8);
+const FLORETS: [number, number, number, 0 | 1][] = [
+  [30, 40, 9, 0], [52, 28, 9, 0], [72, 42, 9, 0], [44, 60, 9, 0], [66, 66, 9, 0], [26, 64, 8, 0],
+  [40, 22, 7, 1], [62, 50, 8, 1], [48, 78, 7, 1], [78, 60, 6, 1], [20, 50, 6, 1],
+];
+/** Hydrangea head, 100 x 100: a dome of florets in two tones with pale centres. */
+function Hydrangea({ a = "var(--blush)", b = "var(--lake)", ...at }: At & { a?: string; b?: string }) {
   return (
-    <g fill="var(--skyline)">
-      <rect x={x + 5} y={y} width="14" height={h} />
-      <rect x={x + 4} y={y - 3} width="16" height="6" rx="3" />
-      {Array.from({ length: n }, (_, i) => <rect key={i} x={x} y={y + 6 + i * 8} width="24" height="5" rx="2.5" />)}
+    <g transform={tf(at)}>
+      <circle cx="50" cy="50" r="40" fill={b} opacity=".45" />
+      {FLORETS.map(([cx, cy, r, t]) => <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} fill={t ? b : a} />)}
+      {FLORETS.slice(0, 6).map(([cx, cy]) => <circle key={`c${cx}-${cy}`} cx={cx} cy={cy} r="2" fill="var(--card)" />)}
     </g>
   );
 }
 
-/** Prairie low-rise: long horizontals under a cantilevered roof. */
-function Prairie({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+/** Atomic-age starburst (brass), radius 18 around (x, y). */
+function Starburst({ x, y, s = 1 }: At) {
   return (
-    <g>
-      <rect x={x} y={y} width={w} height={h} fill="var(--skyline)" />
-      <rect x={x - 6} y={y - 4} width={w + 12} height="4" fill="var(--skyline)" />
-      <path d={`M${x + 4} ${y + 6}H${x + w - 4}`} stroke="var(--window)" strokeWidth="3" strokeDasharray="6 4" />
-    </g>
-  );
-}
-
-/** Far, paler skyline blocks. */
-function Far({ blocks }: { blocks: [number, number, number][] }) {
-  return <g fill="var(--skyline-far)">{blocks.map(([x, y, w]) => <rect key={x} x={x} y={y} width={w} height={132 - y} />)}</g>;
-}
-
-function Lake() {
-  return (
-    <g>
-      <rect x="0" y="132" width="340" height="18" fill="var(--lake)" fillOpacity=".55" />
-      <path d="M0 138H340M0 144H340" stroke="var(--card)" strokeWidth="1.4" strokeDasharray="14 10" opacity=".8" />
-      <path d="M0 132H340" stroke="var(--lead)" strokeWidth="1.3" />
+    <g transform={`translate(${x} ${y}) scale(${s})`} stroke="var(--marigold)" strokeWidth="2" strokeLinecap="round">
+      <path d="M0 -18V18M-18 0H18M-12.7 -12.7L12.7 12.7M12.7 -12.7L-12.7 12.7" />
+      <circle r="4" fill="var(--marigold)" stroke="none" />
     </g>
   );
 }
 
 /**
- * Header panorama (two flanking svgs; the centre stays clear for the title): Wright tulip panel at each outer edge,
- * Marina City + Willis Tower (left), Hancock + Water Tower (right), Prairie low-rises, lake band. Below 780px a small
- * panel + star replaces it (CSS). Static: no animation.
+ * Header jungle (two flanking svgs on the dark green band; the centre stays clear for the title): layered palm fronds,
+ * monstera leaves, a hydrangea head and brass starbursts. Below 780px a single small leaf replaces each side (CSS).
  */
 export function Garland() {
   return (<>
     <svg className="garland garland-pano garland-l" viewBox="0 0 340 150" preserveAspectRatio="xMinYMin meet" aria-hidden="true">
-      <circle cx="170" cy="64" r="24" fill="var(--marigold)" opacity=".9" />
-      <Far blocks={[[76, 92, 18], [160, 84, 16], [176, 100, 14], [264, 96, 16]]} />
-      <Cob x={98} y={40} h={92} />
-      <Cob x={126} y={52} h={80} />
-      <g fill="var(--skyline)">
-        {[[188, 88], [202, 58], [216, 30], [230, 58], [244, 88]].map(([x, y]) => <rect key={x} x={x} y={y} width="14" height={132 - y} />)}
-        <path d="M219 30V6M227 30V10" stroke="var(--skyline)" strokeWidth="1.8" />
-      </g>
-      <g fill="var(--window)">{[[220, 42], [220, 54], [206, 70], [234, 70], [192, 100], [248, 100], [220, 66]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="3" height="4" />)}</g>
-      <Prairie x={270} y={108} w={58} h={24} />
-      <Lake />
-      <g transform="translate(10 18)"><Pane /></g>
-      <path d={STAR(7)} transform="translate(86 24)" fill="var(--peony)" />
+      <Frond x={-20} y={-6} s={1.5} r={16} />
+      <Frond x={60} y={96} s={1.1} r={-28} fill="var(--leaf)" />
+      <Monstera x={-14} y={44} s={1.15} r={-22} />
+      <Monstera x={96} y={14} s={0.62} r={18} fill="var(--leaf-2)" />
+      <Hydrangea x={170} y={70} s={0.62} />
+      <Starburst x={250} y={34} s={0.9} />
+      <Starburst x={214} y={124} s={0.55} />
     </svg>
     <svg className="garland garland-pano garland-r" viewBox="0 0 340 150" preserveAspectRatio="xMaxYMin meet" aria-hidden="true">
-      <circle cx="176" cy="70" r="20" fill="var(--blush)" opacity=".75" />
-      <Far blocks={[[160, 88, 16], [206, 100, 16], [100, 90, 14]]} />
-      <g fill="var(--skyline)">
-        <polygon points="96,132 146,132 136,24 106,24" />
-        <path d="M114 24V4M128 24V8" stroke="var(--skyline)" strokeWidth="1.8" />
-      </g>
-      <g stroke="var(--window)" strokeWidth="1.5" fill="none" opacity=".85">
-        <path d="M103 118L139 90M139 118L103 90M108 82L134 56M134 82L108 56M112 48L130 32M130 48L112 32" />
-      </g>
-      <g fill="var(--skyline)">
-        <rect x="178" y="96" width="22" height="36" />
-        <path d="M176 96V89h4v3h4v-3h4v3h4v-3h4v3h4v-3h4v7Z" />
-        <polygon points="183,89 189,74 195,89" />
-      </g>
-      <g fill="var(--window)">{[[184, 104], [192, 104], [184, 114], [192, 114]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="3" height="5" />)}</g>
-      <Prairie x={10} y={106} w={60} h={26} />
-      <path d={STAR(8)} transform="translate(84 40)" fill="var(--peony)" />
-      <Lake />
-      <g transform="translate(278 18)"><Pane petal="var(--blush)" /></g>
+      <Frond x={360} y={-6} s={1.5} r={-16} flip />
+      <Frond x={280} y={96} s={1.1} r={28} flip fill="var(--leaf)" />
+      <Monstera x={354} y={44} s={1.15} r={22} flip />
+      <Monstera x={244} y={14} s={0.62} r={-18} flip fill="var(--leaf-2)" />
+      <Hydrangea x={110} y={66} s={0.7} a="var(--lake)" b="var(--blush)" />
+      <Starburst x={88} y={30} s={0.9} />
+      <Starburst x={136} y={130} s={0.55} />
     </svg>
     <svg className="garland garland-mini garland-l" viewBox="0 0 44 70" aria-hidden="true">
-      <g transform="translate(1 0) scale(.8)"><PaneHead /></g>
-      <path d={STAR(7)} transform="translate(22 61)" fill="var(--peony)" />
+      <Monstera x={2} y={14} s={0.4} r={-16} />
+      <Starburst x={34} y={58} s={0.4} />
     </svg>
     <svg className="garland garland-mini garland-r" viewBox="0 0 44 70" aria-hidden="true">
-      <g transform="translate(1 0) scale(.8)"><PaneHead petal="var(--blush)" /></g>
-      <path d={STAR(7)} transform="translate(22 61)" fill="var(--peony)" />
+      <Hydrangea x={2} y={10} s={0.42} />
+      <Starburst x={10} y={60} s={0.4} />
     </svg>
   </>);
 }
 
-/** Small art-glass tulip panel, for card corners. */
+/** Small monstera leaf for card corners (slits cut in the card colour). */
 export function Corner({ style }: { style?: CSSProperties }) {
   return (
-    <svg className="corner" viewBox="0 0 52 64" aria-hidden="true" style={style}>
-      <PaneHead />
+    <svg className="corner" viewBox="0 0 100 100" aria-hidden="true" style={style}>
+      <Monstera x={0} y={0} cut="var(--card)" />
     </svg>
   );
 }
 
-/** Prairie banding: double rule with end blocks and a red six-pointed Chicago star in the middle. */
+/** Divider under the title: brass rules either side of a starburst and two small leaves. */
 export function LeafDivider() {
   return (
     <svg className="leaf-divider" viewBox="0 0 200 14" aria-hidden="true">
-      <g stroke="var(--muted)" strokeWidth="1.2"><path d="M0 4.5H82M0 9.5H82M118 4.5H200M118 9.5H200" /></g>
-      <g fill="var(--marigold)"><rect x="0" y="3" width="6" height="8" /><rect x="194" y="3" width="6" height="8" /></g>
-      <rect x="84" y="3" width="4" height="8" fill="var(--euc)" /><rect x="112" y="3" width="4" height="8" fill="var(--euc)" />
-      <path d={STAR(7.5)} transform="translate(100 7)" fill="var(--peony)" />
+      <path d="M0 7H80M120 7H200" stroke="var(--marigold)" strokeWidth="1.4" />
+      <path d="M84 7C88 2 94 2 96 7C94 12 88 12 84 7Z" fill="var(--sage)" />
+      <path d="M116 7C112 2 106 2 104 7C106 12 112 12 116 7Z" fill="var(--sage)" />
+      <Starburst x={100} y={7} s={0.34} />
     </svg>
   );
 }
 
-/** Chicago flag band: two light-blue stripes, red six-pointed stars between. */
-export function FlagBand() {
-  return (
-    <svg className="flag-band" viewBox="0 0 240 16" aria-hidden="true">
-      <rect x="0" y="1" width="240" height="4" fill="var(--lake)" />
-      <rect x="0" y="11" width="240" height="4" fill="var(--lake)" />
-      {[66, 102, 138, 174].map((x) => <path key={x} d={STAR(4.6)} transform={`translate(${x} 8)`} fill="var(--peony)" />)}
-    </svg>
-  );
-}
-
-/** Geometric stem with two leaf triangles and a diamond bloom; `hue` picks the bloom colour token. */
+/** Hydrangea sprig: stem, two leaves and a floret head; `hue` picks the head's main token. */
 export function Sprig({ hue = "blush" }: { hue?: "blush" | "marigold" | "sage" | "peony" }) {
   return (
     <svg className="sprig" viewBox="0 0 40 40" aria-hidden="true">
-      <path d="M10 38C14 28 20 20 28 12" stroke="var(--euc)" fill="none" strokeWidth="2" strokeLinecap="square" />
-      <polygon points="15,28 6,24 10,32" fill="var(--sage)" />
-      <polygon points="21,21 22,11 29,19" fill="var(--sage)" />
-      <polygon points="30,3 37,10 30,17 23,10" fill={`var(--${hue})`} stroke="var(--lead)" strokeWidth="1" />
-      <rect x="28" y="8" width="4" height="4" fill="var(--marigold)" />
+      <path d="M12 38C14 30 18 24 24 18" stroke="var(--leaf)" fill="none" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30C8 30 5 26 5 22C11 22 14 25 15 30Z" fill="var(--sage)" />
+      <path d="M19 25C20 18 24 16 28 16C27 22 24 24 19 25Z" fill="var(--sage)" />
+      <Hydrangea x={16} y={0} s={0.24} a={`var(--${hue})`} b="var(--lake)" />
     </svg>
   );
 }
@@ -193,8 +131,9 @@ const BLOOM_LABEL: Record<BloomState, string> = {
 export const bloomLabel = (s: BloomState) => BLOOM_LABEL[s];
 
 /**
- * A person's art-glass flower: tulip = invited, narrow bud = if room, dashed diamond = undecided, leaf = not inviting,
- * outlined tulip = deceased, stem + square = placeholder, twin tulips = couple. Shape + colour, never colour alone.
+ * A person's plant: open monstera leaf = invited, hydrangea bud = if room, dashed circle = undecided, fallen leaf with a
+ * stroke = not inviting, outlined leaf = deceased, stem + square = placeholder, two hydrangea heads = couple.
+ * Shape + colour, never colour alone.
  */
 export function Bloom({ state, size = 22, title }: { state: BloomState; size?: number; title?: string }) {
   const label = title ?? BLOOM_LABEL[state];
@@ -202,36 +141,34 @@ export function Bloom({ state, size = 22, title }: { state: BloomState; size?: n
     <svg className={`bloom bloom-${state}`} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={label}>
       <title>{label}</title>
       {state === "invite" && (<>
-        <path d="M12 23V14" stroke="var(--euc)" strokeWidth="2" />
-        <polygon points="4,5 8,10 12,16 5,13" fill="var(--marigold)" />
-        <polygon points="20,5 16,10 12,16 19,13" fill="var(--marigold)" />
-        <polygon points="12,1 17,10 12,17 7,10" fill="var(--peony)" />
+        <path d="M12 23C5.5 20 1.5 14.5 2.5 8.5C3.5 3.5 9 2 12 5C15 2 20.5 3.5 21.5 8.5C22.5 14.5 18.5 20 12 23Z" fill="var(--leaf)" />
+        <path d="M12 21V7M12 17L4 14M12 13.5L3.5 10M12 10L6 5.5M12 17L20 14M12 13.5L20.5 10M12 10L18 5.5" stroke="var(--card)" strokeWidth="1.2" strokeLinecap="round" />
       </>)}
       {state === "couple" && (<>
-        <path d="M7 15V22M17 15V22M7 22H17" stroke="var(--euc)" strokeWidth="1.8" fill="none" />
-        <polygon points="7,2 11.5,9 7,16 2.5,9" fill="var(--blush)" />
-        <polygon points="17,2 21.5,9 17,16 12.5,9" fill="var(--peony)" />
+        <path d="M7 14V22M17 14V22M7 22H17" stroke="var(--leaf)" strokeWidth="1.8" fill="none" />
+        {[[5, 6], [9, 6], [7, 9.5], [7, 2.5]].map(([x, y]) => <circle key={`a${x}${y}`} cx={x} cy={y} r="2.6" fill="var(--blush)" />)}
+        {[[15, 6], [19, 6], [17, 9.5], [17, 2.5]].map(([x, y]) => <circle key={`b${x}${y}`} cx={x} cy={y} r="2.6" fill="var(--lake)" />)}
         <rect x="10.5" y="17" width="3" height="3" fill="var(--marigold)" />
       </>)}
       {state === "ifroom" && (<>
-        <path d="M12 23V13" stroke="var(--euc)" strokeWidth="1.8" />
-        <polygon points="12,2 15.5,8 12,14 8.5,8" fill="var(--marigold)" stroke="var(--lead)" strokeWidth="1" />
-        <polygon points="12,20 5,15 12,16" fill="var(--sage)" />
+        <path d="M12 23V12" stroke="var(--leaf)" strokeWidth="1.8" />
+        <path d="M12 18C7 18 5 15.5 5 13C9 13 11.5 15 12 18Z" fill="var(--sage)" />
+        {[[12, 4.5], [9, 8], [15, 8], [12, 10.5]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="3" fill="var(--marigold)" stroke="var(--ink)" strokeWidth=".6" />)}
       </>)}
       {state === "undecided" && (<>
-        <polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="var(--euc)" strokeWidth="1.8" strokeDasharray="3 2.4" />
-        <rect x="10.2" y="10.2" width="3.6" height="3.6" fill="var(--euc)" />
+        <circle cx="12" cy="12" r="9" fill="none" stroke="var(--leaf)" strokeWidth="1.8" strokeDasharray="3 2.4" />
+        <circle cx="12" cy="12" r="2.4" fill="var(--leaf)" />
       </>)}
-      {state === "no" && <path d="M4 20V11L12 4H20V12L13 20ZM4 20L16 8" fill="var(--sage)" stroke="var(--euc)" strokeWidth="1.4" strokeLinejoin="round" />}
-      {state === "deceased" && (<>
-        <path d="M12 23V16" stroke="var(--muted)" strokeWidth="1.2" />
-        <polygon points="4,5 8,10 12,16 5,13" fill="none" stroke="var(--muted)" strokeWidth="1.2" strokeLinejoin="round" />
-        <polygon points="20,5 16,10 12,16 19,13" fill="none" stroke="var(--muted)" strokeWidth="1.2" strokeLinejoin="round" />
-        <polygon points="12,1 17,10 12,17 7,10" fill="none" stroke="var(--muted)" strokeWidth="1.2" strokeLinejoin="round" />
+      {state === "no" && (<>
+        <path d="M4 20C4 12 9 5 20 4C20 14 13 20 4 20Z" fill="var(--sage)" stroke="var(--leaf)" strokeWidth="1.3" strokeLinejoin="round" />
+        <path d="M4 20L16 8" stroke="var(--leaf)" strokeWidth="1.3" />
       </>)}
+      {state === "deceased" && (
+        <path d="M12 23C5.5 20 1.5 14.5 2.5 8.5C3.5 3.5 9 2 12 5C15 2 20.5 3.5 21.5 8.5C22.5 14.5 18.5 20 12 23ZM12 21V7" fill="none" stroke="var(--muted)" strokeWidth="1.2" strokeLinejoin="round" />
+      )}
       {state === "placeholder" && (<>
-        <path d="M12 22V11" stroke="var(--euc)" strokeWidth="1.8" />
-        <rect x="8.5" y="5" width="7" height="7" fill="var(--euc)" />
+        <path d="M12 22V11" stroke="var(--leaf)" strokeWidth="1.8" />
+        <rect x="8.5" y="5" width="7" height="7" fill="var(--leaf)" />
       </>)}
     </svg>
   );

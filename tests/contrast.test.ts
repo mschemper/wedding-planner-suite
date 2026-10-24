@@ -1,4 +1,4 @@
-// WCAG contrast gate for the Prairie & Steel tokens (DESIGN-v8): text tokens on ground + card, day and dusk (night skyline).
+// WCAG contrast gate for the Jungalow Lounge tokens (DESIGN-v9): text tokens on ground + card, day and dusk; header text on the band.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -37,5 +37,8 @@ describe("contrast (WCAG AA 4.5:1 for text)", () => {
         expect(ratio(t[fg], t[bg])).toBeGreaterThanOrEqual(4.5);
       });
     }
+    it(`${name}: --on-band on --band (header title)`, () => {
+      expect(ratio(t["on-band"], t.band)).toBeGreaterThanOrEqual(4.5);
+    });
   }
 });

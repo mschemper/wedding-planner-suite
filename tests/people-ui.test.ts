@@ -70,10 +70,12 @@ describe("rings: filters and row text", () => {
     expect(hasKids({ party: party("H-A1"), members: [] })).toBe(false);
     expect(hasKids({ party: { ...party("H-A1"), unnamed_kids: 2 }, members: [] })).toBe(true);
     const seats = (a: number, k: number) => seatsText({ seats: { heads: a + k, adults: a, kids: k, expected: 0 } });
-    expect(seats(2, 3)).toBe("2 + 3 kids");
-    expect(seats(2, 1)).toBe("2 + 1 kid");
-    expect(seats(2, 0)).toBe("2");
-    expect(seats(0, 0)).toBe("—");
+    expect(seats(2, 3)).toBe("2 adults · 3 kids");
+    expect(seats(2, 1)).toBe("2 adults · 1 kid");
+    expect(seats(2, 0)).toBe("2 adults");
+    expect(seats(1, 0)).toBe("1 adult");
+    expect(seats(0, 1)).toBe("1 kid");
+    expect(seats(0, 0)).toBe("no one coming");
   });
 });
 
@@ -192,10 +194,10 @@ describe("prefs migration", () => {
     (globalThis as unknown as { localStorage: unknown }).localStorage = { getItem: () => JSON.stringify({ peopleView: v }), setItem: () => undefined };
     try { return loadPrefs().peopleView; } finally { delete (globalThis as unknown as { localStorage?: unknown }).localStorage; }
   };
-  it("garden to family, envelopes to decide, junk to null", () => {
+  it("garden to family, envelopes and friends to decide, junk to null", () => {
     expect(withStore("garden")).toBe("family");
     expect(withStore("envelopes")).toBe("decide");
-    expect(withStore("friends")).toBe("friends");
+    expect(withStore("friends")).toBe("decide");
     expect(withStore("nope")).toBeNull();
   });
 });

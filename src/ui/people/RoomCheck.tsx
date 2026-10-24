@@ -1,5 +1,6 @@
 // Room check (DESIGN-v5 §3 D): sticky strip. Venue, stacked bar (in / if room / undecided) with the cap line, counts, ≈ cost, kids setting.
-import { useMemo } from "react";
+// v9: under 640px it collapses to one line ("11 in · 4 undecided · 82 seats") that expands to the full strip.
+import { useId, useMemo, useState } from "react";
 import type { Scenario } from "../../engine/types";
 import { fillPoint, type Ring } from "../../people/rings";
 import { KIDS_POLICIES, type KidsPolicy } from "../../people/types";
@@ -9,7 +10,7 @@ import { money } from "../format";
 import { usePrefs } from "../usePrefs";
 import type { Actions } from "./actions";
 import { Menu } from "./Menu";
-import { capacityScenarios, pickVenue, POLICY_LABEL, roomCheck, type RoomCheck as Check } from "./model";
+import { capacityScenarios, pickVenue, POLICY_LABEL, roomCheck, roomLine, type RoomCheck as Check } from "./model";
 
 export interface Room {
   list: Scenario[];
@@ -42,6 +43,8 @@ const KIDS_SHORT: Record<KidsPolicy, string> = { ours: "ours only", family: "fam
 export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
   const { settings } = useData();
   const { sel, check: c, list } = room;
+  const [open, setOpen] = useState(false);
+  const bodyId = useId();
   if (!sel || !c) return null;
   const pct = (n: number) => `${(n / c.scale) * 100}%`;
   const total = c.invited + c.ifroom + c.undecided;
@@ -50,6 +53,10 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
   const summary = `${c.invited} ${who} invited, ${c.ifroom} if room, ${c.undecided} undecided, of ${c.cap} seats`;
   return (
     <section className="pp-room" aria-label="Room check">
+      <button type="button" className={`pp-room-slim${c.over > 0 ? " is-over" : ""}`} aria-expanded={open} aria-controls={bodyId} onClick={() => setOpen((o) => !o)}>
+        <span>{roomLine(c)}</span><span aria-hidden="true" className="pp-room-caret">{open ? "▴" : "▾"}</span>
+      </button>
+      <div className={`pp-room-body${open ? " is-open" : ""}`} id={bodyId}>
       <label className="pp-venue"><span className="sr-only">Venue for the room check</span>
         <select value={sel.id} onChange={(e) => room.setVenue(Number(e.target.value))}>{list.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
       </label>
@@ -76,6 +83,7 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
           { key: "h", heading: "Which kids come (each household can override)" },
           ...KIDS_POLICIES.map((v: KidsPolicy) => ({ key: v, label: POLICY_LABEL[v], checked: settings.kidsPolicy === v, onSelect: () => act.policy(v) })),
         ]} />
+      </div>
     </section>
   );
 }

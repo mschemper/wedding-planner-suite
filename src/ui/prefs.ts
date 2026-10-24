@@ -3,7 +3,7 @@ import type { Tab } from "./nav";
 // Per-viewer conveniences only (DESIGN-v4 §2 "Prefs"). Storage can be missing or throw (private mode, file://): always fall back.
 /** considered = expected if every undecided / if-room household is invited too (default while deciding) */
 export type GuestBasis = "considered" | "expected" | "ceiling" | "custom";
-export type PeopleView = "decide" | "family" | "friends";
+export type PeopleView = "decide" | "family";
 
 export interface Prefs {
   tab: Tab;
@@ -29,11 +29,12 @@ export const DEFAULT_PREFS: Prefs = {
   tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto",
 };
 
-/** v4 values: garden → family, envelopes → decide. */
+/** v4 values: garden → family, envelopes → decide. v9: the Friends view folded into Decide. */
 function migrateView(v: unknown): PeopleView | null {
   if (v === "garden") return "family";
   if (v === "envelopes") return "decide";
-  return v === "decide" || v === "family" || v === "friends" ? v : null;
+  if (v === "friends") return "decide";
+  return v === "decide" || v === "family" ? v : null;
 }
 
 const TABS: Tab[] = ["today", "venues", "people", "plan"];

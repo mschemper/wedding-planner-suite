@@ -215,9 +215,6 @@ export function Family({ rel, act, onHousehold, onPerson, onRelative }: {
   return (
     <div className="pp-stack">
       <SaveError result={act.error} onDismiss={act.clearError} />
-      {outline.unplacedTotal > 0 && (
-        <p className="pp-note" role="status"><b>{plural(outline.unplacedTotal, "relative")}</b> not placed in the tree yet. Each branch lists them at the bottom with a guess.</p>
-      )}
       {sides.length === 0 && <Card><EmptyState>No family added yet. Use "Add".</EmptyState></Card>}
       {sides.map(({ side, branches }) => (
         <section key={side} className="pp-side" aria-label={`${side}'s family`}>

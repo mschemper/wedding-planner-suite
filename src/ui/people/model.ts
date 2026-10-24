@@ -5,7 +5,8 @@ import { cutoff, type Headcount } from "../../people/headcount";
 import { effectiveInvite, heads, kidsIn, type InviteCtx } from "../../people/invite";
 import { anchorFor, graph, relationRoot, relationText, type Relation } from "../../people/kin";
 import type { Ring, RingRow } from "../../people/rings";
-import { householdEnvelope, lastNamesFromHousehold, pairName } from "../../people/names";
+import { householdEnvelope, lastNamesFromHousehold, nameFixes, pairName, type NameFix } from "../../people/names";
+import { buildOutline } from "../../people/outline";
 import { genFromLinks } from "../../people/relatives";
 import { tierLabel } from "../../people/tier";
 import {
@@ -13,6 +14,7 @@ import {
 } from "../../people/types";
 import type { VenueRow } from "../../plan/types";
 import type { Patch } from "../data";
+import { money } from "../format";
 import type { BloomState } from "../garden/motifs";
 
 // ---------- decisions ----------
@@ -328,12 +330,14 @@ export function relationSummary(r: Pick<RingRow, "members" | "party" | "friend">
 export const hasKids = (r: Pick<RingRow, "members" | "party">) =>
   (r.party.unnamed_kids ?? 0) > 0 || r.members.some((m) => m.age === "child" && !m.deceased && !m.placeholder);
 
-/** "2 + 3 kids", "2", "—" when nobody comes. */
+/** v9 plain words: "2 adults", "2 adults · 1 kid", "1 kid", "no one coming". */
 export function seatsText(r: Pick<RingRow, "seats">): string {
   const a = r.seats.adults;
   const k = r.seats.kids;
-  if (!a && !k) return "—";
-  return k ? `${a} + ${k} kid${k === 1 ? "" : "s"}` : String(a);
+  if (!a && !k) return "no one coming";
+  const adults = a ? `${a} adult${a === 1 ? "" : "s"}` : "";
+  const kids = k ? `${k} kid${k === 1 ? "" : "s"}` : "";
+  return [adults, kids].filter(Boolean).join(" · ");
 }
 
 export const KIDS_RULE_TEXT: Record<KidsRule, string> = { policy: "Follow policy", in: "Kids in", out: "Kids out" };
@@ -580,4 +584,73 @@ export function blankCardPerson(key: string, peers: Person[], fallback: { side: 
   const peer = peers.find((p) => !p.placeholder && !p.deceased);
   const kind = peer ? (peer.kind === "friend" ? "friend" : "family") : fallback.kind;
   return { key, draft: draftFrom({ side: peer?.side ?? fallback.side, kind, branch: peer?.branch ?? null, last: peer?.last ?? null, local: peer?.local ?? "unknown" }) };
+}
+
+// ---------- v9: decide one by one, ring progress, room line, tidy up ----------
+/** Undecided households in ring order (family rings, then friends by tier), respecting the side filter. Snapshot it when the walk starts. */
+export function decideQueue(rings: Ring[], side: SideFilter): RingRow[] {
+  const f: RowFilter = { undecidedOnly: true, side, q: "" };
+  return rings.flatMap((r) => r.rows.filter((x) => matchesRow(x, f)));
+}
+
+/** Main-room seats a household takes (adults, plus kids when the venue has no kids' room). */
+export const mainSeats = (r: Pick<RingRow, "seats">, kidsRoom: boolean) => r.seats.adults + (kidsRoom ? 0 : r.seats.kids);
+
+/** Seats left at the room-check venue if this household is invited (others invited stay counted); negative = over. */
+export function seatsLeftAfter(c: Pick<RoomCheck, "cap" | "invited">, r: Pick<RingRow, "seats" | "party">, kidsRoom: boolean): number {
+  const mine = mainSeats(r, kidsRoom);
+  const others = c.invited - (r.party.invite === "invite" ? mine : 0);
+  return c.cap - others - mine;
+}
+
+/** "≈ $1,234" or "awaiting rates" (null = unpriced or the venue cannot host). The engine prices it; this only words it. */
+export const costText = (c: { amount: number } | null): string => (c ? `≈ ${money(c.amount)}` : "awaiting rates");
+
+/** Decided / total for a ring (or a friend tier): "4 of 5 decided". */
+export function ringProgress(rows: Pick<RingRow, "party">[]): { decided: number; total: number; pct: number; text: string } {
+  const total = rows.length;
+  const decided = rows.filter((x) => x.party.invite !== "undecided").length;
+  return { decided, total, pct: total ? Math.round((decided / total) * 100) : 0, text: `${decided} of ${total} decided` };
+}
+
+/** Phone room-check line: "11 in · 4 undecided · 82 seats" (+ " · over by 3"). */
+export function roomLine(c: Pick<RoomCheck, "invited" | "undecided" | "cap" | "over">): string {
+  return `${c.invited} in · ${c.undecided} undecided · ${c.cap} seats${c.over > 0 ? ` · over by ${c.over}` : ""}`;
+}
+
+/** Households whose living, named people are all locality "unknown" (acceptance falls back to the default). */
+export function unknownLocalRows(rows: RingRow[]): RingRow[] {
+  return rows.filter((r) => {
+    const m = r.members.filter((p) => !p.deceased && !p.placeholder);
+    return m.length > 0 && m.every((p) => p.local === "unknown");
+  });
+}
+
+/** The local / away value a household shows: set when every living member agrees, else null. */
+export function householdLocal(r: Pick<RingRow, "members">): "local" | "away" | null {
+  const m = r.members.filter((p) => !p.deceased && !p.placeholder);
+  if (!m.length) return null;
+  if (m.every((p) => p.local === "local")) return "local";
+  if (m.every((p) => p.local === "away")) return "away";
+  return null;
+}
+
+export interface Tidy {
+  names: NameFix[];
+  unplaced: number;
+  unknownLocal: RingRow[];
+  talk: RingRow[];
+  /** friends with no last name (v7 fix, moved here from the Friends view) */
+  lastNames: number;
+  total: number;
+}
+/** Everything the one Tidy-up list holds. N = name fixes + unplaced relatives + unknown-locality households + talk-about households (+ friends missing a last name). */
+export function tidyItems(d: PeopleData, rings: Ring[]): Tidy {
+  const rows = rings.flatMap((r) => r.rows);
+  const names = nameFixes(d);
+  const unplaced = buildOutline(d).unplacedTotal;
+  const unknownLocal = unknownLocalRows(rows);
+  const talk = rows.filter((r) => r.party.talk);
+  const lastNames = d.people.filter((p) => p.kind === "friend" && !p.placeholder && !p.last?.trim()).length;
+  return { names, unplaced, unknownLocal, talk, lastNames, total: names.length + unplaced + unknownLocal.length + talk.length + lastNames };
 }
