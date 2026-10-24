@@ -2,7 +2,7 @@
 
 ## v9 - Jungalow Lounge look, one-by-one Decide, Tidy up; Claude API features removed (23 Oct 2026)
 
-**Not deployed.** No D1 migration. No secrets needed: if `ANTHROPIC_API_KEY` was ever set, `npx wrangler secret delete ANTHROPIC_API_KEY`. Review page (looks, People fixes, ideas): docs/mockups/v9-review.html; Mark picked B · Jungalow Lounge. Design note: docs/DESIGN-v9.md.
+**Deployed** 23 Oct 2026 (Worker version 95a4afda). No D1 migration. `ANTHROPIC_API_KEY` secret deleted. Review page (looks, People fixes, ideas): docs/mockups/v9-review.html; Mark picked B · Jungalow Lounge. Design note: docs/DESIGN-v9.md.
 
 **Removed**: Ask the planner (v8) and Add venue web research (v7), the `/api/ask` and `/api/research` routes and the `@anthropic-ai/sdk` dependency. Add venue opens straight to the by-hand form; venues researched earlier keep their "Researched" tag.
 

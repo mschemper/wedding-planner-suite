@@ -3,13 +3,13 @@
 Read after AGENTS.md. Only what is true now. Open work -> BACKLOG.md. Past releases, old backups, seed-time numbers -> HISTORY.md "Release log". Files per subject -> CODEMAP.md.
 Keep: current + previous release rows only, latest backup only, no history. `tests/docs.test.ts` gates size and version.
 
-Last updated: 23 October 2026 (v9 built, not deployed; v8 live).
+Last updated: 23 October 2026 (v9 deployed).
 
 ## Version
 
 | | |
 |---|---|
-| Current | **v9** (tag `v9`, package.json 9.0.0): Jungalow Lounge look, one-by-one Decide, Tidy up, Friends in Decide; Ask the planner + venue web research removed (no API key). **Not deployed** (branch `v9`, pushed); no migration. Deploy: docs/DEPLOY.md |
+| Current | **v9** (tag `v9`, package.json 9.0.0): Jungalow Lounge look, one-by-one Decide, Tidy up, Friends in Decide; Ask the planner + venue web research removed. Deployed 23 Oct 2026 (24 Oct UTC), Worker version 95a4afda-912a-4df1-bdc1-4aa0dcde5659 at 100% (deploy 85df9351, then `ANTHROPIC_API_KEY` secret deleted); no migration; unauthenticated `/`, `/api/version` → Access login (verified); signed-in `/api/version` = 9.0.0 not checked |
 | Previous | **v8** (tag `v8`, 8.0.0), deployed 23 Oct 2026, Worker version 13029a97-51d7-4ada-b654-15a29db6458a; migration 0005 applied. Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Look | Jungalow Lounge (docs/DESIGN-v9.md). Older looks and designs: HISTORY.md |
@@ -58,7 +58,7 @@ Live, 22 Oct 2026 evening (REVIEW-v6 §2): 121 people, 56 households; decisions 
 
 - Cloudflare Workers + Static Assets + D1 + Access, account `mschemper@gmail.com` (ID 57b28195dc1564bee550b665117db76c). Access team `sukursschemper.cloudflareaccess.com`, one-time PIN, allowed: Mark + Angela. D1 `wedding-planner` id 87b1c95c-7e87-4307-98a3-cac03d0a3937 (ENAM).
 - Migrations applied: 0001–0005 (0005 on 23 Oct 2026). v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
-- Latest backup (before v8): `data/private/d1-backup-v7.sql` (23 Oct 2026). Older backups + bookmarks: HISTORY.md.
+- Latest backup (before v9): `data/private/d1-backup-v8.sql` (23 Oct 2026, 537 rows). Older backups + bookmarks: HISTORY.md.
 - Deploy, rollback, re-seed: docs/DEPLOY.md.
 
 ## Standing preferences (Mark)

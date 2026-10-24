@@ -85,7 +85,7 @@ Newest first. Each entry: what changed and why.
 - Designs/reviews by release: DESIGN-v3/v4/v5/v7/v8/v9, REVIEW-v2/v3/v4-people/v6, v9 review (mockups/v9-review.html); mockups docs/mockups/. Looks: Twinkle garden (v4, DESIGN-v4 §6) -> Conservatory Modern (v7) -> Prairie & Steel (v8) -> Jungalow Lounge (v9, current).
 
 ## Backups (moved from STATE.md)
-- Before v8: data/private/d1-backup-v7.sql (23 Oct 2026). Before v7: d1-backup-v6.sql (22 Oct). Before v6: d1-backup-v5.sql (22 Oct). Before v5: d1-backup-v4.sql (7 in-app edits); Time Travel bookmark before 0003: 0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8. Before v4: d1-backup-v3.sql; bookmark before 0002: 00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a.
+- Before v9: data/private/d1-backup-v8.sql (23 Oct 2026). Before v8: data/private/d1-backup-v7.sql (23 Oct 2026). Before v7: d1-backup-v6.sql (22 Oct). Before v6: d1-backup-v5.sql (22 Oct). Before v5: d1-backup-v4.sql (7 in-app edits); Time Travel bookmark before 0003: 0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8. Before v4: d1-backup-v3.sql; bookmark before 0002: 00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a.
 - Friend tiers set on live from the workbook InviteTier (A→Must, B→Want, C→Nice to have), 22 Oct 2026.
 
 ## Guest data at seed, 22 Oct 2026 (moved from STATE.md)
