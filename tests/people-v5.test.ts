@@ -85,11 +85,11 @@ describe("outline", () => {
 
 describe("branch names", () => {
   it("friendly default + stored override", () => {
-    expect(defaultBranchName("Lugene Schemper (Mark's father)")).toBe("Mark's dad's side");
+    expect(defaultBranchName("Pat Example (Mark's father)")).toBe("Mark's dad's side");
     expect(defaultBranchName("Sara Nottingham (Angela's mother)")).toBe("Angela's mom's side");
     expect(defaultBranchName("Other")).toBe("Other");
-    const s = mergeSettings([{ key: "branchNames", value: { "X (Mark's father)": "Schemper side" } }]);
-    expect(branchName(s, "X (Mark's father)")).toBe("Schemper side");
+    const s = mergeSettings([{ key: "branchNames", value: { "X (Mark's father)": "Example side" } }]);
+    expect(branchName(s, "X (Mark's father)")).toBe("Example side");
     expect(branchName(DEFAULT_SETTINGS, null)).toBe("Other");
   });
 });

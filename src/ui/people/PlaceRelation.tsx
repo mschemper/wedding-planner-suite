@@ -1,4 +1,4 @@
-// "Fran is Lugene's aunt" (v7): link a relative to someone already in the tree by relation. Ancestors who aren't coming
+// "Ada is Pat's aunt" (v7): link a relative to someone already in the tree by relation. Ancestors who aren't coming
 // (deceased / tree-only) are added as hidden links by placeOps (src/people/relatives.ts). One save.
 import { useMemo, useState } from "react";
 import { branchName } from "../../data/params";

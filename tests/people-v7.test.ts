@@ -101,8 +101,8 @@ describe("deceased people are never shown", () => {
 describe("names", () => {
   const p = (first: string, last: string | null, deceased = false) => ({ first, nick: null, last, deceased });
   it("keeps each partner's surname", () => {
-    expect(pairName([p("Erica", "Schemper"), p("Erik", "Vorhes")])).toBe("Erica Schemper & Erik Vorhes");
-    expect(pairName([p("Fran", "Van Noord"), p("Len", "Van Noord")])).toBe("Fran & Len Van Noord");
+    expect(pairName([p("Cleo", "Example"), p("Dev", "Other")])).toBe("Cleo Example & Dev Other");
+    expect(pairName([p("Ada", "Sample"), p("Ben", "Sample")])).toBe("Ada & Ben Sample");
     expect(pairName([p("Pine", "Friend"), p("Quill", null)])).toBe("Pine Friend & Quill");
     expect(pairName([p("Nan", "CaJacob"), p("Pete", "CaJacob", true)])).toBe("Nan CaJacob");
   });
@@ -119,8 +119,8 @@ describe("envelope names (v8)", () => {
     ({ first, nick: null, last, deceased: false, placeholder: false, age: "adult", plus_one: false, ...extra }) as Person;
   it("adults with &, own surnames, guest, kids only when no adults, deceased left out", async () => {
     const { envelopeName } = await import("../src/people/names");
-    expect(envelopeName([m("Fran", "Van Noord"), m("Len", "Van Noord"), m("Kid", "Van Noord", { age: "child" })])).toBe("Fran & Len Van Noord");
-    expect(envelopeName([m("Erica", "Schemper"), m("Erik", "Vorhes")])).toBe("Erica Schemper & Erik Vorhes");
+    expect(envelopeName([m("Ada", "Sample"), m("Ben", "Sample"), m("Kid", "Sample", { age: "child" })])).toBe("Ada & Ben Sample");
+    expect(envelopeName([m("Cleo", "Example"), m("Dev", "Other")])).toBe("Cleo Example & Dev Other");
     expect(envelopeName([m("Sam", "Lee", { plus_one: true })])).toBe("Sam Lee & Guest");
     expect(envelopeName([m("Nan", "CaJacob"), m("Pete", "CaJacob", { deceased: true })])).toBe("Nan CaJacob");
     expect(envelopeName([m("Wren", "Example", { age: "child" })])).toBe("Wren Example");

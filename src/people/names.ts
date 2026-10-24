@@ -1,5 +1,5 @@
 // How a household or couple is named on screen (v7). Pure. Partners keep their own surnames:
-// same surname → "Fran & Len Van Noord"; different → "Erica Schemper & Erik Vorhes"; a missing surname is left out.
+// same surname → "Ada & Ben Sample"; different → "Cleo Example & Dev Other"; a missing surname is left out.
 import type { Person } from "./types";
 
 const firstOf = (p: Pick<Person, "first" | "nick">) => p.nick || p.first;
@@ -32,8 +32,8 @@ export function lastNamesFromHousehold(partyName: string, members: Pick<Person, 
 }
 
 /**
- * Envelope name a household gets automatically (v8): living adults with "&" and each one's own surname ("Fran & Len Van
- * Noord", "Erica Schemper & Erik Vorhes"); a single adult with a plus-one gets "& Guest"; kids only when there are no
+ * Envelope name a household gets automatically (v8): living adults with "&" and each one's own surname ("Ada & Ben
+ * Sample", "Cleo Example & Dev Other"); a single adult with a plus-one gets "& Guest"; kids only when there are no
  * adults. "" when nobody living is in the household.
  */
 export function envelopeName(members: Pick<Person, "first" | "nick" | "last" | "deceased" | "placeholder" | "age" | "plus_one">[]): string {

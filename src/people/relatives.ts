@@ -220,7 +220,7 @@ export function movesWith(p: Person, byId: Map<string, Person>): Person[] {
   return q && q.party_id === p.party_id ? [p, q] : [p];
 }
 
-// ---------- place by relation (v7): "Fran is Lugene's aunt" ----------
+// ---------- place by relation (v7): "Ada is Pat's aunt" ----------
 export const PLACE_RELATIONS = ["sibling", "child", "parent", "aunt/uncle", "niece/nephew", "cousin", "grandparent"] as const;
 export type PlaceRelation = (typeof PLACE_RELATIONS)[number];
 export const PLACE_LABEL: Record<PlaceRelation, string> = {

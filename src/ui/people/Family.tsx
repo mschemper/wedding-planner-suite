@@ -31,7 +31,7 @@ interface Env {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-/** "Erica Schemper & Erik Vorhes", "Fran & Len Van Noord" (each partner keeps their own surname). */
+/** "Cleo Example & Dev Other", "Ada & Ben Sample" (each partner keeps their own surname). */
 function Names({ u }: { u: Unit }) {
   return <span className="pp-unames">{pairName(u.people)}</span>;
 }
@@ -111,7 +111,7 @@ function Tray({ b, env }: { b: OutlineBranch; env: Env }) {
   };
   return (
     <div className="pp-tray">
-      <h4>Not placed yet · {rows.length} <span className="muted small">— accept a guess, tick several and link them, or place someone by relation (e.g. "Fran is Lugene's aunt").</span></h4>
+      <h4>Not placed yet · {rows.length} <span className="muted small">— accept a guess, tick several and link them, or place someone by relation (e.g. "Ada is Pat's aunt").</span></h4>
       <ul className="pp-place">
         {rows.map(({ u, child, s }) => (
           <li key={u.id} className="pp-place-row">

@@ -93,7 +93,7 @@ const ROOTS: [RegExp, RegExp][] = [
 
 /**
  * Core relation named by a text (derived word or a workbook label), or null. Whole words only ("Godson" ≠ son).
- * Only the first "/"-alternative counts; a possessive in it ("Aunt's stepson", "Lugene's aunt") names someone else's
+ * Only the first "/"-alternative counts; a possessive in it ("Aunt's stepson", "Pat's aunt") names someone else's
  * relative → null. Order matters: "grandparent" before "parent".
  */
 export function relationRoot(text: string | null | undefined): Relation | null {

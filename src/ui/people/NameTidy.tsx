@@ -26,7 +26,7 @@ export function NameTidy() {
     <div className="flag nt" role="status">
       <SaveError result={err} onDismiss={() => setErr(null)} />
       <b>{n} household name{n === 1 ? " doesn't" : "s don't"} match {n === 1 ? "its" : "their"} people.</b>{" "}
-      Names now follow the people ("Fran &amp; Len Van Noord", "Erica Schemper &amp; Erik Vorhes").{" "}
+      Names now follow the people ("Ada &amp; Ben Sample", "Cleo Example &amp; Dev Other").{" "}
       <button type="button" className="pp-link" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{open ? "Hide" : "Preview"}</button>
       {open && (
         <>

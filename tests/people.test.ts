@@ -79,7 +79,7 @@ describe("relation words", () => {
   it("matches whole words; possessives and great- are unknown; grandchild is its own relation", () => {
     const cases: [string, string | null][] = [
       ["Grandson", "grandchild"], ["Godson", null], ["Mason", null], ["Aunt's stepson", null], ["Brother-in-law's mother", null],
-      ["Nephew's girlfriend", null], ["Aunt / father's sibling", "aunt/uncle"], ["Lugene's aunt / extended family", null],
+      ["Nephew's girlfriend", null], ["Aunt / father's sibling", "aunt/uncle"], ["Pat's aunt / extended family", null],
       ["Cousin-in-law", "cousin"], ["Stepmother", "parent"], ["Stepson", "step-child"], ["Great-aunt", "great-aunt/uncle"], ["Cousin once removed", "cousin once removed"], ["Great-grandmother", "great-grandparent"], ["Grandmother", "grandparent"],
       ["Sister-in-law", "sibling"], ["Uncle by marriage", "aunt/uncle"], ["Daughter", "child"],
     ];

@@ -1,7 +1,7 @@
 // Family outline tree (DESIGN-v5 §2, option B1). Pure. Side → branch → nested household units by parent links.
 // A unit = one person + their partner (if any). Children of a unit are units whose person has a parent in it.
 // v7: tree-only placeholders and deceased people are never shown. A unit with nobody living left is a "junction": it has no
-// people, keeps its children, and the UI draws it as a dashed connector (e.g. Lugene's parents linking Lugene and his aunt).
+// people, keeps its children, and the UI draws it as a dashed connector (e.g. Pat's parents linking Pat and his aunt).
 import type { PeopleData, Person, Side } from "./types";
 
 export interface Unit {

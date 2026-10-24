@@ -73,7 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
   branchNames: {},
 };
 
-/** "Lugene Schemper (Mark's father)" → "Mark's dad's side"; anything else unchanged. */
+/** "Pat Example (Mark's father)" → "Mark's dad's side"; anything else unchanged. */
 export function defaultBranchName(raw: string): string {
   const m = /\((Mark|Angela)'s (father|mother)\)/i.exec(raw);
   if (!m) return raw;
