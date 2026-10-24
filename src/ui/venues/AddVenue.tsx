@@ -1,6 +1,5 @@
-// Add venue (v7): name -> Claude research (or by hand) -> editable preview -> one atomic save (venue, shortlist row, follow-up task).
-import { useMemo, useRef, useState } from "react";
-import { api, ApiFailure } from "../../api/client";
+// Add venue (v7; by hand since v9): editable form -> one atomic save (venue, shortlist row, follow-up task).
+import { useMemo, useState } from "react";
 import { BUDGET_CATEGORIES, customScenario, nextCustomId } from "../../data/custom";
 import { computeBudget } from "../../engine/compute";
 import type { Category } from "../../engine/types";
@@ -11,7 +10,7 @@ import { money } from "../format";
 import { Button, Field, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
 import {
-  addVenueOps, blankDraft, blankItem, confidenceWords, draftFromResearch, draftIssues, parseNum, safeUrl, venueFromDraft,
+  addVenueOps, blankDraft, blankItem, confidenceWords, draftIssues, parseNum, safeUrl, venueFromDraft,
   type ItemDraft, type VenueFormDraft,
 } from "./model";
 
@@ -62,8 +61,6 @@ function Preview({ d, setD, guestsLabel, guests }: { d: VenueFormDraft; setD(d: 
   const links = d.sources.map((u) => safeUrl(u)).filter((u): u is string => !!u);
   return (
     <div className="av-form">
-      {d.researched_at && <p className="flag"><strong>Researched on the web {d.researched_at}. </strong>Check every number with the venue before relying on it.</p>}
-      {d.summary && <p className="av-summary">{d.summary}</p>}
       <div className="av-grid">
         <Field label="Venue name"><input value={d.name} onChange={(e) => set({ name: e.target.value })} /></Field>
         <Field label="Location"><input value={d.location} onChange={(e) => set({ location: e.target.value })} /></Field>
@@ -110,45 +107,21 @@ export function AddVenueButton({ onAdded }: { onAdded(id: number, name: string):
   const { scenarios, save, offline } = useData();
   const { guests, guestsLabel } = useCompare();
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<"find" | "preview">("find");
-  const [name, setName] = useState("");
-  const [city, setCity] = useState("");
   const [d, setD] = useState<VenueFormDraft>(() => blankDraft());
-  const [busy, setBusy] = useState<"research" | "save" | null>(null);
-  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
-  const abort = useRef<AbortController | null>(null);
 
-  function reset() { abort.current?.abort(); setStep("find"); setName(""); setCity(""); setD(blankDraft()); setBusy(null); setMsg(""); setFail(null); }
-  function close() { setOpen(false); reset(); }
-  const byHand = (note = "") => { setD(blankDraft(name.trim(), city.trim())); setMsg(note); setStep("preview"); };
-
-  async function research() {
-    if (!name.trim() || busy) return;
-    const ac = new AbortController();
-    abort.current = ac;
-    setBusy("research"); setMsg("");
-    try {
-      const r = await api.research({ name: name.trim(), ...(city.trim() ? { city: city.trim() } : {}), guests }, ac.signal);
-      if (ac.signal.aborted) return;
-      setD(draftFromResearch(r)); setBusy(null); setStep("preview");
-    } catch (e) {
-      if (ac.signal.aborted) { setBusy(null); return; }
-      setBusy(null);
-      byHand(`${e instanceof ApiFailure ? e.body.message : "Research failed."} Fill it in by hand below.`);
-    }
-  }
-  function cancelResearch() { abort.current?.abort(); setBusy(null); setMsg("Research cancelled."); }
+  function close() { setOpen(false); setD(blankDraft()); setBusy(false); setFail(null); }
 
   const issues = draftIssues(d);
   async function add() {
     if (issues.length || busy) return;
-    setBusy("save"); setFail(null);
+    setBusy(true); setFail(null);
     const ids = scenarios.map((s) => s.id);
     const ops = addVenueOps(d, ids, chicagoToday());
     const id = nextCustomId(ids);
     const r = await save(ops);
-    setBusy(null);
+    setBusy(false);
     if (!r.ok) return setFail(r);
     const added = d.name.trim();
     close();
@@ -160,39 +133,15 @@ export function AddVenueButton({ onAdded }: { onAdded(id: number, name: string):
     <>
       <Button onClick={() => setOpen(true)}>Add venue</Button>
       <Sheet title="Add a venue" open={open} onClose={close}
-        footer={step === "preview" ? (
+        footer={
           <div className="av-foot">
-            <Button kind="primary" disabled={busy === "save" || issues.length > 0} onClick={() => void add()}>{busy === "save" ? "Adding…" : "Add as potential venue"}</Button>
-            <Button kind="quiet" onClick={() => { setStep("find"); setFail(null); }}>Back</Button>
+            <Button kind="primary" disabled={busy || issues.length > 0} onClick={() => void add()}>{busy ? "Adding…" : "Add as potential venue"}</Button>
             <Button kind="quiet" onClick={close}>Cancel</Button>
           </div>
-        ) : undefined}>
-        {step === "find" ? (
-          <form className="av-form" onSubmit={(e) => { e.preventDefault(); void research(); }}>
-            <p className="vn-meta">Claude searches the web for prices, capacity and sources. You review everything before it is saved.</p>
-            <Field label="Venue name"><input value={name} disabled={busy === "research"} onChange={(e) => setName(e.target.value)} autoComplete="off" /></Field>
-            <Field label="City (optional)" hint="Blank = Chicago area"><input value={city} disabled={busy === "research"} onChange={(e) => setCity(e.target.value)} autoComplete="off" /></Field>
-            {busy === "research" ? (
-              <>
-                <p className="av-progress" role="status">Searching the web… this takes up to a minute or two.</p>
-                <div className="av-actions"><Button onClick={cancelResearch}>Cancel</Button></div>
-              </>
-            ) : (
-              <div className="av-actions">
-                <Button type="submit" kind="primary" disabled={!name.trim()}>Research it</Button>
-                <Button kind="quiet" onClick={() => byHand()}>Enter by hand</Button>
-              </div>
-            )}
-            {msg && <p className="vn-meta" role="status">{msg}</p>}
-          </form>
-        ) : (
-          <>
-            {msg && <p className="flag warn" role="status">{msg}</p>}
-            <Preview d={d} setD={setD} guestsLabel={guestsLabel} guests={guests} />
-            {issues.length > 0 && <ul className="flag warn av-issues" role="alert">{issues.slice(0, 4).map((x) => <li key={x}>{x}</li>)}</ul>}
-            <SaveError result={fail} onDismiss={() => setFail(null)} />
-          </>
-        )}
+        }>
+        <Preview d={d} setD={setD} guestsLabel={guestsLabel} guests={guests} />
+        {issues.length > 0 && <ul className="flag warn av-issues" role="alert">{issues.slice(0, 4).map((x) => <li key={x}>{x}</li>)}</ul>}
+        <SaveError result={fail} onDismiss={() => setFail(null)} />
       </Sheet>
     </>
   );

@@ -25,8 +25,6 @@ export interface Env {
   ACCESS_AUD?: string;
   /** comma list; only these emails may use the API */
   ALLOWED_EMAILS?: string;
-  /** v7 venue research (Claude API + web search); Cloudflare secret, never in vars or git */
-  ANTHROPIC_API_KEY?: string;
   /** local dev only, from .dev.vars or the vite dev middleware; honoured only on localhost */
   DEV_ACCESS_EMAIL?: string;
 }

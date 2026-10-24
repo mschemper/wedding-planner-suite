@@ -5,7 +5,6 @@ import { itemIssues, nextCustomId, type CustomItem, type CustomVenue } from "../
 import type { Category } from "../../engine/types";
 import type { Headcount, Tally } from "../../people/headcount";
 import { addDays } from "../../plan/tasks";
-import type { ResearchDraft } from "../../../worker/research";
 import type { FitScore } from "../../plan/fit";
 import { NEXT_VERDICT, verdictOf } from "../../plan/fit";
 import { fitId, type Fit, type Verdict, type VenueRow, type VenueStatus } from "../../plan/types";
@@ -201,24 +200,11 @@ export function percentFromText(s: string): number | null {
   return n == null ? null : Math.round(n * 100) / 10000;
 }
 
-const intText = (n: number | null | undefined) => (n ? String(n) : "");
 export const blankItem = (): ItemDraft => ({ cat: "Venue & site", desc: "", type: "fixed", value: "", taxable: false, source_url: "", note: "" });
 export const blankDraft = (name = "", location = ""): VenueFormDraft => ({
   name, location, website: "", kind: "local", description: "", seated: "", kids: "", cocktail: "", confidence: "30", summary: "",
   sources: [], researched_at: null, items: [],
 });
-
-export function draftFromResearch(r: ResearchDraft): VenueFormDraft {
-  return {
-    name: r.name, location: r.location ?? "", website: r.website ?? "", kind: r.kind, description: r.description ?? "",
-    seated: intText(r.capacity_seated), kids: intText(r.capacity_kids), cocktail: intText(r.capacity_cocktail),
-    confidence: String(r.confidence), summary: r.summary, sources: r.sources, researched_at: r.researched_at,
-    items: r.items.map((it) => ({
-      cat: it.cat, desc: it.desc, type: it.type, taxable: !!it.taxable, source_url: it.source_url ?? "", note: it.note ?? "",
-      value: it.type === "fixed" ? String(it.amount ?? "") : it.type === "perGuest" ? String(it.rate ?? "") : percentText(it.rate),
-    })),
-  };
-}
 
 export function itemFromDraft(d: ItemDraft): CustomItem {
   const n = d.type === "percent" ? percentFromText(d.value) : parseNum(d.value);

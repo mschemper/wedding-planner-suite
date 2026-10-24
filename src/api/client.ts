@@ -1,6 +1,4 @@
 // Browser client for worker/api.ts. Same origin; the Access cookie rides along.
-import type { AskAnswer, AskInput } from "../../worker/ask";
-import type { ResearchDraft } from "../../worker/research";
 import type { ApiData, ApiErrorBody, AuditEntry, Op, WriteResult } from "./types";
 
 export class ApiFailure extends Error {
@@ -26,13 +24,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  /** Ask the planner (v8): answer + proposed edits; nothing is saved. 503 = no API key. */
-  ask: (input: AskInput, signal?: AbortSignal) =>
-    request<AskAnswer>("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input), signal }),
   data: () => request<ApiData>("/api/data"),
   write: (ops: Op[]) => request<WriteResult>("/api/write", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ops }) }),
-  /** Venue research (30–90 s). Rejects with ApiFailure (503 = no API key); abort via `signal`. */
-  research: (input: { name: string; city?: string; guests?: number }, signal?: AbortSignal) =>
-    request<ResearchDraft>("/api/research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input), signal }),
   audit: (limit = 50) => request<AuditEntry[]>(`/api/audit?limit=${limit}`),
 };

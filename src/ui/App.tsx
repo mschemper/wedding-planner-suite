@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { useData } from "./data";
 import { FlagBand, Garland, LeafDivider } from "./garden/motifs";
 import { UndoToast } from "./kit/kit";
-import { AskButton } from "./ask/AskPanel";
 import { NavContext, type Nav, type Tab } from "./nav";
 import { PeopleScreen } from "./people/PeopleScreen";
 import { PlanScreen } from "./plan/PlanScreen";
@@ -94,7 +93,6 @@ export function App() {
           )}
         </main>
         <UndoToast />
-        <AskButton />
       </NavContext.Provider>
     </PrefsContext.Provider>
   );

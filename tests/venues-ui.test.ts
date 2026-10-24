@@ -10,7 +10,7 @@ import { summarizeAll } from "../src/plan/venueSummary";
 import type { Fit } from "../src/plan/types";
 import {
   capacityText, cycleFitWrite, dateChoice, draftOf, fitPct, fitText, noteWrite, parseHeld, parseWindows, safeUrl, statusRank, statusTone,
-  quoteIssue, telHref, venuePatch, windowParts, addVenueOps, blankDraft, blankItem, capacityShort, confidenceWords, draftFromResearch, draftIssues,
+  quoteIssue, telHref, venuePatch, windowParts, addVenueOps, blankDraft, blankItem, capacityShort, confidenceWords, draftIssues,
   guestSplit, percentFromText, percentText, splitText, venueFromDraft,
 } from "../src/ui/venues/model";
 
@@ -167,10 +167,8 @@ describe("add venue", () => {
     expect((ops[2] as { row: Record<string, unknown> }).row).toMatchObject({ due: "2026-10-29", owner: "Both", category: "venue", source: "manual", scenario_id: 1002, title: "Contact Test Hall for pricing, F&B minimum and 2027 dates" });
     expect(addVenueOps(draft(), [], "2026-12-28")[2]).toMatchObject({ row: { due: "2027-01-04", scenario_id: 1000 } });
   });
-  it("research draft round-trips", () => {
-    const d = draftFromResearch({ name: "A", location: null, website: null, kind: "local", description: null, capacity_seated: 80, capacity_kids: null, capacity_cocktail: null, confidence: 55,
-      summary: "s", sources: ["https://a.test"], researched_at: "2026-10-22", items: [{ cat: "Venue & site", desc: "Fee", type: "percent", rate: 0.2, taxable: false }] });
-    expect(d.items[0].value).toBe("20");
+  it("percent lines round-trip; confidence words", () => {
+    const d = { ...blankDraft("A"), items: [{ ...blankItem(), desc: "Fee", type: "percent" as const, value: "20" }] };
     expect(venueFromDraft(d, 1000).items[0].rate).toBe(0.2);
     expect(confidenceWords(55)).toMatch(/rough/);
   });

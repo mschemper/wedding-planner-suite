@@ -129,8 +129,6 @@
 @media (min-width: 640px) { .av-grid { grid-template-columns: 1fr 1fr; } }
 .av-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .av-foot { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.av-progress { font-size: 15px; color: var(--ink); }
-.av-summary { font-size: 15px; line-height: 1.5; }
 .av-items { display: grid; gap: 12px; }
 .av-item { border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 12px; display: grid; gap: 8px; grid-template-columns: 1fr; min-width: 0; }
 @media (min-width: 640px) { .av-item { grid-template-columns: 1fr 1fr; } .av-item .av-check, .av-item .k-btn { grid-column: 1 / -1; } }

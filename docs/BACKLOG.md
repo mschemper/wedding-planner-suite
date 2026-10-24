@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 23 Oct 2026 (v8 shipped; bulk edit from F22 shipped in v7; research and Ask shipped, key status unverified, see P2).
+Last reviewed: 23 Oct 2026 (v8 shipped; v9 in progress on branch `v9`: Claude API features removed — Ask, venue research, F21 dropped).
 
 ---
 
@@ -42,9 +42,6 @@ The mobile companion isn't in this repo. Mark supplies the files → review firs
 ### F11. Promontory package price check — XS
 Park District lists $3,679 for the weekend 11-hour package; the doc itemises $3,179 (probably the $500 deposit). Confirm, then golden + HISTORY.
 
-### P2. Set the research key (Mark) — XS
-`npx wrangler secret put ANTHROPIC_API_KEY` (key from console.anthropic.com). Needed by Add venue research and Ask the planner (v8). Confirm with Mark whether it is set; without it Add venue falls back to manual entry. Cost ≈ $0.10–0.50 per research.
-
 ### F18. Quote sweep from email + Drive — S (REVIEW-v6 E1)
 `docs/skills/quote-sweep.md` + "Paste quotes" sheet (preview vs estimate, one save). PDFs from the Drive folder in STATE "Quotes".
 
@@ -53,9 +50,6 @@ Migration 0004: `vendors` (category, email domains), quote `source`, `valid_unti
 
 ### F20. Email inbox in the app — L (REVIEW-v6 E3)
 D1 `inbox` of proposals written via /api/write with an Access service token; daily scheduled sweep; Accept / Dismiss on Today.
-
-### F21. Add people by sentence — S (REVIEW-v6 R5)
-Paste text → Claude JSON → preview of people + links → one save.
 
 ### F22. Data health card, per-household cost — S each (REVIEW-v6 I2, I5; bulk edit shipped v7)
 

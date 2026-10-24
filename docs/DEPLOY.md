@@ -15,7 +15,7 @@ Read only for a deploy session. Steps in order; stop on any failure. Cloudflare 
 7. Record in docs/STATE.md: Worker version id, migration applied, backup file. Keep only the current and previous release rows (STATE rules).
 
 ## Secrets
-`ANTHROPIC_API_KEY` (Ask the planner, Add venue research): `npx wrangler secret put ANTHROPIC_API_KEY` run by Mark. Without it both features fall back or are disabled.
+No API secrets (Claude features removed in v9). If `ANTHROPIC_API_KEY` was ever set: `npx wrangler secret delete ANTHROPIC_API_KEY`.
 
 ## Rollback
 Check out the previous tag, `npm run build`, `npx wrangler deploy`. Migrations are add-only, so older code ignores new columns. Restore data only from the backup file, only if Mark asks.

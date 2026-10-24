@@ -7,9 +7,7 @@ import pkg from "../package.json";
 import type { ApiData, ApiErrorBody, Op, WriteResult } from "../src/api/types";
 import { SEED_FIT, SEED_MUSTHAVES, SEED_TASKS, SEED_VENUES } from "../src/data/seed-v4";
 import { SqliteD1 } from "../scripts/d1-sqlite";
-import type Anthropic from "@anthropic-ai/sdk";
 import { handleApi } from "../worker/api";
-import type { CreateFn } from "../worker/research";
 import { guardStmt } from "../worker/db";
 import type { Env } from "../worker/env";
 import { seedRows, seedSql, type SeedSet } from "../worker/seed";
@@ -234,48 +232,6 @@ describe("writes", () => {
   });
 });
 
-describe("venue research (v7, fake Claude client — no network)", () => {
-  const post = (body: unknown, fake?: CreateFn) =>
-    handleApi(new Request(`${LOCAL}/api/research`, { method: "POST", headers: { "Content-Type": "application/json", Origin: LOCAL }, body: JSON.stringify(body) }), env, undefined, fake ? { research: fake } : {});
-  const draft = {
-    name: "Garden Hall", location: "Chicago", website: "https://gardenhall.example", kind: "local", description: "Glass conservatory.",
-    capacity_seated: 120, capacity_kids: null, capacity_cocktail: 180,
-    items: [
-      { cat: "Venue & site", desc: "Saturday rental", type: "fixed", amount: 7000, rate: null, taxable: false, source_url: "https://gardenhall.example/pricing", note: null },
-      { cat: "Food & beverage", desc: "Catering", type: "perGuest", amount: null, rate: 110, taxable: true, source_url: "javascript:alert(1)", note: "estimate" },
-      { cat: "Food & beverage", desc: "Service + tax", type: "percent", amount: null, rate: 0.24, taxable: false, source_url: null, note: null },
-    ],
-    confidence: 60, summary: "Published rental; catering estimated.", sources: ["https://gardenhall.example/pricing", "not a link"],
-  };
-  const reply = (text: string, stop = "end_turn") => ({ stop_reason: stop, content: [{ type: "text", text }] }) as unknown as Anthropic.Beta.BetaMessage;
-
-  it("503 without a key, 400 without a name", async () => {
-    expect((await post({ name: "X" })).status).toBe(503);
-    expect((await post({ name: " " }, async () => reply("{}"))).status).toBe(400);
-  });
-  it("returns a cleaned draft; continues after pause_turn; sends web search + structured output", async () => {
-    const calls: Anthropic.Beta.MessageCreateParamsNonStreaming[] = [];
-    const fake: CreateFn = async (p) => { calls.push(p); return calls.length === 1 ? reply("", "pause_turn") : reply(JSON.stringify(draft)); };
-    const r = await post({ name: "Garden Hall", city: "Chicago", guests: 75 }, fake);
-    expect(r.status).toBe(200);
-    const d = await r.json();
-    expect(d).toMatchObject({ name: "Garden Hall", capacity_seated: 120, capacity_kids: null, confidence: 60, sources: ["https://gardenhall.example/pricing"] });
-    expect(d.items[1].source_url).toBeNull();
-    expect(d.researched_at).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(calls).toHaveLength(2);
-    expect(calls[0]).toMatchObject({ model: "claude-opus-5-5", tools: [{ type: "web_search_20260209" }], output_config: { format: { type: "json_schema" } } });
-    expect(calls[1].messages).toHaveLength(2);
-  });
-  it("refuses unusable output and refusals", async () => {
-    const bad = { ...draft, items: [{ ...draft.items[0], amount: -1 }] };
-    const dropped = await post({ name: "X" }, async () => reply(JSON.stringify(bad)));
-    expect(dropped.status).toBe(200);
-    expect((await dropped.json()).items).toHaveLength(0);
-    expect((await post({ name: "X" }, async () => reply("", "refusal"))).status).toBe(502);
-    expect((await post({ name: "X" }, async () => reply("not json"))).status).toBe(502);
-  });
-});
-
 describe("household names follow their people (v8)", () => {
   const partyName = (d: ApiData, id: string) => d.parties.find((x) => x.id === id)!.name;
   it("renaming a person renames an automatic household; a custom name stays", async () => {
@@ -301,52 +257,5 @@ describe("household names follow their people (v8)", () => {
     r = await ok([{ table: "people", op: "update", id: "M010", version: v, row: { party_id: hid } }]);
     expect(partyName(r.data, hid)).toBe(`${r.data.people.find((p) => p.id === "M010")!.first} Other & Pat Doe`);
     expect(partyName(r.data, "H-M4")).toBe("Hazel Example");
-  });
-});
-
-describe("ask the planner (v8, fake Claude client — no network)", () => {
-  const post = (body: unknown, fake?: CreateFn) =>
-    handleApi(new Request(`${LOCAL}/api/ask`, { method: "POST", headers: { "Content-Type": "application/json", Origin: LOCAL }, body: JSON.stringify(body) }), env, undefined, fake ? { ask: fake } : {});
-  const reply = (obj: unknown) => ({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(obj) }] }) as unknown as Anthropic.Beta.BetaMessage;
-  const prop = { kind: "set_decision", summary: "Invite them", party_ids: ["H-A4"], person_ids: null, value: "invite", first: null, last: null, age: null, party_id: null, partner_of: null, title: null, due: null, owner: null };
-
-  it("503 without a key; 400 without a question", async () => {
-    expect((await post({ question: "hi" })).status).toBe(503);
-    expect((await post({ question: "" }, async () => reply({ answer: "", proposals: [] }))).status).toBe(400);
-  });
-  it("sends a snapshot with ids, adults/kids and no deceased; drops proposals with unknown ids", async () => {
-    let sent: Anthropic.Beta.MessageCreateParamsNonStreaming | undefined;
-    const r = await post({ question: "Who is undecided?", history: [{ role: "user", text: "hi" }, { role: "assistant", text: "hello" }] }, async (p) => {
-      sent = p;
-      return reply({ answer: "Olive is undecided.", proposals: [prop, { ...prop, party_ids: ["H-NOPE"] }] });
-    });
-    expect(r.status).toBe(200);
-    const body = await r.json();
-    expect(body.answer).toBe("Olive is undecided.");
-    expect(body.proposals).toHaveLength(1);
-    const snap = JSON.stringify(sent!.system);
-    expect(snap).toContain("H-A4");
-    expect(snap).toContain("\\\"kids\\\"");
-    expect(sent!.messages).toHaveLength(3);
-    expect(sent).toMatchObject({ model: "claude-opus-5-5", output_config: { format: { type: "json_schema" } } });
-  });
-});
-
-describe("venue research repairs common slips (v8 hotfix)", () => {
-  it("per-guest totals become fixed lines, 22 becomes 0.22, unusable lines are dropped and named", async () => {
-    const { cleanDraft } = await import("../worker/research");
-    const raw = { name: "Hall", location: null, website: null, kind: "local", description: null, capacity_seated: 100, capacity_kids: null, capacity_cocktail: null,
-      confidence: 40, summary: "S.", sources: [],
-      items: [
-        { cat: "Food & beverage", desc: "F&B minimum", type: "perGuest", amount: null, rate: 14000, taxable: true, source_url: null, note: null },
-        { cat: "Food & beverage", desc: "Catering", type: "perGuest", amount: 9500, rate: null, taxable: true, source_url: null, note: null },
-        { cat: "Food & beverage", desc: "Service", type: "percent", amount: null, rate: 22, taxable: false, source_url: null, note: null },
-        { cat: "Venue & site", desc: "Rental", type: "fixed", amount: null, rate: 5000, taxable: false, source_url: null, note: null },
-        { cat: "Nope", desc: "Weird", type: "fixed", amount: 1, rate: null, taxable: false, source_url: null, note: null },
-      ] };
-    const d = cleanDraft(raw, { name: "Hall" }, "2026-10-23");
-    expect(d.items.map((i) => [i.type, i.amount, i.rate])).toEqual([["fixed", 14000, null], ["fixed", 9500, null], ["percent", null, 0.22], ["fixed", 5000, null]]);
-    expect(d.items[0].note).toMatch(/total/);
-    expect(d.summary).toContain("Weird");
   });
 });

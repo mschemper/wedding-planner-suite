@@ -3,13 +3,13 @@
 Read after AGENTS.md. Only what is true now. Open work -> BACKLOG.md. Past releases, old backups, seed-time numbers -> HISTORY.md "Release log". Files per subject -> CODEMAP.md.
 Keep: current + previous release rows only, latest backup only, no history. `tests/docs.test.ts` gates size and version.
 
-Last updated: 23 October 2026 (v8 deployed).
+Last updated: 23 October 2026 (v8 deployed; v9 started).
 
 ## Version
 
 | | |
 |---|---|
-| Current | **v8** (tag `v8`, package.json 8.0.0): household card, names follow people, Prairie & Steel look, Ask the planner. Deployed 23 Oct 2026, Worker version 13029a97-51d7-4ada-b654-15a29db6458a at 100%; migration 0005 applied; unauthenticated `/`, `/api/version`, `/api/ask` → Access login (verified); signed-in `/api/version` = 8.0.0 not checked (needs Mark signed in). Ask + research need `ANTHROPIC_API_KEY` |
+| Current | **v8** (tag `v8`, package.json 8.0.0): household card, names follow people, Prairie & Steel look, Ask the planner. Deployed 23 Oct 2026, Worker version 13029a97-51d7-4ada-b654-15a29db6458a at 100%; migration 0005 applied; unauthenticated `/`, `/api/version`, `/api/ask` → Access login (verified); signed-in `/api/version` = 8.0.0 not checked (needs Mark signed in). v9 in progress on branch `v9` (not deployed): Ask the planner + venue web research removed (no Claude API key needed); new look pending Mark's pick |
 | Previous | **v7** (tag `v7`, 7.0.0), deployed 22 Oct 2026, Worker version 66408ed9-8730-4dc2-9c89-842225e14794; hotfix 23 Oct (commit dd4d6f1, research line repair). Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Look | Prairie & Steel (docs/DESIGN-v8.md). Older looks and designs: HISTORY.md |

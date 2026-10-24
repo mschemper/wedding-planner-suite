@@ -26,7 +26,7 @@
 ## Added venues (v7)
 - **custom_venues** (0004): scenario_id (>= 1000, chosen by the client, = the shortlist row's id), name, location, kind, description, capacity_seated / capacity_kids / capacity_cocktail, confidence, items JSON (`CustomItem`: cat, desc, type fixed | perGuest | percent, amount | rate, taxable, source_url, note), sources JSON, notes, researched_at. No delete (archive via venues.active). `customScenario` (src/data/custom.ts) → Scenario; useData() merges them into `scenarios`.
 - One save adds a venue: custom_venues create + venues create (only ids >= 1000) + a "contact the venue" task.
-- Research: POST /api/research {name, city?, guests?} → draft (not saved). Claude Opus 5.5, web search, JSON schema output, server-side checks (worker/research.ts). Secret `ANTHROPIC_API_KEY`; dev: `WPS_FAKE_RESEARCH=1`.
+- Entered by hand (v9). `researched_at` stays on rows researched in v7–v8; no new research (Claude API features removed v9).
 - Capacity: `Scenario.capacity.kids` = kids' room seats; capacity is ok only when adults and kids both fit.
 
 ## Planning (v4)

@@ -59,15 +59,9 @@ function devApi(): Plugin {
           for (const [k, v] of Object.entries(req.headers)) if (typeof v === "string") headers.set(k, v);
           const hasBody = req.method !== "GET" && req.method !== "HEAD";
           const request = new Request(`http://${req.headers.host ?? "localhost"}${req.url}`, { method: req.method, headers, body: hasBody ? await body(req) : undefined });
-          // venue research in dev: ANTHROPIC_API_KEY from the shell runs the real thing; WPS_FAKE_RESEARCH=1 returns a canned draft after 2 s
-          // WPS_FAKE_RESEARCH=1 also fakes Ask the planner
-          const fake = process.env.WPS_FAKE_RESEARCH ? (await server.ssrLoadModule("/worker/research.ts")).fakeResearch : undefined;
-          const fakeAsk = process.env.WPS_FAKE_RESEARCH
-            ? (await server.ssrLoadModule("/worker/ask.ts")).fakeAsk(await (await server.ssrLoadModule("/worker/db.ts")).loadState(db))
-            : undefined;
           const out: Response = await handleApi(request, {
-            DB: db, ASSETS: { fetch: async () => new Response(null, { status: 404 }) }, DEV_ACCESS_EMAIL: "dev@localhost", ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-          }, undefined, { ...(fake ? { research: fake } : {}), ...(fakeAsk ? { ask: fakeAsk } : {}) });
+            DB: db, ASSETS: { fetch: async () => new Response(null, { status: 404 }) }, DEV_ACCESS_EMAIL: "dev@localhost",
+          });
           res.statusCode = out.status;
           out.headers.forEach((v, k) => res.setHeader(k, v));
           res.end(Buffer.from(await out.arrayBuffer()));
