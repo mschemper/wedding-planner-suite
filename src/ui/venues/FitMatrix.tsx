@@ -15,6 +15,7 @@ export function useFitEdit() {
   const run = useCallback(async (w: FitWrite, label: string) => {
     const r = w.kind === "edit" ? await edit(w.patches, label) : await save(w.ops);
     setFail(r.ok ? null : r);
+    return r.ok;
   }, [edit, save]);
   const busy = useRef(false);
   const cycle = useCallback(async (scenarioId: number, musthaveId: string, names: string) => {
@@ -35,14 +36,19 @@ export const noteOf = (fit: ReturnType<typeof useData>["fit"], sid: number, mid:
 
 export interface NoteTarget { scenarioId: number; musthaveId: string; venue: string; musthave: string }
 
-export function NoteSheet({ target, onClose, onSave }: { target: NoteTarget | null; onClose(): void; onSave(t: NoteTarget, note: string): Promise<void> }) {
+export function NoteSheet({ target, onClose, onSave }: { target: NoteTarget | null; onClose(): void; onSave(t: NoteTarget, note: string): Promise<boolean> }) {
   const { fit } = useData();
   const [draft, setDraft] = useState("");
   const [seen, setSeen] = useState<NoteTarget | null>(null);
+  const [busy, setBusy] = useState(false);
   if (target !== seen) { setSeen(target); setDraft(target ? noteOf(fit, target.scenarioId, target.musthaveId) : ""); }
   return (
     <Sheet title={target ? `${target.venue} · note` : "Note"} open={!!target} onClose={onClose}
-      footer={<><Button kind="quiet" onClick={onClose}>Cancel</Button><Button kind="primary" onClick={() => { if (target) void onSave(target, draft).then(onClose); }}>Save note</Button></>}>
+      footer={<><Button kind="quiet" onClick={onClose}>Cancel</Button><Button kind="primary" disabled={busy} onClick={() => {
+        if (!target || busy) return;
+        setBusy(true);
+        void onSave(target, draft).then((ok) => { setBusy(false); if (ok) onClose(); });
+      }}>{busy ? "Saving…" : "Save note"}</Button></>}>
       {target && <Field label={target.musthave} wide><textarea rows={5} value={draft} onChange={(e) => setDraft(e.target.value)} /></Field>}
     </Sheet>
   );

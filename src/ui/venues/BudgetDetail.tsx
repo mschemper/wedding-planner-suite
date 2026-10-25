@@ -24,7 +24,7 @@ export function GuestPicker({ stops, value, onChange, min, max }: { stops: numbe
   useEffect(() => setDraft(String(value)), [value]);
   const commit = () => {
     const n = Math.round(Number(draft));
-    if (Number.isFinite(n) && draft.trim() !== "") onChange(clamp(n, min, max));
+    if (Number.isFinite(n) && draft.trim() !== "") { const c = clamp(n, min, max); setDraft(String(c)); onChange(c); }
     else setDraft(String(value));
   };
   return (

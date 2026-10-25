@@ -1,0 +1,153 @@
+<title>Wedding Planner v10 review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Young+Serif&display=swap">
+<style>
+/* Layout: one reading column; each section is a list of pickable rows with a Yes / Later / No control; sticky answer bar at the bottom. Palette = the app's own Jungalow Lounge tokens. */
+:root {
+  --ground: #EDE6D6; --card: #F8F3E8; --ink: #1C2A21; --muted: #52594E; --line: #D3C7AE;
+  --band: #1E3D2B; --on-band: #F4E9CF; --brass: #B88A2E; --brass-ink: #74560F; --euc-ink: #24503A; --peony-ink: #9A3F23;
+  --serif: "Young Serif", Georgia, serif; --sans: "Figtree", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground: #0F1D16; --card: #16291F; --ink: #F2E8D0; --muted: #C2BCA6; --line: #2C4A3A;
+  --band: #0B1712; --on-band: #F2E8D0; --brass: #D9B45A; --brass-ink: #F0D58C; --euc-ink: #E9C877; --peony-ink: #F2A285; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ground: #0F1D16; --card: #16291F; --ink: #F2E8D0; --muted: #C2BCA6; --line: #2C4A3A;
+  --band: #0B1712; --on-band: #F2E8D0; --brass: #D9B45A; --brass-ink: #F0D58C; --euc-ink: #E9C877; --peony-ink: #F2A285; color-scheme: dark }
+body { background: var(--ground); color: var(--ink); font: 16px/1.5 var(--sans); }
+.band { background: var(--band); color: var(--on-band); }
+.wrap { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band .wrap { padding-block: 32px 28px; }
+h1, h2 { font-family: var(--serif); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.4rem; }
+.lede { margin: 8px 0 0; max-width: 62ch; opacity: .92; }
+main.wrap { padding-block: 24px 120px; display: grid; gap: 32px; }
+section { display: grid; gap: 12px; }
+.sub { color: var(--muted); margin: 0; max-width: 65ch; }
+.row { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: start; }
+.row > div { min-width: 0; }
+.id { font-weight: 700; color: var(--brass-ink); letter-spacing: .04em; margin-right: 6px; }
+.t { font-weight: 600; }
+.why { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+.size { display: inline-block; font-size: .8rem; font-weight: 700; letter-spacing: .06em; border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; margin-left: 6px; color: var(--muted); }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { font: 600 .85rem var(--sans); background: none; color: var(--ink); border: 0; min-height: 44px; min-width: 52px; padding: 0 10px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--band); color: var(--on-band); }
+.seg button:focus-visible, .copy:focus-visible, textarea:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 600 .9rem var(--sans); background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; min-height: 44px; padding: 0 14px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--band); color: var(--on-band); border-color: var(--band); }
+.note { background: var(--card); border: 1px dashed var(--line); border-radius: 10px; padding: 12px 16px; color: var(--muted); }
+textarea { width: 100%; box-sizing: border-box; min-height: 80px; font: 15px var(--sans); background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--band); color: var(--on-band); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.bar .wrap { padding-block: 10px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.bar span { font-size: .9rem; }
+.copy { font: 700 .9rem var(--sans); background: var(--brass); color: #1E1500; border: 0; border-radius: 999px; min-height: 44px; padding: 0 20px; cursor: pointer; }
+@media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="band"><div class="wrap">
+  <h1>Wedding Planner v10 review</h1>
+  <p class="lede">A design review of all four tabs and a fresh list of feature ideas. Mark each one Yes, Later or No, then copy your answers into the chat. Bug fixes from the code review ship in v10 either way.</p>
+</div></header>
+
+<main class="wrap">
+  <section aria-labelledby="s-r">
+    <h2 id="s-r">1 · Design review: improvements</h2>
+    <p class="sub">What I saw walking through Today, Venues, People and Plan. Small changes to what is already there.</p>
+    <div id="list-r"></div>
+  </section>
+
+  <section aria-labelledby="s-n">
+    <h2 id="s-n">2 · New ideas</h2>
+    <p class="sub">Not in the v9 list. Sizes: S ≈ one session, M ≈ one session with helpers, L ≈ its own release. None needs a Claude API key.</p>
+    <div id="list-n"></div>
+  </section>
+
+  <section aria-labelledby="s-o">
+    <h2 id="s-o">3 · Ideas from v9 you passed on</h2>
+    <p class="sub">Tap any you'd now like. Date heatmap, seating chart and inspiration board are already queued.</p>
+    <div class="chips" id="list-o"></div>
+  </section>
+
+  <section aria-labelledby="s-c">
+    <h2 id="s-c">4 · Anything else</h2>
+    <label class="sub" for="other">Notes, priorities, or something you want that isn't here.</label>
+    <textarea id="other" placeholder="e.g. N3 first, before the Joinery visit"></textarea>
+  </section>
+</main>
+
+<div class="bar"><div class="wrap">
+  <span id="count">Nothing picked yet</span>
+  <button class="copy" id="copy" type="button">Copy answers</button>
+</div></div>
+
+<script>
+const R = [
+  ["R1", "Window totals show a range", "By date window shows one price per window, taken from one reference Saturday. Firehouse is $11,000 in May and $12,000 in June, so late spring should read “$36,644 – $37,644”, cheapest Saturday named.", "S"],
+  ["R2", "Say which guest count a total is priced at", "When the chosen count is under a venue's smallest modelled count, the total and per-guest price are for that larger count. Show “priced at 50 (venue minimum)” next to the total, in the comparison and on Today.", "XS"],
+  ["R3", "One capacity wording everywhere", "Today says “Capacity not set”, Venues says “No seated cap published” for the same venue. Use one phrase, and show adults and kids the same way for every venue.", "XS"],
+  ["R4", "Must-haves in one place", "The must-have grid appears on Today, Venues and Plan. Keep the editable grid on Venues and a short summary on Today; Plan keeps only the list and add form.", "S"],
+  ["R5", "Room check as a meter", "The People header line packs six numbers into one sentence. Show a bar: adults in, if room, undecided against the seated cap, with the cost beside it.", "S"],
+  ["R6", "Kids priced at a kid rate", "Pricing says “Kids are priced as adults”. Add a kids' meal rate (and Bunk Room fee) so the total stops overstating by a few hundred dollars per child. Engine change with golden tests.", "S"],
+  ["R7", "Today: a budget line", "Today shows time, headcount, must-haves and tasks, but no money. Add the held venue's total and how it moved since last week.", "S"],
+];
+const N = [
+  ["N1", "Budget ceiling", "Set the most you want to spend. Every venue shows over or under, Today shows the headroom, and Decide shows how many more households fit under it.", "S"],
+  ["N2", "Tour mode for venue visits", "A phone checklist for a visit (the Joinery on 30 Oct): each must-have as a question, tap Yes / Partly / No and add a note; answers fill the must-have grid when you save.", "S"],
+  ["N3", "Wedding countdown tasks", "Standard milestones (book photographer 10–12 months out, invitations 8 weeks, final count 2 weeks…) created as tasks dated from the held date, and re-dated if the date changes.", "S"],
+  ["N4", "Plan snapshots", "Save the current plan (venue, date, guest count, options) with a name, then compare snapshots side by side and see how the estimate drifted as quotes came in.", "M"],
+  ["N5", "What changed", "A feed of recent edits by who and when, so Mark and Angela see each other's decisions, quotes and task changes. Undo stays as it is.", "S"],
+  ["N6", "Pass-on and follow-up templates", "One tap copies a ready-written note: “we're passing”, “can you hold this date”, “please send the rate sheet”, filled with the venue and date. No AI, plain templates.", "XS"],
+  ["N7", "Venue one-pager", "A clean printable page per venue (price, capacity, fit, open questions) to bring on a tour or share with family.", "S"],
+  ["N8", "What-if trims", "Toggles that show savings at the held venue: drop if-room households, cocktail instead of seated, Friday or Sunday, no late-night food.", "S"],
+  ["N9", "Weekly email digest", "A Monday email to both of you: tasks due, undecided households, venue answers still missing. Uses Cloudflare email sending; needs your OK to set it up.", "M"],
+  ["N10", "Quick find", "Press / or tap search to jump to any household, venue, task or setting from anywhere.", "S"],
+  ["N11", "Parents' read-only view", "A second sign-in group that sees the venue comparison and date only, never the guest list.", "M"],
+  ["N12", "Weather and daylight for the held date", "Sunset time, golden hour and the historic rain chance for the held date on Today. Shares data with the date heatmap.", "XS"],
+];
+const O = [["I2","Vote separately"],["I4","Guest-count slider"],["I5","Payment schedule"],["I6","Budget vs actual"],["I7","Vendor tracker"],["I8","RSVP page"],["I10","Hotel block"],["I11","Thank-you tracker"],["I12","Calendar feed"],["I13","Install on phone"],["I14","Day-of timeline"]];
+const pick = {};
+const old = new Set();
+function rows(list, el) {
+  const host = document.getElementById(el);
+  host.style.display = "grid"; host.style.gap = "10px";
+  for (const [id, t, why, size] of list) {
+    const r = document.createElement("div"); r.className = "row";
+    r.innerHTML = `<div><span class="id">${id}</span><span class="t">${t}</span><span class="size">${size}</span><p class="why">${why}</p></div>`;
+    const seg = document.createElement("div"); seg.className = "seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", `${id} ${t}`);
+    for (const v of ["Yes", "Later", "No"]) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = v; b.id = `${id}-${v}`; b.setAttribute("aria-pressed", "false");
+      b.onclick = () => { pick[id] = pick[id] === v ? undefined : v; for (const x of seg.children) x.setAttribute("aria-pressed", String(pick[id] === x.textContent)); update(); };
+      seg.append(b);
+    }
+    r.append(seg); host.append(r);
+  }
+}
+rows(R, "list-r"); rows(N, "list-n");
+for (const [id, t] of O) {
+  const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.id = `o-${id}`; b.textContent = `${id} · ${t}`; b.setAttribute("aria-pressed", "false");
+  b.onclick = () => { old.has(id) ? old.delete(id) : old.add(id); b.setAttribute("aria-pressed", String(old.has(id))); update(); };
+  document.getElementById("list-o").append(b);
+}
+function text() {
+  const by = (v) => Object.keys(pick).filter((k) => pick[k] === v).join(", ") || "none";
+  const lines = ["v10 review answers", `Yes: ${by("Yes")}`, `Later: ${by("Later")}`, `No: ${by("No")}`, `Earlier ideas: ${[...old].join(", ") || "none"}`];
+  const o = document.getElementById("other").value.trim(); if (o) lines.push(`Notes: ${o}`);
+  return lines.join("\n");
+}
+function update() {
+  const n = Object.values(pick).filter(Boolean).length + old.size;
+  document.getElementById("count").textContent = n ? `${n} answered of ${R.length + N.length}` : "Nothing picked yet";
+}
+document.getElementById("copy").onclick = async (e) => {
+  const t = text();
+  try { await navigator.clipboard.writeText(t); e.target.textContent = "Copied"; }
+  catch { const a = document.getElementById("other"); a.value = t; a.select(); e.target.textContent = "Select-all and copy the box"; }
+  setTimeout(() => (e.target.textContent = "Copy answers"), 2500);
+};
+</script>

@@ -89,7 +89,10 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
       id = String(row.key ?? "");
       if (st.params.has(id)) return fail(409, "conflict", `${id} was already changed`, { row: { table: "params", id, updated_by: String(st.params.get(id)!.updated_by) } });
     } else id = ""; // fit: below
-    if (isTmp(row[spec.pk])) ids[row[spec.pk] as string] = id;
+    if (isTmp(row[spec.pk])) {
+      if (row[spec.pk] as string in ids) return fail(400, "bad_request", `tmp id ${row[spec.pk]} used twice`);
+      ids[row[spec.pk] as string] = id;
+    }
     createIds.set(o, id);
   }
   const resolve = (v: unknown): unknown => (Array.isArray(v) ? v.map(resolve) : isTmp(v) ? (ids[v] ?? v) : v);
@@ -240,6 +243,7 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     await db.batch(stmts);
   } catch (e) {
     const msg = String((e as Error)?.message ?? e);
+    if (/NOT NULL constraint/i.test(msg)) return fail(400, "bad_request", "A required value is missing");
     if (/CHECK constraint|UNIQUE constraint|PRIMARY KEY/i.test(msg)) return fail(409, "conflict", "Someone else saved at the same moment — reload and try again");
     if (/FOREIGN KEY/i.test(msg)) return fail(422, "invalid", "A person must belong to an existing household");
     throw e;

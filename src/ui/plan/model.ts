@@ -1,9 +1,10 @@
 // Pure helpers for the Plan + Today screens (DESIGN-v4 §2): due labels, task/must-have ops, reorder, paste review, filters.
 import type { Op } from "../../api/types";
 import type { Patch } from "../data";
+import { isDay } from "../../data/params";
 import { CATEGORIES, OWNERS, type Category, type MustHave, type Owner, type Task } from "../../plan/types";
 
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const DAY = { test: (s: string) => isDay(s) };
 
 /** Whole days from a to b (YYYY-MM-DD). */
 export function dayDiff(a: string, b: string): number {
@@ -97,8 +98,9 @@ export function pasteSummary(pasted: Partial<Task>[]): string {
   return `${n} task${n === 1 ? "" : "s"}${parts.length ? `: ${parts.join(", ")}` : ""}`;
 }
 
-/** One create op per pasted task; invalid owner/category/due fall back to defaults; source defaults to "email". */
-export function pasteOps(pasted: Partial<Task>[], skip: boolean[] = []): Op[] {
+/** One create op per pasted task; invalid owner/category/due fall back to defaults; source defaults to "email".
+ * A venue id not in `venueIds` (when given) is dropped, so one bad task can't fail the whole save. */
+export function pasteOps(pasted: Partial<Task>[], skip: boolean[] = [], venueIds?: ReadonlySet<number>): Op[] {
   return pasted.flatMap((p, i): Op[] => {
     if (skip[i]) return [];
     const row: Record<string, unknown> = {
@@ -110,7 +112,7 @@ export function pasteOps(pasted: Partial<Task>[], skip: boolean[] = []): Op[] {
       status: "open",
       source: p.source ? String(p.source) : "email",
       source_date: typeof p.source_date === "string" && DAY.test(p.source_date) ? p.source_date : null,
-      scenario_id: typeof p.scenario_id === "number" ? p.scenario_id : null,
+      scenario_id: typeof p.scenario_id === "number" && (!venueIds || venueIds.has(p.scenario_id)) ? p.scenario_id : null,
     };
     return [{ table: "tasks", op: "create", row }];
   });

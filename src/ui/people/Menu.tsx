@@ -13,7 +13,13 @@ export function Menu({ label, trigger, items, align = "left", triggerClass = "k-
   useEffect(() => {
     if (!open) return;
     const down = (e: Event) => { if (root.current && !root.current.contains(e.target as Node)) setOpen(false); };
-    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    // Escape closes only the menu (not the sheet around it) and returns focus to the trigger.
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      setOpen(false);
+      root.current?.querySelector<HTMLButtonElement>("button[aria-haspopup]")?.focus();
+    };
     document.addEventListener("pointerdown", down);
     document.addEventListener("keydown", key);
     return () => { document.removeEventListener("pointerdown", down); document.removeEventListener("keydown", key); };

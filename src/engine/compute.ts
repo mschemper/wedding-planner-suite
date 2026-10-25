@@ -109,9 +109,9 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
     else byDesc.set(q.item_desc, byDesc.has(q.item_desc) ? better(byDesc.get(q.item_desc)!, q) : q);
   }
   const matched = new Set<string>();
+  // Every live quote for a matched line counts as matched (the older ones are superseded, not unmatched).
   const markMatched = (desc: string) => {
-    const w = byDesc.get(desc);
-    if (w) matched.add(w.id);
+    for (const q of live) if (q.item_desc === desc) matched.add(q.id);
   };
 
   for (const it of sc.items) {
@@ -146,8 +146,7 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
     const estimate = rows.reduce((s, r) => s + (r.quoted ? (r.estimate ?? r.amount) : r.amount), 0);
     rows.length = 0;
     rows.push({ cat: "Venue & site", desc: "Quoted all-in", amount: quoteAmount(allIn, g), extrapolated: false, quoted: true, quoteId: allIn.id, estimate });
-    matched.clear();
-    matched.add(allIn.id);
+    for (const q of live) if (q.item_desc === "*") matched.add(q.id);
   }
   if (co.contingency && co.contingency > 0) {
     const sub = rows.reduce((s, r) => s + r.amount, 0);
@@ -179,14 +178,21 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
 /** Line-item diff keyed by category; used by the compare panel. */
 /**
  * What `add` more guests cost (v9, per-household cost): total at guests + add minus total at guests, same options and date.
- * null when the scenario is unpriced or either count can't be hosted. `extrapolated` = a line ran past the source (≈).
+ * null when the scenario is unpriced or either count can't be hosted. `extrapolated` = a line ran past the source or a
+ * count is outside the modelled range (≈). `flat` = more guests add nothing because a flat quote covers the total.
  */
-export function addedCost(sc: Scenario, guests: number, add: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): { amount: number; extrapolated: boolean } | null {
+export function addedCost(sc: Scenario, guests: number, add: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): { amount: number; extrapolated: boolean; flat: boolean } | null {
   if (sc.priced === false || !sc.items.length) return null;
   const a = computeBudget(sc, guests, opts, co);
   const b = computeBudget(sc, guests + add, opts, co);
   if (a.unavailable || b.unavailable) return null;
-  return { amount: b.total - a.total, extrapolated: b.rows.some((r) => r.extrapolated) };
+  const amount = b.total - a.total;
+  const outside = (n: number) => n < sc.min || n > sc.max;
+  return {
+    amount,
+    extrapolated: b.rows.some((r) => r.extrapolated) || outside(a.guests) || outside(b.guests),
+    flat: add > 0 && amount === 0 && b.rows.some((r) => r.quoted),
+  };
 }
 
 export function diffByCategory(a: Budget, b: Budget): { cat: Category; a: number; b: number; delta: number }[] {

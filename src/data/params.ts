@@ -82,7 +82,10 @@ export function defaultBranchName(raw: string): string {
 export const branchName = (s: Settings, raw: string | null | undefined) => (raw ? s.branchNames[raw] ?? defaultBranchName(raw) : "Other");
 export type SettingKey = keyof Settings;
 export const SETTING_KEYS = Object.keys(DEFAULT_SETTINGS) as SettingKey[];
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const DAY_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
+/** A real calendar day as YYYY-MM-DD (rejects 2027-13-45, 2027-02-30). */
+export const isDay = (s: unknown): s is string => typeof s === "string" && DAY_SHAPE.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`)) && new Date(`${s}T00:00:00Z`).toISOString().slice(0, 10) === s;
+const DAY = { test: (s: string) => isDay(s) };
 
 function parseSetting(key: SettingKey, v: unknown): { ok: true; value: unknown } | { ok: false; msg: string } {
   if (key === "kidsPolicy") return (KIDS_POLICIES as readonly unknown[]).includes(v) ? { ok: true, value: v } : { ok: false, msg: "kidsPolicy must be ours, family or all" };

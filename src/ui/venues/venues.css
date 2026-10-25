@@ -45,8 +45,8 @@
 .vn-fitbar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 4px 0; min-width: 80px; }
 .vn-fitbar i { display: block; height: 100%; background: var(--euc); border-radius: 999px; }
 .vn-contact { display: grid; gap: 2px; }
-.vn-contact a { display: inline-flex; align-items: center; min-height: 32px; }
-.vn-notes summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; color: var(--euc-ink); font-weight: 600; }
+.vn-contact a { display: inline-flex; align-items: center; min-height: 44px; }
+.vn-notes summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--euc-ink); font-weight: 600; }
 .vn-notes p { font-size: 14px; margin-top: 4px; }
 .vn-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 640px; font-size: 14px; }
 .vn-table th, .vn-table td { padding: 10px 12px; text-align: left; vertical-align: top; border-top: 1px solid var(--line); }

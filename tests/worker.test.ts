@@ -259,3 +259,20 @@ describe("household names follow their people (v8)", () => {
     expect(partyName(r.data, "H-M4")).toBe("Hazel Example");
   });
 });
+
+describe("v10 save fixes", () => {
+  it("clearing the held date saves (json null, not a NOT NULL 500)", async () => {
+    await ok([{ table: "params", op: "create", row: { key: "heldDate", value: "2027-06-12" } }]);
+    const v = (await data()).params.find((p) => p.key === "heldDate")!.version;
+    await ok([{ table: "params", op: "update", id: "heldDate", version: v, row: { value: null } }]);
+    expect((await data()).params.find((p) => p.key === "heldDate")!.value).toBeNull();
+  });
+  it("rejects impossible dates", async () => {
+    const r = await write([{ table: "tasks", op: "create", row: { title: "x", owner: "Mark", category: "admin", status: "open", due: "2027-13-45" } }]);
+    expect(r.status).toBe(400);
+  });
+  it("rejects a tmp id used twice in one save", async () => {
+    const row = { id: "tmp:a", title: "x", owner: "Mark", category: "admin", status: "open" };
+    expect((await write([{ table: "tasks", op: "create", row }, { table: "tasks", op: "create", row }])).status).toBe(400);
+  });
+});

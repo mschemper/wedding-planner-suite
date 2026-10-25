@@ -8,7 +8,7 @@ import { SaveError } from "../SaveError";
 import { duplicateFlags, pasteOps, pasteSummary } from "./model";
 
 export function PasteTasks({ open, onClose }: { open: boolean; onClose(): void }) {
-  const { tasks, save } = useData();
+  const { tasks, save, scenarios } = useData();
   const [text, setText] = useState("");
   const [withDupes, setWithDupes] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -17,7 +17,7 @@ export function PasteTasks({ open, onClose }: { open: boolean; onClose(): void }
   const list: Partial<Task>[] = parsed?.ok ? parsed.tasks : [];
   const dupes = useMemo(() => duplicateFlags(list, tasks), [list, tasks]);
   const skip = dupes.map((d) => d && !withDupes);
-  const ops = pasteOps(list, skip);
+  const ops = pasteOps(list, skip, new Set(scenarios.map((s) => s.id)));
   const nDupes = dupes.filter(Boolean).length;
   const close = () => { setText(""); setFail(null); onClose(); };
   const add = async () => {

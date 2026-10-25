@@ -1,6 +1,7 @@
 // One task line (Plan + Today): 44px checkbox, title (opens the sheet / Plan), owner, category, due, source link.
 import { useState } from "react";
 import type { Task } from "../../plan/types";
+import { chicagoToday } from "../../plan/tasks";
 import { useData } from "../data";
 import { Chip, OwnerChip } from "../kit/kit";
 import { completePatch, doneLabel, dueLabel, reopenPatch, sourceUrl } from "./model";
@@ -32,7 +33,7 @@ export function TaskRow({ task, today, onOpen, highlight }: { task: Task; today:
           <OwnerChip owner={task.owner} />
           <span>{task.category}</span>
           {!done && <span className={due.overdue ? "pl-overdue" : ""}>{due.text}</span>}
-          {done && task.done_at && <span>done {task.done_at.slice(0, 10)}</span>}
+          {done && task.done_at && <span>done {chicagoToday(new Date(task.done_at))}</span>}
           {url && <a href={url} target="_blank" rel="noopener noreferrer" className="pl-src">email ↗</a>}
           {!url && task.source === "email" && <Chip>from email</Chip>}
         </div>

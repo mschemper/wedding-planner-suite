@@ -604,7 +604,8 @@ export function seatsLeftAfter(c: Pick<RoomCheck, "cap" | "invited">, r: Pick<Ri
 }
 
 /** "≈ $1,234" or "awaiting rates" (null = unpriced or the venue cannot host). The engine prices it; this only words it. */
-export const costText = (c: { amount: number } | null): string => (c ? `≈ ${money(c.amount)}` : "awaiting rates");
+export const costText = (c: { amount: number; flat?: boolean } | null): string =>
+  !c ? "awaiting rates" : c.flat ? "nothing extra (flat quote)" : `≈ ${money(c.amount)}`;
 
 /** Decided / total for a ring (or a friend tier): "4 of 5 decided". */
 export function ringProgress(rows: Pick<RingRow, "party">[]): { decided: number; total: number; pct: number; text: string } {

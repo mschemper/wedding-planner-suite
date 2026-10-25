@@ -35,7 +35,7 @@ export function OneByOne({ rings, side, room, rel, act, onClose }: {
     if (!row) return;
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
       const hit = CHOICES.find((c) => c.key === e.key);
       if (hit) { e.preventDefault(); choose(hit.d); } else if (e.key === "s" || e.key === "S") { e.preventDefault(); next(); }

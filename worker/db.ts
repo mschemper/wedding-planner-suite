@@ -1,6 +1,6 @@
 // Table specs (= migrations 0001 quotes/params + 0002 v4 tables), row (de)serialisation and per-row shape checks.
 import type { ApiData, ParamRow, TableName } from "../src/api/types";
-import { parseParamValue } from "../src/data/params";
+import { isDay, parseParamValue } from "../src/data/params";
 import { CUSTOM_ID_MIN } from "../src/data/custom";
 import { SCENARIOS } from "../src/data/scenarios";
 import { AGES, KIDS_RULES, KINDS, KNOWN_BY, DECISIONS, LOCALS, OVERRIDES, RSVPS, SIDES } from "../src/people/types";
@@ -106,7 +106,8 @@ export function fromDb(table: TableName, r: Rec): Rec {
 export function toDbValues(table: TableName, r: Rec): unknown[] {
   const vals = SPECS[table].cols.map((c) => {
     const v = r[c.name] === undefined ? c.def : r[c.name];
-    if (v === undefined || v === null) return c.type === "ids" ? "[]" : null;
+    // json columns are NOT NULL: a cleared value (heldDate: null) is stored as its default or JSON null.
+    if (v === undefined || v === null) return c.type === "ids" ? "[]" : c.type === "json" ? JSON.stringify(c.def ?? null) : null;
     if (c.type === "bool") return v ? 1 : 0;
     if (c.type === "json" || c.type === "ids") return JSON.stringify(v);
     return v;
@@ -156,7 +157,7 @@ export const stateToApi = (st: State, me: string): ApiData => ({
   me,
 }) as unknown as ApiData;
 
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE = { test: (s: string) => isDay(s) };
 /** A code scenario, or an added venue id (v7; that its row exists is checked in write.ts). */
 const knownScenario = (id: unknown) => SCENARIOS.some((s) => s.id === id) || (Number.isInteger(id) && (id as number) >= CUSTOM_ID_MIN);
 

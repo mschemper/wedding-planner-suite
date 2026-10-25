@@ -41,7 +41,8 @@ const inRange = (s: Scenario, g: number) => g >= s.min && g <= s.max;
 
 /** v9: what one household (`add` heads) adds at this venue, priced like its summary (date, quotes, contingency). */
 export function householdCost(s: Scenario, i: Pick<SummaryInput, "quotes" | "date" | "contingency">, guests: number, add: number) {
-  return addedCost(s, Math.round(guests), add, defaultOpts(s), { date: i.date, contingency: i.contingency, quotes: i.quotes });
+  const g = inRange(s, guests) ? Math.round(guests) : snapGuests(s, guests);
+  return addedCost(s, g, add, defaultOpts(s), { date: i.date, contingency: i.contingency, quotes: i.quotes });
 }
 
 export function summarize(s: Scenario, i: SummaryInput): VenueSummary {

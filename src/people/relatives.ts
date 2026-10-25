@@ -270,7 +270,7 @@ export function placeOps(who: Versioned<Person>, anchor: Versioned<Person>, rel:
     case "parent": {
       const cur = parentsOf(anchor.id).filter((x) => !byId.get(x)?.placeholder);
       if (cur.length >= 2) return [];
-      parents.set(anchor.id, [...cur, who.id]);
+      if (!cur.includes(who.id)) parents.set(anchor.id, [...cur, who.id]);
       break;
     }
     case "aunt/uncle": whoParents = ensureParents(ensureParents(anchor.id)[0]); break;
@@ -278,7 +278,7 @@ export function placeOps(who: Versioned<Person>, anchor: Versioned<Person>, rel:
       const p = ensureParents(anchor.id)[0];
       const cur = parentsOf(p).filter((x) => !byId.get(x)?.placeholder);
       if (cur.length >= 2) return [];
-      parents.set(p, [...cur, who.id]);
+      if (!cur.includes(who.id)) parents.set(p, [...cur, who.id]);
       break;
     }
     case "niece/nephew": {

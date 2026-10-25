@@ -118,7 +118,7 @@ export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSu
         <SaveError result={fail} onDismiss={() => setFail(null)} />
       </Card>
 
-      <Card title="Details">{offline ? <ReadOnlyFacts v={v} /> : <DetailsForm key={JSON.stringify(v.row)} v={v} short={short} />}</Card>
+      <Card title="Details">{offline ? <ReadOnlyFacts v={v} /> : <DetailsForm key={v.scenario.id} v={v} short={short} />}</Card>
 
       {links.length > 0 && (
         <Card title="Sources">

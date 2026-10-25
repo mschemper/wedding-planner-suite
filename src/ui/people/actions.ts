@@ -32,7 +32,7 @@ export function useActions(): Actions {
   const run = useCallback(async (patches: Patch[], label: string) => {
     if (!patches.length) return;
     const r = await edit(patches, label);
-    setError(r.ok ? null : r);
+    if (!r.ok) setError(r); // a later success must not hide an earlier failure; SaveError's dismiss clears it
   }, [edit]);
   const parties = people.parties;
   const names = settings.branchNames;

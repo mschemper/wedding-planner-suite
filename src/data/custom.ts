@@ -68,7 +68,7 @@ function toLine(it: CustomItem): LineItem {
   return { ...base, type: "percent", rate: it.rate ?? 0 };
 }
 
-/** The Scenario the budget engine prices for an added venue. No line items → "awaiting rates" (priced: false). */
+/** The Scenario the budget engine prices for an added venue. No fixed or per-guest line → "awaiting rates" (priced: false; percent lines alone price at $0). */
 export function customScenario(v: CustomVenue): Scenario {
   const seated = v.capacity_seated ?? undefined;
   return {
@@ -77,7 +77,7 @@ export function customScenario(v: CustomVenue): Scenario {
     min: 20, max: Math.max(60, seated ?? v.capacity_cocktail ?? 250), def: 75,
     capacity: seated || v.capacity_cocktail || v.capacity_kids ? { hardMax: seated, cocktail: v.capacity_cocktail ?? undefined, kids: v.capacity_kids ?? undefined } : undefined,
     kidsRoom: !!v.capacity_kids,
-    priced: v.items.length > 0,
+    priced: v.items.some((it) => it.type !== "percent"),
     sources: v.sources.filter((s) => /^https?:\/\//i.test(s)),
     flag: v.researched_at
       ? `Estimated from web research on ${v.researched_at}: confirm every number with the venue.`

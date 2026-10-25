@@ -37,15 +37,17 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
   const all = useMemo(() => new Map(rings.flatMap((r) => r.rows.map((x) => [x.party.id, x.party] as [string, Party]))), [rings]);
   const toggle = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const shownIds = shown.flatMap((x) => x.rows.map((r) => r.party.id));
+  // Bulk edits only touch households still shown: a filter change hides rows but keeps their ticks.
+  const pickedShown = shownIds.filter((id) => picked.has(id));
   const apply = async (change: Parameters<Actions["bulk"]>[1]) => {
     setBusy(true);
-    const ok = await act.bulk([...picked].map((id) => all.get(id)!).filter(Boolean), change);
+    const ok = await act.bulk(pickedShown.map((id) => all.get(id)!).filter(Boolean), change);
     setBusy(false);
     if (ok) setPicked(new Set());
   };
   const pickSel = (label: string, opts: [string, string][], on: (v: string) => void) => (
     <label className="pp-bulk-field"><span>{label}</span>
-      <select value="" disabled={busy || !picked.size} onChange={(e) => { if (e.target.value) on(e.target.value); }}>
+      <select value="" disabled={busy || !pickedShown.length} onChange={(e) => { if (e.target.value) on(e.target.value); }}>
         <option value="">Set…</option>{opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
       </select>
     </label>
@@ -63,7 +65,7 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
       </div>
       {bulk && (
         <div className="pp-bulk" role="group" aria-label="Change selected households">
-          <span><b>{picked.size}</b> selected</span>
+          <span><b>{pickedShown.length}</b> selected</span>
           <button type="button" className="pp-link" onClick={() => setPicked(new Set(shownIds))}>All shown ({shownIds.length})</button>
           {picked.size > 0 && <button type="button" className="pp-link" onClick={() => setPicked(new Set())}>Clear</button>}
           {pickSel("Decision", DECISIONS.map((d) => [d, DECISION_LABEL[d]]), (v) => void apply({ kind: "invite", value: v as Decision }))}
@@ -75,6 +77,7 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
       {shown.length === 0 && <Card><EmptyState>{f.undecidedOnly && !f.q && f.side === "all" ? "Everyone is decided." : "No households match."}</EmptyState></Card>}
       {shown.map(({ ring, rows }) => {
         const prog = ringProgress(ring.rows);
+        const undecidedShown = rows.filter((x) => x.party.invite === "undecided").length;
         const rowEl = (row: RingRow, key: string) => (
           <FragmentRow key={row.party.id} line={room.fill?.party === row.party.id && cap ? `— ${room.sel?.name} fills here (${cap} ${room.kidsRoom ? "adults " : ""}seated) —` : null}>
             <HouseholdRow row={row} relation={rel(row)} ctx={invite} act={act} ringParties={parties.get(key) ?? []} onHousehold={onHousehold} onPerson={onPerson}
@@ -93,7 +96,11 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
                 {ring.rows.length} household{ring.rows.length === 1 ? "" : "s"} · {seatSplit(ring)}
                 {ring.undecidedRows > 0 && <> · <b>{ring.undecidedRows} undecided</b></>}
               </span>
-              {ring.undecidedRows > 0 && <button type="button" className="k-btn pp-invite-all" onClick={() => act.inviteAll(ring)}>Invite all undecided</button>}
+              {undecidedShown > 0 && (
+                <button type="button" className="k-btn pp-invite-all" onClick={() => act.inviteAll({ ...ring, rows })}>
+                  {undecidedShown === ring.undecidedRows ? "Invite all undecided" : `Invite ${undecidedShown} shown undecided`}
+                </button>
+              )}
             </header>
             {ring.friend ? [1, 2, 3].map((t) => {
               const tr = rows.filter((x) => x.tier === t);

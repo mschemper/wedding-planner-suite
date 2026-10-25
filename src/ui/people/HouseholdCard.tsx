@@ -77,7 +77,9 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
     if (issues.length) return;
     const pv = party ? version("parties", party.id) : undefined;
     if (party && pv === undefined) { setErr({ ok: false, kind: "not_found", message: "This household no longer exists." }); return; }
-    const ops = cardOps(card, party ? { ...party, version: pv! } : null, friend, people.people);
+    // Versions are read now, not when the card opened, so Reload after a conflict lets the next Save through.
+    const fresh: CardDraft = { ...card, people: card.people.map((x) => (x.original ? { ...x, original: { ...x.original, version: version("people", x.original.id) ?? x.original.version } } : x)) };
+    const ops = cardOps(fresh, party ? { ...party, version: pv! } : null, friend, people.people);
     if (!ops.length) { onClose(); return; }
     setBusy(true);
     const r = await save(ops);

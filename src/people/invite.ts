@@ -40,7 +40,7 @@ export function effectiveInvite(p: Person, c: InviteCtx): Effective {
   if (p.override) return p.override;
   const party = p.party_id ? c.parties.get(p.party_id) : undefined;
   if (!party) return "undecided";
-  if (p.age === "child" && (party.invite === "invite" || party.invite === "ifroom") && !kidsIn(party, c)) return "no";
+  if (p.age === "child" && party.invite !== "no" && !kidsIn(party, c)) return "no";
   return party.invite;
 }
 
