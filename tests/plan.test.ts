@@ -8,7 +8,8 @@ import { headcount } from "../src/people/headcount";
 import type { PeopleData } from "../src/people/types";
 import { fitScore, NEXT_VERDICT } from "../src/plan/fit";
 import { addDays, chicagoToday, groupTasks, nextUp, parsePastedTasks } from "../src/plan/tasks";
-import { summarize, summarizeAll } from "../src/plan/venueSummary";
+import { saturdays, summarize, summarizeAll } from "../src/plan/venueSummary";
+import { pricedAtText, windowParts } from "../src/ui/venues/model";
 
 const hc = headcount(fixture as unknown as PeopleData, "ours");
 const input = {
@@ -55,6 +56,20 @@ describe("venue summary", () => {
     expect(may.budget!.total - v.budget!.total).toBe(-1000);
     expect(v.capacity).toMatchObject({ cap: 82, used: hc.invited.adults, ok: true });
     expect(v.byWindow.map((w) => w.name)).toEqual(["Late spring", "Early fall"]);
+  });
+  it("v10 R1: a window shows its cheapest and dearest Saturday", () => {
+    const v = summarize(scenarioById(17), input);
+    const spring = v.byWindow.find((w) => w.name === "Late spring")!;
+    expect(spring.high!.total - spring.low!.total).toBe(1000);
+    expect(spring.low!.date.startsWith("2027-05")).toBe(true);
+    expect(windowParts(v, (n) => `$${n}`)[0].text).toContain(" – ");
+    expect(saturdays("2027-05-01", "2027-05-31")).toEqual(["2027-05-01", "2027-05-08", "2027-05-15", "2027-05-22", "2027-05-29"]);
+  });
+  it("v10 R2: says which count a snapped total is priced at", () => {
+    const v = summarize(scenarioById(17), { ...input, guests: 5 });
+    expect(v.snapped).toBe(true);
+    expect(pricedAtText(v)).toContain("smallest modelled count (you picked 5)");
+    expect(pricedAtText(summarize(scenarioById(17), input))).toBe("");
   });
   it("Ravenswood is unpriced: no budget, still summarised", () => {
     const v = summarize(scenarioById(18), input);

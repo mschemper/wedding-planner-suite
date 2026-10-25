@@ -1,15 +1,13 @@
-// Plan → Must-haves: compact ordered list (number, text, read-only venue marks, ⋯ menu), inline edit, add, archive/restore.
+// Plan → Must-haves: compact ordered list (number, text, ⋯ menu), inline edit, add, archive/restore.
+// v10 (R4): how each venue fits lives only in the Venues grid; this list links there.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { orderedMustHaves, verdictOf } from "../../plan/fit";
-import type { MustHave, Verdict } from "../../plan/types";
-import { useCompare } from "../compare";
+import { orderedMustHaves } from "../../plan/fit";
+import type { MustHave } from "../../plan/types";
 import { useData, type SaveResult } from "../data";
 import { Button, Card, EmptyState, Field } from "../kit/kit";
 import { SaveError } from "../SaveError";
-import { addMustHaveOp, archivePatch, musthaveEditPatch, reorderPatches, shortVenueName } from "./model";
-
-const ICON: Record<Verdict, string> = { yes: "✓", partly: "◐", no: "✕", unknown: "?" };
-const WORD: Record<Verdict, string> = { yes: "yes", partly: "partly", no: "no", unknown: "unknown" };
+import { useNav } from "../nav";
+import { addMustHaveOp, archivePatch, musthaveEditPatch, reorderPatches } from "./model";
 
 interface MenuItem { label: string; disabled?: boolean; onSelect(): void }
 
@@ -40,9 +38,7 @@ function RowMenu({ label, items, disabled }: { label: string; items: MenuItem[];
   );
 }
 
-function Row({ m, idx, list, chips, fail }: {
-  m: MustHave; idx: number; list: MustHave[]; chips: { id: number; name: string; fullName: string; verdict: Verdict }[]; fail(r: SaveResult): void;
-}) {
+function Row({ m, idx, list, fail }: { m: MustHave; idx: number; list: MustHave[]; fail(r: SaveResult): void }) {
   const { edit, offline } = useData();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(m.text);
@@ -74,15 +70,6 @@ function Row({ m, idx, list, chips, fail }: {
           </>
         )}
       </div>
-      {!editing && !m.archived && chips.length > 0 && (
-        <div className="pl-marks" role="list" aria-label={`How venues fit: ${m.text}`}>
-          {chips.map((c) => (
-            <span key={c.id} role="listitem" className={`pl-mark v-${c.verdict}`} title={`${c.fullName}: ${WORD[c.verdict]}`} aria-label={`${c.fullName}: ${WORD[c.verdict]}`}>
-              <span aria-hidden="true">{ICON[c.verdict]}</span><span aria-hidden="true">{c.name}</span>
-            </span>
-          ))}
-        </div>
-      )}
       {!offline && !editing && (
         <RowMenu label={`More actions: ${m.text}`} disabled={busy} items={m.archived
           ? [{ label: "Restore", onSelect: () => void run(() => edit([archivePatch(m, false)], `Restored: ${m.text}`)) }]
@@ -98,8 +85,8 @@ function Row({ m, idx, list, chips, fail }: {
 }
 
 export function MustHaves() {
-  const { musthaves, fit, save, offline } = useData();
-  const { active } = useCompare();
+  const { musthaves, save, offline } = useData();
+  const nav = useNav();
   const [showArchived, setShowArchived] = useState(false);
   const [text, setText] = useState("");
   const [detail, setDetail] = useState("");
@@ -107,7 +94,6 @@ export function MustHaves() {
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const list = useMemo(() => orderedMustHaves(musthaves.map((m) => m)), [musthaves]);
   const archived = useMemo(() => musthaves.filter((m) => m.archived).sort((a, b) => a.sort - b.sort), [musthaves]);
-  const chipsFor = (m: MustHave) => active.map((v) => ({ id: v.scenario.id, name: shortVenueName(v.scenario.name), fullName: v.scenario.name, verdict: verdictOf(fit, v.scenario.id, m.id)?.verdict ?? ("unknown" as Verdict) }));
   const onFail = (r: SaveResult) => { if (!r.ok) setFail(r); };
   const add = async () => {
     setBusy(true);
@@ -117,13 +103,14 @@ export function MustHaves() {
   };
   return (
     <Card title="Must-haves" actions={archived.length > 0 && <Button kind="quiet" onClick={() => setShowArchived((s) => !s)}>{showArchived ? "Hide archived" : `Show archived (${archived.length})`}</Button>}>
+      {list.length > 0 && <p className="pl-hint">How each venue fits: <button type="button" className="pp-link" onClick={() => nav.setTab("venues")}>Venues → Must-haves × venues</button></p>}
       {list.length === 0 && <EmptyState>{offline ? "Must-haves load in the online planner." : "No must-haves yet. Add the first one below."}</EmptyState>}
       <ol className="pl-mh-list">
-        {list.map((m, i) => <Row key={m.id} m={m} idx={i} list={list} chips={chipsFor(m)} fail={onFail} />)}
+        {list.map((m, i) => <Row key={m.id} m={m} idx={i} list={list} fail={onFail} />)}
       </ol>
       {showArchived && archived.length > 0 && (
         <ul className="pl-mh-list pl-mh-arch" aria-label="Archived must-haves">
-          {archived.map((m) => <Row key={m.id} m={m} idx={0} list={[m]} chips={[]} fail={onFail} />)}
+          {archived.map((m) => <Row key={m.id} m={m} idx={0} list={[m]} fail={onFail} />)}
         </ul>
       )}
       {!offline && (

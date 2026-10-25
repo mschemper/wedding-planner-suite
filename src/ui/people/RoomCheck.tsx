@@ -66,17 +66,23 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
         <i className="pp-seg und" style={{ width: pct(c.undecided) }} />
         <span className="pp-capline" style={{ left: `calc(${pct(c.cap)} - 2px)` }} title={`${sel.name} seats ${c.cap}`} />
       </div>
-      <p className="pp-legend">
-        <b>{c.invited} {who} in</b>
-        <span className="pp-opt"> · {c.ifroom} if room</span> · {c.undecided} undecided
-        <span className="pp-cap-text"> · {c.cap} {who} seated{c.over > 0 ? ` · over by ${c.over}` : total > c.cap ? ` · ${total - c.cap} over if all come` : ""}</span>
+      {/* v10 (R5): a key under the meter instead of one long sentence; swatches repeat the bar's fills (shape, not colour alone) */}
+      <ul className="pp-legend pp-key" aria-label="Room check key">
+        <li><i className="pp-sw in" aria-hidden="true" /><b>{c.invited}</b> in</li>
+        <li><i className="pp-sw ifroom" aria-hidden="true" />{c.ifroom} if room</li>
+        <li><i className="pp-sw und" aria-hidden="true" />{c.undecided} undecided</li>
+        <li className={c.over > 0 || total > c.cap ? "pp-key-over" : "pp-cap-text"}>
+          <i className="pp-sw cap" aria-hidden="true" />{c.cap} {who} seated{c.over > 0 ? ` · over by ${c.over}` : total > c.cap ? ` · ${total - c.cap} over if all come` : ""}
+        </li>
         {room.kidsRoom && (
-          <span className={`pp-kidsline${kidsCap != null && c.kidsUp > kidsCap ? " is-over" : ""}`}>
-            {" "}· kids {c.kidsUp}{kidsCap != null ? ` of ${kidsCap}` : ""} upstairs{kidsCap != null && c.kidsUp > kidsCap ? ` (over by ${c.kidsUp - kidsCap})` : ""}
-          </span>
+          <li className={`pp-kidsline${kidsCap != null && c.kidsUp > kidsCap ? " is-over" : ""}`}>
+            kids {c.kidsUp}{kidsCap != null ? ` of ${kidsCap}` : ""} upstairs{kidsCap != null && c.kidsUp > kidsCap ? ` (over by ${c.kidsUp - kidsCap})` : ""}
+          </li>
         )}
-      </p>
-      <b className="pp-cost" title="Budget at the venue for the guest basis chosen on Venues">{room.cost === undefined ? "" : room.cost === null ? "awaiting rates" : `≈ ${money(room.cost)}`}</b>
+      </ul>
+      <span className="pp-cost" title="Budget at the venue for the guest basis chosen on Venues">
+        {room.cost === undefined ? "" : room.cost === null ? "awaiting rates" : <><b>≈ {money(room.cost)}</b><small>at {sel.name}</small></>}
+      </span>
       <Menu label="Kids setting" align="right" triggerClass="pp-kidsbtn"
         title={`Kids: ${POLICY_LABEL[settings.kidsPolicy]}`} trigger={<>Kids: {KIDS_SHORT[settings.kidsPolicy]} <span aria-hidden="true">▾</span></>}
         items={[

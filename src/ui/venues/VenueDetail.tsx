@@ -13,6 +13,7 @@ import { DetailView } from "./BudgetDetail";
 import { NoteSheet, useFitEdit, type NoteTarget } from "./FitMatrix";
 import { QuotesLog } from "./QuotesScreen";
 import { StatusChip } from "./Shortlist";
+import { TourMode } from "./TourMode";
 import { EDIT_FIELDS, capacityText, draftOf, fitText, safeUrl, statusLabel, venuePatch, type VenueDraft } from "./model";
 
 const LABELS: Record<(typeof EDIT_FIELDS)[number], string> = {
@@ -64,6 +65,7 @@ export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSu
   const { prefs } = usePrefs();
   const fe = useFitEdit();
   const [target, setTarget] = useState<NoteTarget | null>(null);
+  const [touring, setTouring] = useState(false);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   // braces: scrollTo returns a Promise in newer browsers, which React would call as a cleanup
   useEffect(() => { window.scrollTo(0, 0); }, [v.scenario.id]);
@@ -115,6 +117,8 @@ export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSu
           )}
         </div>
         <p className="vn-meta">{capacityText(v)} · {fitText(v.fit)}</p>
+        {!offline && <Button onClick={() => setTouring(true)}>Tour mode</Button>}
+        {touring && <TourMode scenarioId={sc.id} venueName={sc.name} onClose={() => setTouring(false)} />}
         <SaveError result={fail} onDismiss={() => setFail(null)} />
       </Card>
 

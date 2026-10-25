@@ -50,4 +50,7 @@ Organised by the thing you're changing, not by folder.
 | Theme (Jungalow Lounge, v9) | `src/ui/styles.css`, `src/ui/garden/motifs.tsx`, `index.html` | `tests/contrast.test.ts`; docs/DESIGN-v9.md |
 | Household card (household + people in one save) | `src/ui/people/HouseholdCard.tsx`, `HouseholdPicker.tsx`; logic `src/ui/people/model.ts` `cardOps` | `tests/people-ui.test.ts` "household card" |
 | Household names follow people | `src/people/names.ts` `householdEnvelope`, `worker/write.ts` step 4b, `src/ui/people/NameTidy.tsx` | `tests/worker.test.ts` "household names", `tests/people-v7.test.ts` |
+| Window price ranges, priced-at count (v10) | `src/plan/venueSummary.ts` `saturdays`/`byWindow`, `src/ui/venues/model.ts` `windowParts`/`pricedAtText` | `tests/plan.test.ts` |
+| Tour mode (v10) | `src/ui/venues/TourMode.tsx`, `src/ui/venues/model.ts` `tourOps` | `tests/venues-ui.test.ts` |
+| Real-date check | `src/data/params.ts` `isDay` (UI, Worker) | `tests/v10.test.ts` |
 | Quote form checks (vendor, $0 reason) | `src/ui/venues/model.ts` `quoteIssue`, `QuoteForm.tsx` | `tests/venues-ui.test.ts` |

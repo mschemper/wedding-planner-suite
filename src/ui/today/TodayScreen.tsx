@@ -28,7 +28,7 @@ function VenueTile({ v, i, onOpen }: { v: VenueSummary; i: number; onOpen(): voi
       <span className="td-venue-top"><Sprig hue={HUES[i % HUES.length]} /><Chip tone={STATUS_TONE[status] ?? "plain"}>{status}</Chip></span>
       <span className="td-venue-name">{v.scenario.name}</span>
       {v.priced && v.budget
-        ? <span className="td-price">{money(v.budget.total)}</span>
+        ? <span className="td-price">{money(v.budget.total)}{v.snapped && <span className="td-venue-meta"> at {v.guests} guests (venue's {v.guests > v.asked ? "smallest" : "largest"} modelled count)</span>}</span>
         : <span className="td-price td-price-none">Awaiting rates</span>}
       <span className="td-venue-meta">
         {capacityShort(v)}

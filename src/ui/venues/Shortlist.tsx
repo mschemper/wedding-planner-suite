@@ -5,7 +5,7 @@ import { Sprig } from "../garden/motifs";
 import type { VenueSummary } from "../../plan/venueSummary";
 import { fmtDate } from "../compare";
 import { money } from "../format";
-import { capacityText, fitPct, fitText, mailHref, statusLabel, statusTone, telHref, windowParts } from "./model";
+import { capacityText, fitPct, fitText, mailHref, pricedAtText, statusLabel, statusTone, telHref, windowParts } from "./model";
 
 const HUES = ["blush", "marigold", "sage", "peony"] as const;
 const short = (d: string) => fmtDate(d, { month: "short", day: "numeric", year: "numeric" });
@@ -19,14 +19,15 @@ export function TotalBlock({ v }: { v: VenueSummary }) {
   return (
     <div>
       <div className="vn-total">{money(v.budget.total)}</div>
-      <div className="vn-meta">{money(v.budget.perGuest)} per guest · {v.guests} guests{v.snapped ? " (nearest modelled count)" : ""}</div>
+      <div className="vn-meta">{money(v.budget.perGuest)} per guest · {v.guests} guests</div>
+      {v.snapped && <div className="vn-meta vn-priced-at">≈ {pricedAtText(v)}</div>}
     </div>
   );
 }
 
 function Windows({ v }: { v: VenueSummary }) {
   if (!v.priced) return <span className="vn-meta">No totals until the rate sheet arrives</span>;
-  const parts = windowParts(v, money);
+  const parts = windowParts(v, money, (d) => fmtDate(d, { weekday: "short", month: "short", day: "numeric" }));
   return <ul className="vn-plain">{parts.map((p) => <li key={p.name}><strong>{p.name}</strong> {p.text}{p.bad && <span className="sr-only"> (cannot host)</span>}</li>)}</ul>;
 }
 

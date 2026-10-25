@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 23 Oct 2026 (v9 shipped: Claude API features removed, Jungalow look, People review items; ideas F23–F25 queued).
+Last reviewed: 25 Oct 2026 (v10 shipped: bug sweep, window ranges, tour mode; v10 review ideas R3, N5–N12 unanswered).
 
 ---
 
@@ -54,7 +54,7 @@ D1 `inbox` of proposals written via /api/write with an Access service token; dai
 ### F22. Data health card — S (REVIEW-v6 I2; per-household cost shipped v9 in one-by-one Decide; bulk edit v7)
 
 ### F23. Date heatmap — M (v9 review I3, Mark: yes)
-Every Saturday in both date windows coloured by venue season price, holidays, sunset time and historic Chicago weather (Open-Meteo archive, free, fetched once into a data file). Planned v10.
+Every Saturday in both date windows coloured by venue season price, holidays, sunset time and historic Chicago weather (Open-Meteo archive, free, fetched once into a data file). Next release.
 
 ### F24. Seating chart — L (v9 review I9, Mark: yes)
 Drag households onto tables; starting plan from the family tree keeps branches together; flagged pairs apart. Needs a tables migration. Overlaps F17.
@@ -89,3 +89,12 @@ Set `server.watch.usePolling` when running under WSL on a Windows drive, or rest
 
 ### B4. Attendance ignores vendors and a plus-one acceptance rate (REVIEW-v3 R15) — S
 v4 excludes the couple. Vendors (photographer, band, coordinator meals) and plus-ones at the host's rate are still not modelled. Decide with Mark.
+
+### B11. Rank collisions on "if room" reorder — XS (v10 review)
+`src/ui/people/model.ts` `moveRank` renumbers only the ranked rows passed in; parties with no if-room heads can keep a rank. Rank over every `ifroom` party.
+
+### B12. Scenario data guard — XS (v10 review)
+`interp` / `stepVal` assume ascending, distinct anchors. Add a scenarios test that asserts it (no live bug: custom venues can't produce them).
+
+### B13. Tour mode has no Undo — XS
+Tour mode saves with `save()` (one batch, creates allowed) so there is no Undo toast; changes are fixed by re-opening tour mode.

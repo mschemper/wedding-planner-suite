@@ -50,6 +50,41 @@ export function noteWrite(fit: Fit[], scenarioId: number, musthaveId: string, no
   return { kind: "create", ops: [{ table: "fit", op: "create", row: { scenario_id: scenarioId, musthave_id: musthaveId, verdict: "unknown", note: text } }] };
 }
 
+export interface TourAnswer { verdict: Verdict | null; note: string }
+
+/** Tour mode start state: what the grid says now (unknown = "Not asked"). */
+export function tourDraft(fit: Fit[], scenarioId: number, musthaveIds: string[]): Record<string, TourAnswer> {
+  return Object.fromEntries(musthaveIds.map((id) => {
+    const cur = verdictOf(fit, scenarioId, id);
+    return [id, { verdict: cur && cur.verdict !== "unknown" ? cur.verdict : null, note: cur?.note ?? "" }];
+  }));
+}
+
+/** Tour mode save: one op per changed answer (update with version, or create on a missing row). `versionOf` = useData().version bound to "fit". */
+export function tourOps(
+  fit: Fit[], scenarioId: number, answers: Record<string, TourAnswer>,
+  versionOf: (id: string) => number | undefined = () => undefined,
+): Op[] {
+  const ops: Op[] = [];
+  for (const [mid, a] of Object.entries(answers)) {
+    const cur = verdictOf(fit, scenarioId, mid);
+    const verdict: Verdict = a.verdict ?? "unknown";
+    const note = a.note.trim() || null;
+    if (!cur) {
+      if (verdict === "unknown" && !note) continue;
+      ops.push({ table: "fit", op: "create", row: { scenario_id: scenarioId, musthave_id: mid, verdict, note } });
+      continue;
+    }
+    const row: Record<string, unknown> = {};
+    if (cur.verdict !== verdict) row.verdict = verdict;
+    if ((cur.note?.trim() || null) !== note) row.note = note;
+    if (!Object.keys(row).length) continue;
+    const id = fitId(scenarioId, mid);
+    ops.push({ table: "fit", op: "update", id, version: versionOf(id) ?? 0, row });
+  }
+  return ops;
+}
+
 /** "Fit 8 of 10 · 1 partly · 2 unknown" (yes count of all active must-haves). */
 export function fitText(f: FitScore): string {
   const total = f.yes + f.partly + f.no + f.unknown;
@@ -78,13 +113,29 @@ export function capacityText(v: VenueSummary): string {
   return t;
 }
 
-/** Totals per window: "Late spring $41,800 · Early fall unavailable (reason)". `fmt` formats money. */
-export function windowParts(v: VenueSummary, fmt: (n: number) => string): { name: string; text: string; bad: boolean }[] {
+/**
+ * Totals per window over every Saturday in it (v10): "Late spring $36,644 (Sat, May 1) – $37,644", or one price when
+ * every Saturday costs the same. Unavailable only when no Saturday in the window can be hosted. `fmt` formats money,
+ * `day` formats a date.
+ */
+export function windowParts(v: VenueSummary, fmt: (n: number) => string, day: (d: string) => string = (d) => d): { name: string; text: string; bad: boolean }[] {
   return v.byWindow.map((w) => {
-    if (w.unavailable) return { name: w.name, text: `unavailable: ${w.unavailable}`, bad: true };
-    if (w.total == null) return { name: w.name, text: "awaiting rate sheet", bad: false };
-    return { name: w.name, text: fmt(w.total), bad: false };
+    if (!w.low || !w.high) {
+      if (w.unavailable) return { name: w.name, text: `unavailable: ${w.unavailable}`, bad: true };
+      return { name: w.name, text: w.total == null ? "awaiting rate sheet" : fmt(w.total), bad: false };
+    }
+    const some = w.someUnavailable ? " · some Saturdays unavailable" : "";
+    if (w.low.total === w.high.total) return { name: w.name, text: fmt(w.low.total) + some, bad: false };
+    return { name: w.name, text: `${fmt(w.low.total)} (${day(w.low.date)}) – ${fmt(w.high.total)}${some}`, bad: false };
   });
+}
+
+/** R2: why a total is priced at a different count than the one picked, or "" when it isn't. */
+export function pricedAtText(v: Pick<VenueSummary, "snapped" | "guests" | "asked">): string {
+  if (!v.snapped) return "";
+  return v.guests > v.asked
+    ? `priced at ${v.guests} guests, the venue's smallest modelled count (you picked ${v.asked})`
+    : `priced at ${v.guests} guests, the venue's largest modelled count (you picked ${v.asked})`;
 }
 
 /** Only http(s) links are rendered as sources. */

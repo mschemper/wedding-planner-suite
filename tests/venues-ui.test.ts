@@ -11,7 +11,7 @@ import type { Fit } from "../src/plan/types";
 import {
   capacityText, cycleFitWrite, dateChoice, draftOf, fitPct, fitText, noteWrite, parseHeld, parseWindows, safeUrl, statusRank, statusTone,
   quoteIssue, telHref, venuePatch, windowParts, addVenueOps, blankDraft, blankItem, capacityShort, confidenceWords, draftIssues,
-  guestSplit, percentFromText, percentText, splitText, venueFromDraft,
+  guestSplit, percentFromText, percentText, splitText, venueFromDraft, tourDraft, tourOps,
 } from "../src/ui/venues/model";
 
 const hc = headcount(fixture as unknown as PeopleData, "ours");
@@ -182,5 +182,34 @@ describe("add venue", () => {
   });
   it("capacityShort", () => {
     expect(sums.active.map(capacityShort).every((t) => typeof t === "string" && t.length > 0)).toBe(true);
+  });
+});
+
+describe("tourOps", () => {
+  const f = (verdict: Fit["verdict"], note: string | null = null): Fit => ({ id: "7:a", scenario_id: 7, musthave_id: "a", verdict, note });
+  const ver = () => 4;
+  it("unchanged -> no ops", () => {
+    expect(tourOps([f("yes", "ok")], 7, { a: { verdict: "yes", note: " ok " } }, ver)).toEqual([]);
+    expect(tourOps([], 7, { a: { verdict: null, note: "  " } }, ver)).toEqual([]);
+    expect(tourOps([f("unknown")], 7, tourDraft([f("unknown")], 7, ["a"]), ver)).toEqual([]);
+  });
+  it("new verdict on a missing row -> create", () => {
+    expect(tourOps([], 7, { a: { verdict: "partly", note: "" } }, ver)).toEqual([
+      { table: "fit", op: "create", row: { scenario_id: 7, musthave_id: "a", verdict: "partly", note: null } },
+    ]);
+    expect(tourOps([], 7, { a: { verdict: null, note: "ask later" } }, ver)[0]).toMatchObject({ op: "create", row: { verdict: "unknown", note: "ask later" } });
+  });
+  it("changed verdict or note on an existing row -> update with version", () => {
+    expect(tourOps([f("yes")], 7, { a: { verdict: "no", note: "" } }, ver)).toEqual([
+      { table: "fit", op: "update", id: "7:a", version: 4, row: { verdict: "no" } },
+    ]);
+    expect(tourOps([f("yes")], 7, { a: { verdict: "yes", note: "bring cash" } }, ver)).toEqual([
+      { table: "fit", op: "update", id: "7:a", version: 4, row: { note: "bring cash" } },
+    ]);
+  });
+  it("clearing to Not asked -> unknown", () => {
+    expect(tourOps([f("yes")], 7, { a: { verdict: null, note: "" } }, ver)).toEqual([
+      { table: "fit", op: "update", id: "7:a", version: 4, row: { verdict: "unknown" } },
+    ]);
   });
 });

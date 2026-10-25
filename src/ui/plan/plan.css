@@ -55,20 +55,13 @@
 .pl-mh { display: flex; align-items: center; gap: 8px; padding: 2px 0; border-bottom: 1px dashed var(--line); flex-wrap: wrap; }
 .pl-mh-n { flex: none; width: 22px; text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 .pl-mh-main { flex: 1 1 160px; min-width: 0; padding: 4px 0; }
-.pl-marks { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.pl-mark { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); background: var(--ground); font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-.pl-mark.v-yes { color: var(--euc-ink); }
-.pl-mark.v-partly { color: var(--gold-ink); }
-.pl-mark.v-no { color: var(--peony-ink); }
 .pl-menu { position: relative; flex: none; }
 .pl-menu-pop { position: absolute; right: 0; top: 100%; z-index: 5; min-width: 150px; padding: 4px; display: grid; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 18%, transparent); }
 .pl-menu-item { min-height: 44px; padding: 0 12px; border: 0; background: none; text-align: left; font-size: 15px; border-radius: 8px; }
 .pl-menu-item:hover:not(:disabled), .pl-menu-item:focus-visible { background: var(--ground); }
 .pl-menu-item:disabled { color: var(--muted); cursor: default; }
-/* v6 lead fix: one header line per must-have (number · text · ⋯), venue marks on one tight line beneath */
-.pl-mh { display: grid; grid-template-columns: 22px minmax(0, 1fr) 44px; grid-template-areas: "n main menu" ". marks marks"; column-gap: 8px; align-items: center; padding: 4px 0 6px; }
+/* one line per must-have: number · text · ⋯ (venue marks moved to the Venues grid in v10) */
+.pl-mh { display: grid; grid-template-columns: 22px minmax(0, 1fr) 44px; grid-template-areas: "n main menu"; column-gap: 8px; align-items: center; padding: 4px 0 6px; }
 .pl-mh > .pl-mh-n { grid-area: n; }
 .pl-mh > .pl-mh-main { grid-area: main; padding: 2px 0; }
-.pl-mh > .pl-marks { grid-area: marks; display: flex; flex-wrap: wrap; gap: 4px; }
 .pl-mh > .pl-menu { grid-area: menu; justify-self: end; }
-.pl-mh .pl-mark { padding: 1px 7px; font-size: 13px; }
