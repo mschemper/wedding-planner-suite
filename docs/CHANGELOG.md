@@ -2,7 +2,7 @@
 
 ## v10 - Bug sweep, window price ranges, tour mode (25 Oct 2026)
 
-**Not deployed yet.** No D1 migration. Review page (design review + ideas): docs/mockups/v10-review.html; Mark said yes to R1, R2, R4, R5, N2.
+**Deployed** 25 Oct 2026 (Worker version 5904b91d). No D1 migration. Review page (design review + ideas): docs/mockups/v10-review.html; Mark said yes to R1, R2, R4, R5, N2.
 
 **Fixes** (two code reviews, logic + UI): clearing the held date no longer fails the save; impossible dates (2027-13-45) are refused; a replaced quote is no longer flagged "didn't match any line"; a household's cost is priced at the same count as the venue total and says "nothing extra (flat quote)" when an all-in quote covers it; an added venue with only percent lines stays "awaiting rates"; named kids follow the kids rule before their household is decided; Escape on a ⋯ menu no longer closes the household card; a failed save stays on screen; holding a key in one-by-one Decide no longer decides a run of households; bulk edits and "Invite all undecided" touch only the households shown; the household card saves after Reload; the note sheet closes only when saved; a status change keeps unsaved venue details; "done" dates are Chicago dates; negative amounts read "−$…"; small controls are 44px.
 

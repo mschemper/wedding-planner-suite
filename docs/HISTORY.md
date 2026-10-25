@@ -77,6 +77,7 @@ Newest first. Each entry: what changed and why.
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
 
 ## Release log (moved from STATE.md, 23 Oct 2026)
+- Backup before v10: `data/private/d1-backup-v9.sql` (25 Oct 2026, 651 INSERT rows). Before v9: `d1-backup-v8.sql` (23 Oct 2026, 537 rows).
 - v8 Household card, Prairie & Steel (tag v8, 8.0.0, migration 0005): deployed 23 Oct 2026, Worker version 13029a97-51d7-4ada-b654-15a29db6458a.
 - v10 review: docs/mockups/v10-review.html (design review R1–R7, ideas N1–N12). Mark: yes R1, R2, R4, R5, N2; no R6, R7, N1, N3, N4; R3, N5–N12 unanswered.
 - v6 Easy people + review fixes (tag v6, 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e.
