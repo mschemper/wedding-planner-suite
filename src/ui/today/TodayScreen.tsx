@@ -102,7 +102,7 @@ export function TodayScreen() {
       {heldSc && (
         <Card title="Our venue" className="span-6">
           <div className="td-venue-name">{shortVenueName(heldSc.name)}</div>
-          {ws?.summary.budget && <p className="td-price">{money(ws.summary.budget.total)}</p>}
+          {ws?.summary.budget && <p className="td-price">{money(ws.summary.budget.total)}<span className="td-venue-meta"> {ws.guestsLabel}</span></p>}
           <p className="td-muted">Room {roomLine(roomCheck(hc, heldSc).expected, roomCheck(hc, heldSc).cap)}</p>
           {!offline && <p className="td-muted">Vendors booked {vs.booked} / {vs.coreTotal}</p>}
           {!offline && <Button onClick={() => openDay("venue")}>Open Day</Button>}

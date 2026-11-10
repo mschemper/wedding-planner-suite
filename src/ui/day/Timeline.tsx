@@ -49,15 +49,15 @@ export function Timeline({ venueId, date }: TimelineProps) {
       </Card>
       <SaveError result={fail} onDismiss={() => setFail(null)} />
       {sorted.length === 0 ? (
-        <EmptyState>
-          <p>No steps yet.</p>
+        <>
+          <EmptyState>No steps yet.</EmptyState>
           {!offline && (
             <div className="tl-actions">
               <Button kind="primary" disabled={busy} onClick={() => void start()}>Start from the Joinery template</Button>
               <Button onClick={() => setSheet("new")}>Add step</Button>
             </div>
           )}
-        </EmptyState>
+        </>
       ) : (
         <ol className="tl-list">
           {sorted.map((r, i) => {

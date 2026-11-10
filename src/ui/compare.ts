@@ -44,6 +44,7 @@ export const fmtDate = (d: string, opts: Intl.DateTimeFormatOptions = { weekday:
 export interface WeddingSummary {
   summary: VenueSummary;
   date: string;
+  /** count the total is priced at (expected, snapped into the venue's modelled range) */
   guests: number;
   guestsLabel: string;
   /** the Venue & site row that comes from a quote (e.g. the Joinery's $7,000 May 29 rate) */
@@ -65,8 +66,10 @@ export function useWeddingSummary(): WeddingSummary | null {
     const guestsLabel = expected > 0 ? `≈ ${guests} expected` : considered > 0 ? `≈ ${guests} if the undecided are invited` : `${guests} guests (nothing decided yet)`;
     const summary = summarize(s, { scenarios, venues, musthaves, fit, quotes, headcount: hc, guests, date: settings.heldDate, windows: settings.dateWindows, contingency: prefs.contingency });
     const b = summary.budget;
+    // the total is priced at summary.guests (snapped into the venue's modelled range); say so, and report that count
+    const label = summary.snapped ? `${guestsLabel} · priced at ${summary.guests} (venue's ${summary.guests > summary.asked ? "smallest" : "largest"} modelled count)` : guestsLabel;
     return {
-      summary, date: settings.heldDate, guests, guestsLabel,
+      summary, date: settings.heldDate, guests: summary.guests, guestsLabel: label,
       rentalQuote: b?.rows.find((r) => r.cat === "Venue & site" && r.quoted),
       unmatched: b?.unmatchedQuotes ?? [],
     };
