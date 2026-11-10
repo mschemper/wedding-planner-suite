@@ -2,11 +2,16 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 25 Oct 2026 (v10 shipped: bug sweep, window ranges, tour mode; v10 review ideas R3, N5–N12 unanswered).
+Last reviewed: 9 Nov 2026 (v11 shipped: Joinery May 29, Day tab, vendors, timeline, milestones).
 
 ---
 
 ## Mark's actions (data, not code)
+
+### D6. Reply to Shay before the free May 29 hold ends (≈ 10 Nov 2026)
+Then sign + pay the deposit; set The Joinery to "booked" (Venues). Release the Firehouse Jun 12 hold once signed.
+
+### D7. Day → Our venue → "Add milestones to Plan"; Day → Timeline → "Start from the Joinery template"
 
 ### D1. Link the unplaced cousins to their parents (People → Family → "Not placed yet")
 Import couldn't tell which aunt/uncle household they belong to. `data/private/import-review.json` lists them by id.
@@ -30,9 +35,6 @@ Each price answer replaces an estimate in `src/data/scenarios.ts` → golden + H
 ### P1. Angela's first sign-in — XS
 Angela opens the link and enters her email for the PIN. Not yet confirmed.
 
-### F14. Ravenswood Event Center pricing — S (needs the rate sheet, task T004)
-`priced: false` today. Add line items + golden rows when rates arrive.
-
 ### F15. Firehouse unknowns — XS
 F&B minimum, service/tax, insurance/security fees, linens, 2027 availability. Model assumes $160/guest catering, 22% tax+service, $14/guest linens.
 
@@ -45,18 +47,18 @@ Park District lists $3,679 for the weekend 11-hour package; the doc itemises $3,
 ### F18. Quote sweep from email + Drive — S (REVIEW-v6 E1)
 `docs/skills/quote-sweep.md` + "Paste quotes" sheet (preview vs estimate, one save). PDFs from the Drive folder in STATE "Quotes".
 
-### F19. Vendors table + quote fields — M (REVIEW-v6 E2, Q2)
-Migration 0004: `vendors` (category, email domains), quote `source`, `valid_until`, `deposit`, `vendor_id`, status `excluded` ("not needed"; needs a quotes table rebuild: CHECK constraint).
+### F19. Quote fields + vendor link — M (REVIEW-v6 E2, Q2)
+v11 shipped D1 `vendors` (0006: category, status, amounts, payment dates). Still open: vendor email domains, quote `source`, `valid_until`, `vendor_id`, status `excluded` (quotes table rebuild: CHECK constraint).
 
 ### F20. Email inbox in the app — L (REVIEW-v6 E3)
 D1 `inbox` of proposals written via /api/write with an Access service token; daily scheduled sweep; Accept / Dismiss on Today.
 
 ### F22. Data health card — S (REVIEW-v6 I2; per-household cost shipped v9 in one-by-one Decide; bulk edit v7)
 
-### F23. Date heatmap — M (v9 review I3, Mark: yes)
+### F23. Date heatmap — M (v9 review I3, Mark: yes; ask again: date now likely May 29)
 Every Saturday in both date windows coloured by venue season price, holidays, sunset time and historic Chicago weather (Open-Meteo archive, free, fetched once into a data file). Next release.
 
-### F24. Seating chart — L (v9 review I9, Mark: yes)
+### F24. Seating chart — L (v9 review I9, Mark: yes; Joinery floor plan in public/venues/joinery/, 22 tables 3×8 ft)
 Drag households onto tables; starting plan from the family tree keeps branches together; flagged pairs apart. Needs a tables migration. Overlaps F17.
 
 ### F25. Inspiration board — M (v9 review I15, Mark: yes)
@@ -67,6 +69,9 @@ Needs a Google OAuth app + stored tokens. Today: docs/skills/email-sweep.md → 
 
 ### F17. Seating chart, RSVP site, mailing addresses — L
 Addresses need a DATA_MODEL plan first (AGENTS "Private data").
+
+### F26. Vendor booked vs estimate — S (v11)
+Compare each booked vendor's amount with the matching budget line (catering, photo, florals…) on Day → Vendors and feed booked amounts into the Joinery budget as quotes.
 
 ---
 

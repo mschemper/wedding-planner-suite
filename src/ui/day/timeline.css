@@ -1,0 +1,25 @@
+/* Day > Timeline (builder C). Tokens only. */
+.tl { display: grid; gap: 12px; }
+.tl-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: 14px; }
+.tl-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tl-step { display: grid; grid-template-columns: 8.5rem 1fr; gap: 12px; width: 100%; min-height: 44px; padding: 8px 10px; text-align: left; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.tl-step:disabled { cursor: default; }
+.tl-time { font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+.tl-main { display: grid; gap: 2px; min-width: 0; }
+.tl-title { font-weight: 600; }
+.tl-meta { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.tl-issue { color: var(--peony-ink); font-size: 14px; }
+.tl-sunset { padding: 8px 10px; min-height: 44px; display: flex; align-items: center; gap: 8px; color: var(--gold-ink); font-weight: 600; border-top: 2px dashed var(--marigold); border-bottom: 2px dashed var(--marigold); }
+.tl-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.tl-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tl-fields .wide { grid-column: 1 / -1; }
+.tl-err { color: var(--peony-ink); font-size: 14px; }
+.tl-confirm { margin-right: auto; color: var(--peony-ink); }
+@media (max-width: 480px) {
+  .tl-step { grid-template-columns: 1fr; gap: 2px; }
+}
+@media print {
+  .tl-head, .tl-actions, .tl > .flag { display: none; }
+  .tl-step { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; break-inside: avoid; }
+}

@@ -1,10 +1,11 @@
 // Today (DESIGN-v4 §2, mockup docs/mockups/v4-garden.html): when, headcount, must-haves, next up, shortlist.
 import { useMemo } from "react";
 import { orderedMustHaves } from "../../plan/fit";
+import { roomCheck, vendorSummary, weddingCountdown, weddingVenue } from "../../plan/day";
 import { chicagoToday, nextUp } from "../../plan/tasks";
 import type { VenueSummary } from "../../plan/venueSummary";
 import { Sprig } from "../garden/motifs";
-import { useCompare } from "../compare";
+import { useCompare, useWeddingSummary } from "../compare";
 import { useData } from "../data";
 import { money } from "../format";
 import { Button, Card, Chip, EmptyState, type ChipTone } from "../kit/kit";
@@ -13,7 +14,7 @@ import { PLAN_SECTION_KEY } from "../plan/PlanScreen";
 import { TaskRow } from "../plan/TaskRow";
 import { fmtDay, shortVenueName } from "../plan/model";
 import { capacityShort } from "../venues/model";
-import { countdown } from "./model";
+import { countdown, roomLine, weddingSub } from "./model";
 import "./today.css";
 
 const STATUS_TONE: Record<string, ChipTone> = { held: "peony", booked: "euc", quoted: "gold", "tour booked": "sage", toured: "sage" };
@@ -41,15 +42,19 @@ function VenueTile({ v, i, onOpen }: { v: VenueSummary; i: number; onOpen(): voi
 }
 
 export function TodayScreen() {
-  const { tasks, musthaves, venues, scenarios, headcount: hc, settings, offline, status } = useData();
+  const { tasks, musthaves, venues, scenarios, headcount: hc, settings, offline, status, vendors } = useData();
   const { active } = useCompare();
-  const { setTab, openVenue, openTask } = useNav();
+  const { setTab, openVenue, openTask, openDay } = useNav();
+  const ws = useWeddingSummary();
   const today = chicagoToday();
   const cd = countdown(today, settings.dateWindows);
   const next = useMemo(() => nextUp(tasks, today, 5), [tasks, today]);
   const mh = useMemo(() => orderedMustHaves(musthaves), [musthaves]);
-  const heldRow = settings.heldDate ? venues.find((v) => v.hold_date === settings.heldDate) : undefined;
-  const heldName = heldRow ? scenarios.find((s) => s.id === heldRow.scenario_id)?.name : undefined;
+  const heldRow = weddingVenue(venues, settings);
+  const heldSc = heldRow ? scenarios.find((s) => s.id === heldRow.scenario_id) : undefined;
+  const heldName = heldSc?.name;
+  const wc = heldRow && settings.heldDate ? weddingCountdown(today, settings.heldDate) : null;
+  const vs = useMemo(() => vendorSummary(vendors, today), [vendors, today]);
   const inv = hc.invited;
   const decided = inv.heads > 0 || hc.ifroom.heads > 0 || hc.undecidedParties > 0;
   const allMustHaves = () => {
@@ -60,8 +65,8 @@ export function TodayScreen() {
   return (
     <div className="g-grid">
       <Card title="When" className="span-4">
-        <div className="td-big">{cd.big}</div>
-        <p className="td-muted">{cd.sub}</p>
+        <div className="td-big">{wc ? wc.big : cd.big}</div>
+        <p className="td-muted">{wc && settings.heldDate && heldName ? weddingSub(settings.heldDate, shortVenueName(heldName)) : cd.sub}</p>
         <p className="td-chips">
           {settings.heldDate && <Chip tone="peony">Held · {fmtDay(settings.heldDate, true)}{heldName ? ` · ${shortVenueName(heldName)}` : ""}</Chip>}
           {settings.dateWindows.map((w) => <Chip key={w.name} tone="plain" title={`${fmtDay(w.from)} to ${fmtDay(w.to)}`}>{w.name}</Chip>)}
@@ -93,6 +98,16 @@ export function TodayScreen() {
         )}
         <Button kind="quiet" onClick={allMustHaves}>All must-haves</Button>
       </Card>
+
+      {heldSc && (
+        <Card title="Our venue" className="span-6">
+          <div className="td-venue-name">{shortVenueName(heldSc.name)}</div>
+          {ws?.summary.budget && <p className="td-price">{money(ws.summary.budget.total)}</p>}
+          <p className="td-muted">Room {roomLine(roomCheck(hc, heldSc).expected, roomCheck(hc, heldSc).cap)}</p>
+          {!offline && <p className="td-muted">Vendors booked {vs.booked} / {vs.coreTotal}</p>}
+          {!offline && <Button onClick={() => openDay("venue")}>Open Day</Button>}
+        </Card>
+      )}
 
       <Card title="Next up" corner className="span-6">
         {next.length === 0 ? (

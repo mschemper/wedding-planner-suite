@@ -24,3 +24,9 @@ export function countdown(today: string, windows: DateWindow[]): Countdown {
   if (next) return { big: spanText(dayDiff(today, next.from)), sub: `until the ${next.name.toLowerCase()} window opens (${fmtDay(next.from)})`, inWindow: false };
   return { big: "Past", sub: "all date windows have passed", inWindow: false };
 }
+
+/** "When" card sub-line when a venue holds the wedding date: "to Sat May 29, 2027 · The Joinery". */
+export const weddingSub = (date: string, venueName: string): string => `to ${fmtDay(date, true)} · ${venueName}`;
+
+/** "Our venue" card room line: "≈ 64 / 160 seats" (cap null = no seated cap). */
+export const roomLine = (expected: number, cap: number | null): string => (cap == null ? `≈ ${expected} expected` : `≈ ${expected} / ${cap} seats`);

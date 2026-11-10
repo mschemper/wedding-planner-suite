@@ -1,3 +1,96 @@
-// Stub (lead): builder replaces this file (DESIGN-v11).
+// Day > Vendors (DESIGN-v11): summary strip, grouped list, payments, add/edit sheet.
+import { useState } from "react";
+import { VENDOR_LABEL, vendorSummary, type Payment } from "../../plan/day";
+import { chicagoToday } from "../../plan/tasks";
+import type { Vendor, VendorCategory, VendorStatus } from "../../plan/types";
+import { VENUE_FACTS } from "../../data/venueFacts";
+import { useData } from "../data";
+import { money } from "../format";
+import { Button, Card, Chip, EmptyState, type ChipTone } from "../kit/kit";
+import { dueLabel } from "../plan/model";
+import { STATUS_LABEL, STATUS_MARK, draftOf, emptyDraft, markPaidLabel, markPaidPatch, paymentText, type VendorDraft } from "./vendorsModel";
+import { VendorSheet } from "./VendorSheet";
+import "./vendors.css";
+
 export interface VendorsProps { venueId: number; date: string }
-export function Vendors(_props: VendorsProps) { return null; }
+
+const TONE: Record<VendorStatus, ChipTone> = { idea: "plain", contacted: "plain", quoted: "gold", booked: "sage", passed: "plain" };
+const StatusChip = ({ s }: { s: VendorStatus }) => <Chip tone={TONE[s]}><span aria-hidden="true">{STATUS_MARK[s]} </span>{STATUS_LABEL[s]}</Chip>;
+
+interface SheetState { vendor: Vendor | null; initial: VendorDraft }
+
+export function Vendors({ venueId }: VendorsProps) {
+  const { vendors, edit, offline } = useData();
+  const [sheet, setSheet] = useState<SheetState | null>(null);
+  const today = chicagoToday();
+  const sum = vendorSummary(vendors, today);
+  const recommended = VENUE_FACTS[venueId]?.recommended ?? {};
+  const addNew = (category?: VendorCategory, name?: string) => setSheet({ vendor: null, initial: emptyDraft(category, name, venueId) });
+  const markPaid = (p: Payment) => void edit([markPaidPatch(p, today)], markPaidLabel(p));
+  const nextDue = sum.next ? dueLabel(sum.next.due, today) : null;
+
+  return (
+    <div className="vd">
+      <Card title="Vendors" actions={offline ? undefined : <Button kind="primary" onClick={() => addNew()}>Add vendor</Button>}>
+        <div className="vd-strip">
+          <strong>{sum.booked} of {sum.coreTotal} booked</strong>
+          <span>Committed {money(sum.committed)}</span>
+          {sum.next && nextDue && (
+            <span>Next: {paymentText(sum.next)} {sum.next.vendor.name}{sum.next.amount != null ? ` ${money(sum.next.amount)}` : ""}, <span className={nextDue.overdue ? "vd-late" : undefined}>{nextDue.text}</span></span>
+          )}
+          {sum.overdue > 0 && <span className="vd-over"><span aria-hidden="true">⚠ </span>{sum.overdue} overdue</span>}
+        </div>
+      </Card>
+
+      <Card title="By category">
+        {!vendors.length && <EmptyState>No vendors yet. Add one, or tap a suggestion below.</EmptyState>}
+        <ul className="vd-list">
+          {sum.byCategory.map(({ category, best, count }) => (
+            <li key={category} className="vd-row">
+              <span className="vd-cat">{VENDOR_LABEL[category]}</span>
+              {best ? (
+                <div className="vd-main">
+                  <button type="button" className="vd-open" onClick={() => setSheet({ vendor: best, initial: draftOf(best) })} aria-label={`Edit ${best.name}`}>
+                    <span className="vd-name">{best.name}</span>
+                  </button>
+                  <StatusChip s={best.status} />
+                  {best.amount != null && <span className="vd-amt">{money(best.amount)}</span>}
+                  {count > 1 && <span className="vd-more">+{count - 1} other{count === 2 ? "" : "s"}</span>}
+                </div>
+              ) : (
+                <div className="vd-empty">
+                  <span className="vd-more">None yet</span>
+                  {!offline && <Button onClick={() => addNew(category)}>Add</Button>}
+                  {!offline && (
+                    <span className="vd-sugg">
+                      {(recommended[category] ?? []).slice(0, 3).map((n) => <Button key={n} kind="quiet" onClick={() => addNew(category, n)}>{n}</Button>)}
+                    </span>
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      {sum.payments.length > 0 && (
+        <Card title="Payments due">
+          {sum.payments.map((p) => {
+            const d = dueLabel(p.due, today);
+            return (
+              <div key={`${p.vendor.id}-${p.kind}`} className="vd-pay">
+                <span className="vd-pay-text">
+                  {paymentText(p)} · {p.vendor.name}{p.amount != null ? ` · ${money(p.amount)}` : ""} ·{" "}
+                  <span className={d.overdue ? "vd-late" : undefined}>{d.overdue && <span aria-hidden="true">⚠ </span>}{d.text}</span>
+                </span>
+                {!offline && <Button onClick={() => markPaid(p)}>Mark paid</Button>}
+              </div>
+            );
+          })}
+        </Card>
+      )}
+
+      {sheet && <VendorSheet key={sheet.vendor?.id ?? `new-${sheet.initial.category}-${sheet.initial.name}`} vendor={sheet.vendor} initial={sheet.initial} onClose={() => setSheet(null)} />}
+    </div>
+  );
+}

@@ -8,6 +8,7 @@ Read only for a deploy session. Steps in order; stop on any failure. Cloudflare 
 ## Steps
 1. Backup: `npx wrangler d1 export DB --remote --output data/private/d1-backup-v<N-1>.sql` (gitignored). Note the Time Travel bookmark if a migration follows.
 2. Migrations (only if the release adds one): `npx wrangler d1 migrations apply DB --remote`.
+2b. Release data script (only if `scripts/v<N>-live-data.sql` exists; idempotent): `npx wrangler d1 execute DB --remote --file scripts/v<N>-live-data.sql`.
 3. Seed (only on first load or Mark asks; only behind Access): `npm run import:v4`, `npm run seed:v4 -- --replace`, `npx wrangler d1 execute DB --remote --file data/private/seed-v4.sql`, delete the file. `--replace` wipes in-app edits: export first.
 4. `npm run build` (hosted `dist/`).
 5. `npx wrangler deploy`.

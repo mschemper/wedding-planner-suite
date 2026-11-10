@@ -54,3 +54,8 @@ Organised by the thing you're changing, not by folder.
 | Tour mode (v10) | `src/ui/venues/TourMode.tsx`, `src/ui/venues/model.ts` `tourOps` | `tests/venues-ui.test.ts` |
 | Real-date check | `src/data/params.ts` `isDay` (UI, Worker) | `tests/v10.test.ts` |
 | Quote form checks (vendor, $0 reason) | `src/ui/venues/model.ts` `quoteIssue`, `QuoteForm.tsx` | `tests/venues-ui.test.ts` |
+| Day tab shell, sections (v11) | `src/ui/day/DayScreen.tsx` (lead), `OurVenue.tsx`, `Vendors.tsx`, `Timeline.tsx` + sheets/models | `tests/day-*-ui.test.ts`; docs/DESIGN-v11.md |
+| Wedding venue, countdown, milestones, sunset, timeline rules, vendor summary, room + bar minimum | `src/plan/day.ts` | `tests/day.test.ts` |
+| Venue facts (hours, rules, vendors, photos) | `src/data/venueFacts.ts`; photos `public/venues/<venue>/` (hosted only; offline build has no publicDir) | `tests/day.test.ts` |
+| Wedding venue priced at expected guests on the held date | `src/ui/compare.ts` `useWeddingSummary` | — |
+| Live data fixes run once at deploy | `scripts/v11-live-data.sql` | docs/DEPLOY.md |

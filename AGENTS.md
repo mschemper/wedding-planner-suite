@@ -10,7 +10,7 @@ Index + hard rules. Detail lives in docs/: point, never copy. Facts that change 
 5. ADHD output mode always on (ayghri/i-have-adhd @839872f, MIT). Off only on "stop adhd mode"/"normal mode", that session only. Conflict -> P0 wins (P0.1 allows >1 question). Digest, apply every reply: first line = next action or answer; numbered steps, fewest that work; end with ONE <2-min next action; restate state ("step 3 of 5 done"); specific time estimates; show what now works; no preamble/recap/closer/tangents (offer separately); errors = cause + fix, no "uh oh"; lists max 5 visible; "explain" requests run long. Full rules docs/skills/i-have-adhd/SKILL.md: read only if the digest is unclear.
 
 ## What this is
-Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + Static Assets + D1 + Access): https://wedding-planner.wedding-planner-suite.workers.dev. Look: docs/STATE.md "Look". Tabs Today, Venues (shortlist, budget per venue, must-have fit, quotes), People (household invite decisions, one-by-one Decide, family tree, tidy-up, envelopes), Plan (tasks, must-haves). Budget engine prices 18 scenarios by guest count, date (venue seasons), options, quotes (source: Reconciled Master v2.0 + venue pages). Offline build = read-only budget.
+Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + Static Assets + D1 + Access): https://wedding-planner.wedding-planner-suite.workers.dev. Look: docs/STATE.md "Look". Tabs Today, Venues (shortlist, budget per venue, must-have fit, quotes), People (household invite decisions, one-by-one Decide, family tree, tidy-up, envelopes), Plan (tasks, must-haves), Day (wedding venue, vendors, day-of timeline; DESIGN-v11). Budget engine prices 18 scenarios by guest count, date (venue seasons), options, quotes (source: Reconciled Master v2.0 + venue pages). Offline build = read-only budget.
 
 ## Session start (in order)
 0. Cowork only: repo not mounted -> device_request_folder_access C:\Users\msche\Documents\Projects\wedding-planner-suite.
@@ -32,7 +32,7 @@ Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + S
 - Workbook import only via `npm run import:v4` (src/people/fromWorkbook.ts). Workbook columns never drive the UI.
 - Two builds: hosted `dist/` (Worker assets; data only via /api) and offline `dist-offline/index.html` (singlefile, read-only budget, no CDN, no fetch). Neither bundles data/private (vite `noPrivate`).
 - Worker: `worker/` pure handler; one save = one D1 batch (`POST /api/write`); never write D1 outside it. Table specs `worker/db.ts SPECS`; contract `src/api/types.ts`; UI reads only `useData()` (src/ui/data.tsx); one-tap edits via `edit()` (Undo).
-- New D1 column/table -> new migration file + `SPECS` + tests/worker.test.ts. Never edit an applied migration. Migrations are add-only; latest = 0005 (docs/STATE.md). v3 tables drop in a later migration (BACKLOG B5).
+- New D1 column/table -> new migration file + `SPECS` + tests/worker.test.ts. Never edit an applied migration. Migrations are add-only; latest = 0006 (docs/STATE.md). v3 tables drop in a later migration (BACKLOG B5).
 - Exact dependency versions. SheetJS from cdn.sheetjs.com tarball (npm `xlsx` frozen at CVE'd 0.18.5).
 
 ## Build and release

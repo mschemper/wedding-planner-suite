@@ -1,0 +1,25 @@
+/* Day > Vendors (DESIGN-v11). Prefix vd-. Tokens only. */
+.vd { display: grid; gap: 12px; }
+.vd-strip { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.vd-strip > * { min-width: 0; }
+.vd-over { color: var(--peony-ink); font-weight: 600; }
+.vd-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.vd-row { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.vd-cat { font-weight: 600; flex: 1 1 100%; }
+.vd-main { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; flex: 1 1 200px; min-width: 0; }
+.vd-open { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.vd-name { font-weight: 600; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.vd-amt { font-variant-numeric: tabular-nums; }
+.vd-more { color: var(--muted); font-size: 13px; }
+.vd-empty { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.vd-sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.vd-pay { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.vd-pay-text { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.vd-late { color: var(--peony-ink); font-weight: 600; }
+.vd-fields { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); margin-bottom: 12px; }
+@media (min-width: 560px) { .vd-fields { grid-template-columns: 1fr 1fr; } }
+.vd-fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; min-width: 0; }
+.vd-err { color: var(--peony-ink); font-size: 14px; }
+.vd-warn { color: var(--gold-ink); font-size: 14px; }
+.vd-confirm { flex: 1 1 auto; }
+.vd-actions { display: flex; flex-wrap: wrap; gap: 8px; }
