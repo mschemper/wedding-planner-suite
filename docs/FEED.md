@@ -18,5 +18,13 @@ Consumer: repo bauhaus-dashboard, mode `wedding` (its own docs). Producer here. 
 4. Pi sends headers `CF-Access-Client-Id` + `CF-Access-Client-Secret` to `https://wedding-planner.wedding-planner-suite.workers.dev/api/feed/plan`.
 5. Verify: no headers -> Access login redirect; Pi headers -> 200 JSON; Pi headers on `/api/data` -> 403.
 
+## Consumer brief (bauhaus-dashboard session, WSL ~/bauhaus)
+Mark's picks (9 Nov 2026): show countdown + task progress + next tasks; on demand (`bauhaus-mode wedding`) + 2-3x/day short slot like lake; own design family like Tufte, flat.
+1. Follow bauhaus AGENTS.md session start; size per its RELEASE.md.
+2. Design first: 2-3 layout options at 1080x1920 portrait (tools/preview.py renders); Mark picks before build.
+3. Fetcher: GET the route above with `CF-Access-Client-Id`/`CF-Access-Client-Secret` from `/etc/bauhaus-dashboard/secrets.toml` `[wedding]`; cache last good JSON on disk; show its age when stale; check `feed == 1`.
+4. Renderer: pure data -> image; Jungalow token set beside tokens.py (exception documented like Tufte); text floor per its MODES/QA rules; dark slate 00:00-07:00 still applies.
+5. Gates: its tools/checks.sh; release + deploy per its docs. Producer must be deployed first (Setup above).
+
 ## Look for the consumer
 Jungalow Lounge (docs/DESIGN-v9.md "Type" + palette); tokens in `src/ui/styles.css` `:root` (day) + dusk set. Consumer copies values into its own token set, flat: no shadows, gradients.
