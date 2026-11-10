@@ -1,7 +1,8 @@
 // Tab navigation shared by the screens (DESIGN-v4 §2). src/ui/App.tsx provides it.
 import { createContext, useContext } from "react";
 
-export type Tab = "today" | "venues" | "people" | "plan";
+export type Tab = "today" | "venues" | "people" | "plan" | "day";
+export type DaySection = "venue" | "vendors" | "timeline";
 
 export interface Nav {
   tab: Tab;
@@ -12,6 +13,8 @@ export interface Nav {
   openPerson(personId: string): void;
   /** Plan tab, scroll to / highlight this task */
   openTask(taskId: string): void;
+  /** Day tab (v11), open a section */
+  openDay(section?: DaySection): void;
   /** Venues tab, compare every venue at this guest count */
   priceAt(guests: number): void;
   /** target set by openVenue/openPerson/openTask; the screen clears it once handled */

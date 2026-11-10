@@ -1,4 +1,4 @@
-import type { Tab } from "./nav";
+import type { DaySection, Tab } from "./nav";
 
 // Per-viewer conveniences only (DESIGN-v4 §2 "Prefs"). Storage can be missing or throw (private mode, file://): always fall back.
 /** considered = expected if every undecided / if-room household is invited too (default while deciding) */
@@ -21,12 +21,14 @@ export interface Prefs {
   /** null = Decide */
   peopleView: PeopleView | null;
   theme: "auto" | "day" | "dusk";
+  /** v11 Day tab section */
+  daySection: DaySection;
 }
 
 const KEY = "wps.prefs.v2";
 const OLD_KEY = "wps.prefs.v1";
 export const DEFAULT_PREFS: Prefs = {
-  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto",
+  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto", daySection: "venue",
 };
 
 /** v4 values: garden → family, envelopes → decide. v9: the Friends view folded into Decide. */
@@ -37,7 +39,8 @@ function migrateView(v: unknown): PeopleView | null {
   return v === "decide" || v === "family" ? v : null;
 }
 
-const TABS: Tab[] = ["today", "venues", "people", "plan"];
+const TABS: Tab[] = ["today", "venues", "people", "plan", "day"];
+const DAY_SECTIONS: DaySection[] = ["venue", "vendors", "timeline"];
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export function loadPrefs(): Prefs {
@@ -60,6 +63,7 @@ export function loadPrefs(): Prefs {
       capacityVenue: typeof p.capacityVenue === "number" ? p.capacityVenue : DEFAULT_PREFS.capacityVenue,
       peopleView: migrateView(p.peopleView),
       theme: p.theme === "day" || p.theme === "dusk" ? p.theme : "auto",
+      daySection: DAY_SECTIONS.includes(p.daySection as DaySection) ? (p.daySection as DaySection) : DEFAULT_PREFS.daySection,
     };
   } catch {
     return DEFAULT_PREFS;

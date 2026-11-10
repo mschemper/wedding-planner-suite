@@ -1,6 +1,8 @@
 // Shared selector for Today + Venues: what guest count and date the venues are priced at, and every venue's summary.
 import { useMemo } from "react";
-import { summarizeAll, type VenueSummary } from "../plan/venueSummary";
+import type { BudgetRow, Quote } from "../engine/types";
+import { weddingVenue } from "../plan/day";
+import { summarize, summarizeAll, type VenueSummary } from "../plan/venueSummary";
 import { useData } from "./data";
 import { usePrefs } from "./usePrefs";
 import { guestSplit, splitText } from "./venues/model";
@@ -37,3 +39,36 @@ export function useCompare(): Compare {
 
 export const fmtDate = (d: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric", year: "numeric" }) =>
   new Date(`${d}T12:00:00`).toLocaleDateString("en-US", opts);
+
+/** v11: the wedding venue priced at expected guests on the held date (Today + Day share this; DESIGN-v11). null = no venue holds the date. */
+export interface WeddingSummary {
+  summary: VenueSummary;
+  date: string;
+  guests: number;
+  guestsLabel: string;
+  /** the Venue & site row that comes from a quote (e.g. the Joinery's $7,000 May 29 rate) */
+  rentalQuote?: BudgetRow;
+  /** quotes that matched no line on this date: show as a warning */
+  unmatched: Quote[];
+}
+
+export function useWeddingSummary(): WeddingSummary | null {
+  const { scenarios, venues, musthaves, fit, quotes, headcount: hc, settings } = useData();
+  const { prefs } = usePrefs();
+  return useMemo(() => {
+    const row = weddingVenue(venues, settings);
+    const s = row && scenarios.find((x) => x.id === row.scenario_id);
+    if (!row || !s || !settings.heldDate) return null;
+    const expected = Math.round(hc.invited.expected);
+    const considered = Math.round(hc.invited.expected + hc.ifroom.expected + hc.undecided.expected);
+    const guests = expected > 0 ? expected : considered > 0 ? considered : prefs.guests;
+    const guestsLabel = expected > 0 ? `≈ ${guests} expected` : considered > 0 ? `≈ ${guests} if the undecided are invited` : `${guests} guests (nothing decided yet)`;
+    const summary = summarize(s, { scenarios, venues, musthaves, fit, quotes, headcount: hc, guests, date: settings.heldDate, windows: settings.dateWindows, contingency: prefs.contingency });
+    const b = summary.budget;
+    return {
+      summary, date: settings.heldDate, guests, guestsLabel,
+      rentalQuote: b?.rows.find((r) => r.cat === "Venue & site" && r.quoted),
+      unmatched: b?.unmatchedQuotes ?? [],
+    };
+  }, [scenarios, venues, musthaves, fit, quotes, hc, settings, prefs.guests, prefs.contingency]);
+}

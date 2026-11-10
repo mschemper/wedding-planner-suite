@@ -90,6 +90,7 @@ export const SPECS: Record<TableName, Spec> = {
     pk: "id", prefix: "V", width: 2, create: true, del: true,
     cols: [t("id"), e("category", VENDOR_CATEGORIES, "other"), t("name", { required: true }), e("status", VENDOR_STATUSES, "idea"),
       { name: "amount", type: "real" }, { name: "deposit", type: "real" }, t("deposit_due", { date: true }), t("balance_due", { date: true }),
+      t("deposit_paid", { date: true }), t("balance_paid", { date: true }),
       t("contact"), t("notes"), i("scenario_id"), i("sort")],
   },
   timeline: {

@@ -1,5 +1,8 @@
 // v11 Day tab logic (pure): wedding venue + countdown, plan-back milestones, sunset, timeline, vendor summary.
 import type { Settings } from "../data/params";
+import type { Options, Scenario } from "../engine/types";
+import { applies } from "../engine/compute";
+import type { Headcount } from "../people/headcount";
 import type { VenueHours } from "../data/venueFacts";
 import { addDays } from "./tasks";
 import type { Category, Task, TimelineRow, Vendor, VendorCategory, VenueRow } from "./types";
@@ -24,6 +27,42 @@ export function weddingCountdown(today: string, wedding: string): WeddingCountdo
   const days = dayDiff(today, wedding);
   const big = days === 0 ? "Today" : days < 0 ? "Married" : `${days} day${days === 1 ? "" : "s"}`;
   return { days, weeks: Math.floor(Math.max(days, 0) / 7), big, past: days < 0 };
+}
+
+// ---------- room + bar minimum ----------
+
+export interface RoomCheck {
+  /** expected main-room heads (adults + kids unless the venue has a kids' room) */
+  expected: number;
+  /** heads if everyone invited comes */
+  invited: number;
+  cap: number | null;
+  /** cap − expected (≈) */
+  spare: number | null;
+  over: boolean;
+  kidsInMain: boolean;
+}
+
+/** Main-room check against the venue's seated cap. Kids count in the main room unless the venue has a kids' room. */
+export function roomCheck(hc: Headcount, sc: Scenario): RoomCheck {
+  const kidsInMain = !sc.kidsRoom;
+  const invited = hc.invited.adults + (kidsInMain ? hc.invited.kids : 0);
+  const share = hc.invited.heads > 0 ? invited / hc.invited.heads : 1;
+  const expected = Math.round(hc.invited.expected * share);
+  const cap = sc.capacity?.hardMax ?? null;
+  return { expected, invited, cap, spare: cap == null ? null : cap - expected, over: cap != null && invited > cap, kidsInMain };
+}
+
+export interface BarMinimum { min: number; rate: number; perHead: number; binding: boolean; desc: string }
+
+/** The applying minSpend line (e.g. the Joinery's $4,000 bar minimum) at `guests`: effective $ per head and whether the minimum binds. */
+export function barMinimum(sc: Scenario, guests: number, opts: Options, season?: string): BarMinimum | null {
+  for (const it of sc.items) {
+    if (it.type !== "minSpend" || !applies(it.appliesIf, guests, opts, season)) continue;
+    const total = Math.max(it.min, it.rate * guests);
+    return { min: it.min, rate: it.rate, perHead: guests > 0 ? Math.round((total / guests) * 100) / 100 : 0, binding: it.min > it.rate * guests, desc: it.desc };
+  }
+  return null;
 }
 
 // ---------- plan-back milestones ----------
@@ -107,7 +146,10 @@ export function sunsetUtc(day: string, lat: number, lon: number): Date | null {
   if (cosH < -1 || cosH > 1) return null;
   const H = deg(Math.acos(cosH)) / 15;
   const T = H + RA - 0.06571 * t - 6.622;
-  const ut = mod(T - lngHour, 24);
+  let ut = mod(T - lngHour, 24);
+  // keep the local solar hour (ut + lngHour) inside the asked day: west of Greenwich an evening sunset is on the next UTC day
+  if (ut + lngHour < 0) ut += 24;
+  else if (ut + lngHour >= 24) ut -= 24;
   return new Date(Date.UTC(y, m - 1, d) + Math.round(ut * 3_600_000));
 }
 
@@ -163,7 +205,7 @@ export function timelineIssues(rows: TimelineRow[], hours: VenueHours): Timeline
   return out;
 }
 
-/** The step running at sunset, or the first one after it (for the sunset marker). */
+/** Index of the first step that starts after sunset (marker goes before it). Expects `sortTimeline` output. */
 export function sunsetIndex(rows: Pick<TimelineRow, "start" | "minutes">[], sunset: string): number {
   const s = toMin(sunset);
   const i = rows.findIndex((r) => toMin(r.start) > s);
@@ -199,7 +241,7 @@ export const CORE_VENDORS: VendorCategory[] = ["catering", "bar", "photo", "musi
 const STATUS_RANK: Record<string, number> = { booked: 0, quoted: 1, contacted: 2, idea: 3, passed: 4 };
 
 export interface CategoryStatus { category: VendorCategory; best: Vendor | null; count: number }
-export interface Payment { vendor: Vendor; kind: "deposit" | "balance"; due: string; amount: number | null }
+export interface Payment { vendor: Vendor; kind: "deposit" | "balance"; due: string; amount: number | null; overdue: boolean }
 export interface VendorSummary {
   byCategory: CategoryStatus[];
   /** core categories with a booked vendor */
@@ -207,11 +249,14 @@ export interface VendorSummary {
   coreTotal: number;
   /** sum of booked amounts */
   committed: number;
-  /** deposits + balances of booked/quoted vendors with a due date, soonest first */
+  /** unpaid deposits + balances of booked/quoted vendors with a due date, soonest first */
   payments: Payment[];
+  /** first unpaid payment (overdue ones come first by date) */
+  next: Payment | null;
+  overdue: number;
 }
 
-export function vendorSummary(vendors: Vendor[]): VendorSummary {
+export function vendorSummary(vendors: Vendor[], today: string): VendorSummary {
   const cats = [...CORE_VENDORS, ...new Set(vendors.map((v) => v.category).filter((c) => !CORE_VENDORS.includes(c)))];
   const byCategory = cats.map((category) => {
     const rows = vendors.filter((v) => v.category === category);
@@ -223,11 +268,12 @@ export function vendorSummary(vendors: Vendor[]): VendorSummary {
   const payments: Payment[] = [];
   for (const v of vendors) {
     if (v.status !== "booked" && v.status !== "quoted") continue;
-    if (v.deposit_due) payments.push({ vendor: v, kind: "deposit", due: v.deposit_due, amount: v.deposit ?? null });
-    if (v.balance_due) payments.push({ vendor: v, kind: "balance", due: v.balance_due, amount: v.amount != null ? v.amount - (v.deposit ?? 0) : null });
+    if (v.deposit_due && !v.deposit_paid) payments.push({ vendor: v, kind: "deposit", due: v.deposit_due, amount: v.deposit ?? null, overdue: v.deposit_due < today });
+    if (v.balance_due && !v.balance_paid)
+      payments.push({ vendor: v, kind: "balance", due: v.balance_due, amount: v.amount != null ? v.amount - (v.deposit ?? 0) : null, overdue: v.balance_due < today });
   }
   payments.sort((a, b) => a.due.localeCompare(b.due) || a.vendor.id.localeCompare(b.vendor.id));
-  return { byCategory, booked, coreTotal: CORE_VENDORS.length, committed, payments };
+  return { byCategory, booked, coreTotal: CORE_VENDORS.length, committed, payments, next: payments[0] ?? null, overdue: payments.filter((x) => x.overdue).length };
 }
 
 export const VENDOR_LABEL: Record<VendorCategory, string> = {

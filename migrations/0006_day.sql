@@ -8,6 +8,8 @@ CREATE TABLE vendors (
   deposit REAL,
   deposit_due TEXT,
   balance_due TEXT,
+  deposit_paid TEXT,
+  balance_paid TEXT,
   contact TEXT,
   notes TEXT,
   scenario_id INTEGER,

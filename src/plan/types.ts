@@ -80,6 +80,9 @@ export interface Vendor {
   /** YYYY-MM-DD */
   deposit_due?: string | null;
   balance_due?: string | null;
+  /** YYYY-MM-DD the deposit / balance was paid; null = unpaid */
+  deposit_paid?: string | null;
+  balance_paid?: string | null;
   /** business contact (email / phone / site) */
   contact?: string | null;
   notes?: string | null;

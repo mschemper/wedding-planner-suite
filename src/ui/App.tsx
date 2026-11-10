@@ -1,6 +1,7 @@
-// Shell (DESIGN-v4 §2, §6): garden header, four tabs (top pills; bottom bar on phones), prefs + nav contexts, Undo toast.
+// Shell (DESIGN-v4 §2, §6; v11 Day tab): garden header, five tabs (top pills; bottom bar on phones), prefs + nav contexts, Undo toast.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useData } from "./data";
+import { DayScreen } from "./day/DayScreen";
 import { Garland, LeafDivider } from "./garden/motifs";
 import { UndoToast } from "./kit/kit";
 import { NavContext, type Nav, type Tab } from "./nav";
@@ -16,6 +17,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "venues", label: "Venues", icon: "⌂" },
   { id: "people", label: "People", icon: "❦" },
   { id: "plan", label: "Plan", icon: "✓" },
+  { id: "day", label: "Day", icon: "❀" },
 ];
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 const THEME_NEXT = { auto: "day", day: "dusk", dusk: "auto" } as const;
@@ -40,6 +42,7 @@ export function App() {
     openVenue: (id) => { set({ tab: "venues", selected: id }); setFocus({ venue: id }); window.scrollTo({ top: 0 }); },
     openPerson: (id) => { set({ tab: "people" }); setFocus({ person: id }); },
     openTask: (id) => { set({ tab: "plan" }); setFocus({ task: id }); },
+    openDay: (section) => { set({ tab: "day", ...(section ? { daySection: section } : {}) }); window.scrollTo({ top: 0 }); },
     priceAt: (g) => { set({ tab: "venues", guestBasis: "custom", guests: clamp(Math.round(g), 20, 300), selected: null }); window.scrollTo({ top: 0 }); },
     focus,
     clearFocus: () => setFocus({}),
@@ -88,7 +91,7 @@ export function App() {
             </div>
           )}
           {data.status === "ready" && (
-            prefs.tab === "today" ? <TodayScreen /> : prefs.tab === "venues" ? <VenuesScreen /> : prefs.tab === "people" ? <PeopleScreen /> : <PlanScreen />
+            prefs.tab === "today" ? <TodayScreen /> : prefs.tab === "venues" ? <VenuesScreen /> : prefs.tab === "people" ? <PeopleScreen /> : prefs.tab === "plan" ? <PlanScreen /> : <DayScreen />
           )}
         </main>
         <UndoToast />

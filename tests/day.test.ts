@@ -8,7 +8,7 @@ import { VENUE_FACTS } from "../src/data/venueFacts";
 import { computeBudget, seasonOf } from "../src/engine/compute";
 import {
   MILESTONES, TIMELINE_TEMPLATE, clock, endOf, milestoneDrafts, milestoneSource, sortTimeline, sunsetIndex, sunsetLocal, timelineIssues,
-  toMin, vendorSummary, weddingCountdown, weddingVenue,
+  toMin, vendorSummary, weddingCountdown, weddingVenue, sunsetUtc, roomCheck, barMinimum,
 } from "../src/plan/day";
 import type { TimelineRow, Vendor, VenueRow } from "../src/plan/types";
 import { SqliteD1 } from "../scripts/d1-sqlite";
@@ -57,6 +57,10 @@ describe("plan-back milestones", () => {
 });
 
 describe("sunset", () => {
+  it("falls on the asked local day", () => {
+    const u = sunsetUtc("2027-05-29", 41.918, -87.705)!;
+    expect(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(u)).toBe("2027-05-29");
+  });
   it("Chicago: May 29 2027 about 8:20 PM CDT; Dec 21 about 4:22 PM CST", () => {
     expect(Math.abs(toMin(sunsetLocal("2027-05-29")!) - toMin("20:20"))).toBeLessThanOrEqual(4);
     expect(Math.abs(toMin(sunsetLocal("2026-12-21")!) - toMin("16:22"))).toBeLessThanOrEqual(4);
@@ -99,12 +103,29 @@ describe("vendor summary", () => {
       v({ id: "V02", category: "photo", status: "booked", amount: 5000, deposit: 1000, deposit_due: "2026-12-01", balance_due: "2027-05-15" }),
       v({ id: "V03", category: "bar", status: "quoted", amount: 4000, deposit_due: "2026-11-20" }),
       v({ id: "V04", category: "transport", status: "passed", amount: 900 }),
-    ]);
+      v({ id: "V05", category: "cake", status: "booked", amount: 600, deposit: 100, deposit_due: "2026-10-01", deposit_paid: "2026-10-01" }),
+    ], "2026-11-25");
     expect(s.byCategory.find((c) => c.category === "photo")).toMatchObject({ count: 2, best: { id: "V02" } });
     expect(s.byCategory.some((c) => c.category === "transport")).toBe(true);
-    expect(s.booked).toBe(1);
-    expect(s.committed).toBe(5000);
-    expect(s.payments.map((p) => [p.vendor.id, p.kind, p.amount])).toEqual([["V03", "deposit", null], ["V02", "deposit", 1000], ["V02", "balance", 4000]]);
+    expect(s.committed).toBe(5600);
+    expect(s.booked).toBe(2);
+    expect(s.payments.map((p) => [p.vendor.id, p.kind, p.amount, p.overdue])).toEqual([["V03", "deposit", null, true], ["V02", "deposit", 1000, false], ["V02", "balance", 4000, false]]);
+    expect(s.next?.vendor.id).toBe("V03");
+    expect(vendorSummary([v({ status: "booked", deposit_due: "2026-11-01" })], "2026-11-25")).toMatchObject({ overdue: 1, next: { overdue: true } });
+  });
+});
+
+describe("room + bar minimum", () => {
+  const t = (heads: number, adults: number, kids: number, expected: number) => ({ heads, adults, kids, expected });
+  const hc = { invited: t(80, 70, 10, 64), ifroom: t(0, 0, 0, 0), undecided: t(0, 0, 0, 0), no: t(0, 0, 0, 0), ranked: [], undecidedParties: 0 };
+  it("Joinery has no kids' room: kids count against 160", () => {
+    expect(roomCheck(hc, scenarioById(5))).toMatchObject({ invited: 80, expected: 64, cap: 160, spare: 96, over: false, kidsInMain: true });
+    expect(roomCheck(hc, scenarioById(17))).toMatchObject({ invited: 70, expected: 56, cap: 82, kidsInMain: false });
+  });
+  it("$4,000 bar minimum binds below 118 guests on Tier 1", () => {
+    expect(barMinimum(scenarioById(5), 75, { bar: "Tier 1 Standard" }, "summer/fall")).toMatchObject({ min: 4000, perHead: 53.33, binding: true });
+    expect(barMinimum(scenarioById(5), 125, { bar: "Tier 1 Standard" }, "summer/fall")).toMatchObject({ perHead: 34, binding: false });
+    expect(barMinimum(scenarioById(17), 75, { bar: "Beer & Wine" })).toBeNull();
   });
 });
 

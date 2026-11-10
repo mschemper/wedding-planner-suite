@@ -1,0 +1,2 @@
+/* Day tab shell (lead). Section CSS lives in each section file. */
+.dy-switch { display: flex; justify-content: center; margin: 0 0 16px; }
