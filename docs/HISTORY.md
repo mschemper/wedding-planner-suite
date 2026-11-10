@@ -83,6 +83,7 @@ Newest first. Each entry: what changed and why.
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
 
 ## Release log (moved from STATE.md, 23 Oct 2026)
+- **v11** (tag `v11`, 11.0.0), deployed 9 Nov 2026, Worker version 5dcf0c0a-a7af-461d-b9af-8962abca2129; migration 0006. Rollback: docs/DEPLOY.md
 - v10 bug sweep (tag v10, 10.0.0, no migration): deployed 25 Oct 2026, Worker version 5904b91d-009e-41dd-9784-85781427ed6c.
 - v9 Jungalow Lounge (tag v9, 9.0.0, no migration): deployed 23 Oct 2026, Worker version 95a4afda-912a-4df1-bdc1-4aa0dcde5659.
 - Backup before v10: `data/private/d1-backup-v9.sql` (25 Oct 2026, 651 INSERT rows). Before v9: `d1-backup-v8.sql` (23 Oct 2026, 537 rows).

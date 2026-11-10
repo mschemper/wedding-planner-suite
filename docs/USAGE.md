@@ -4,6 +4,7 @@ One row per release, newest first (RELEASE.md rule 10). **New rows <= 200 charac
 
 | Version | Size / setup | Lead | Subagents (model: tokens) | Rework | Verdict and next time |
 |---|---|---|---|---|---|
+| v13 Plan feed (9 Nov 2026) | Medium, two repos: Opus lead built the feed + wall page; 1 Sonnet builder (wall CLIs) | Opus | Sonnet ~0.15M | Low | Fitted |
 | v12 review fixes (10 Nov 2026, deployed) | Medium: Opus lead; 3 Sonnet reviews, 4 Sonnet builders | Opus | Sonnet 0.15M, 0.14M, 0.15M, 0.11M, 0.09M, 0.14M, 0.15M | Low: menu edge fix | Fitted |
 | v11 Joinery May 29, Day tab (9 Nov 2026, deployed) | Large: Opus lead + data layer; 1 Opus review; 3 Sonnet builders | Opus | Opus 0.12M; Sonnet 0.11M, 0.10M, 0.10M | Low: 12 lead fixes | Fitted |
 | v10 bug sweep, ranges, tour mode (25 Oct 2026, deployed) | Medium: Opus lead; 2 Sonnet reviews, 1 Sonnet builder | Opus | Sonnet 0.16M, 0.26M, 0.09M | Low: 1 test fixed, tour CSS | Fitted |
