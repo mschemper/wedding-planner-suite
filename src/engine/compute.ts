@@ -77,10 +77,11 @@ export interface ComputeOptions {
 }
 
 /** Quotes that can price this scenario under these option choices: right scenario, received/accepted, options match. */
-export function applicableQuotes(sc: Scenario, quotes: Quote[] | undefined, opts: Options = defaultOpts(sc)): Quote[] {
+export function applicableQuotes(sc: Scenario, quotes: Quote[] | undefined, opts: Options = defaultOpts(sc), date?: string): Quote[] {
   return (quotes ?? []).filter(
     (q) =>
       q.scenario_id === sc.id &&
+      (!q.date || q.date === date) &&
       (q.status === "received" || q.status === "accepted") &&
       Object.entries(q.options ?? {}).every(([k, v]) => opts[k] === v),
   );
@@ -110,7 +111,7 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
   const rows: BudgetRow[] = [];
   let taxBase = 0;
   const order: (BudgetRow | { pendingIdx: number })[] = [];
-  const live = applicableQuotes(sc, co.quotes, opts);
+  const live = applicableQuotes(sc, co.quotes, opts, co.date);
   const byDesc = new Map<string, Quote>();
   let allIn: Quote | undefined;
   for (const q of live) {

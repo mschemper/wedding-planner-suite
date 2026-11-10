@@ -76,6 +76,11 @@ describe("timeline", () => {
     expect(clock("17:30")).toBe("5:30 PM");
     expect(clock("00:00")).toBe("12:00 AM");
   });
+  it("only 00:00-02:59 counts as after midnight (B22)", () => {
+    expect(toMin("02:59")).toBe(26 * 60 + 59);
+    expect(toMin("03:00")).toBe(3 * 60);
+    expect(toMin("04:30")).toBeLessThan(toMin("23:00"));
+  });
   it("the Joinery template fits the venue's hours", () => {
     expect(timelineIssues(rows, VENUE_FACTS[5].hours)).toEqual([]);
   });

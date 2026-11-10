@@ -32,7 +32,7 @@ Planning app for Mark & Angela's 2027 wedding, hosted on Cloudflare (Workers + S
 - Workbook import only via `npm run import:v4` (src/people/fromWorkbook.ts). Workbook columns never drive the UI.
 - Two builds: hosted `dist/` (Worker assets; data only via /api) and offline `dist-offline/index.html` (singlefile, read-only budget, no CDN, no fetch). Neither bundles data/private (vite `noPrivate`).
 - Worker: `worker/` pure handler; one save = one D1 batch (`POST /api/write`); never write D1 outside it. Table specs `worker/db.ts SPECS`; contract `src/api/types.ts`; UI reads only `useData()` (src/ui/data.tsx); one-tap edits via `edit()` (Undo).
-- New D1 column/table -> new migration file + `SPECS` + tests/worker.test.ts. Never edit an applied migration. Migrations are add-only; latest = 0006 (docs/STATE.md). v3 tables drop in a later migration (BACKLOG B5).
+- New D1 column/table -> new migration file + `SPECS` + tests/worker.test.ts. Never edit an applied migration. Migrations are add-only; latest = 0007 (docs/STATE.md). v3 tables drop in a later migration (BACKLOG B5).
 - Exact dependency versions. SheetJS from cdn.sheetjs.com tarball (npm `xlsx` frozen at CVE'd 0.18.5).
 
 ## Build and release

@@ -1,7 +1,7 @@
 // Household card (v8): one place to edit a household AND its people. The envelope name follows the people unless written by
 // hand. Every person edits in place (first, last, age); "More about…" folds out the rest. Save = one atomic save().
 // Moving someone out / merging households applies at once (as before) and reopens the card fresh.
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { branchName } from "../../data/params";
 import { ancestors, graph } from "../../people/kin";
 import { mergeOps, moveOps, movesWith, REL_LABEL, relativeChoices, type RelKind } from "../../people/relatives";
@@ -10,6 +10,7 @@ import { DECISIONS, KIDS_RULES, KNOWN_BY, LOCALS, RSVPS, SIDES, displayName, typ
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Segmented, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
+import { DiscardAsk } from "./DiscardAsk";
 import { Menu, type MenuItem } from "./Menu";
 import {
   blankCardPerson, cardAutoName, cardIssues, cardOps, clampKids, DECISION_LABEL, draftFrom, householdDraft, KIDS_RULE_TEXT,
@@ -64,6 +65,13 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
   const circles = useMemo(() => [...new Set(people.parties.map((p) => p.circle).filter((c): c is string => !!c))].sort(), [people.parties]);
   const otherParties = useMemo(() => people.parties.filter((x) => x.id !== party?.id).sort((a, b) => a.name.localeCompare(b.name)), [people.parties, party?.id]);
   const autoTier = party ? derivedTier(party, tc) : 4;
+  const initial = useRef<string | null>(null);
+  if (initial.current === null && card) initial.current = JSON.stringify(card);
+  const dirty = !!card && JSON.stringify(card) !== initial.current;
+  const [askRel, setAskRel] = useState<{ of: string; kind: RelKind } | null>(null);
+  const [sure, setSure] = useState(false);
+  const requestRel = (of: string, kind: RelKind) => { if (dirty) setAskRel({ of, kind }); else onRelative(of, kind); };
+  const setMoveBox = (m: Move | null) => { setMove(m); setSure(false); };
 
   if (!target) return null;
   const setH = <K extends keyof CardDraft["household"]>(k: K, v: CardDraft["household"][K]) => setCard((c) => (c ? { ...c, household: { ...c.household, [k]: v } } : c));
@@ -109,9 +117,10 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
 
   const title = isNew ? "New household" : party ? (card?.customName ? card.household.name || party.name : auto || party.name) : "Household";
   return (
-    <Sheet title={title} open onClose={onClose}
+    <Sheet title={title} open onClose={onClose} dirty={dirty}
       footer={<><Button onClick={onClose}>Cancel</Button><Button kind="primary" disabled={busy || !card || (!party && !isNew)} onClick={() => void onSave()}>{busy ? "Saving…" : "Save"}</Button></>}>
       <SaveError result={err} onDismiss={() => setErr(null)} />
+      {askRel && <DiscardAsk name={title} onDiscard={() => { const a = askRel; setAskRel(null); onRelative(a.of, a.kind); }} onKeep={() => setAskRel(null)} />}
       {problems.length > 0 && <div className="flag warn" role="alert"><ul className="save-issues">{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>}
       {!card || (!party && !isNew) ? <p className="muted">This household no longer exists.</p> : (
         <div className="pp-form">
@@ -171,10 +180,10 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
             const partner = m?.partner_id ? byId.get(m.partner_id) : undefined;
             const items: MenuItem[] = m ? [
               { key: "h-add", heading: `Add a relative of ${m.nick || m.first}` },
-              ...relativeChoices(m).map((k) => ({ key: k, label: <><span aria-hidden="true">＋</span> {REL_LABEL[k]}</>, onSelect: () => onRelative(m.id, k) })),
+              ...relativeChoices(m).map((k) => ({ key: k, label: <><span aria-hidden="true">＋</span> {REL_LABEL[k]}</>, onSelect: () => requestRel(m.id, k) })),
               { key: "h-move", heading: "Household" },
-              { key: "mv", label: "Move to another household…", onSelect: () => setMove({ kind: "move", personId: m.id, to: "", withPartner: partner?.party_id === m.party_id }) },
-              { key: "own", label: "Give them their own household", disabled: members.length < 2, onSelect: () => setMove({ kind: "move", personId: m.id, to: "new", withPartner: partner?.party_id === m.party_id }) },
+              { key: "mv", label: "Move to another household…", onSelect: () => setMoveBox({ kind: "move", personId: m.id, to: "", withPartner: partner?.party_id === m.party_id }) },
+              { key: "own", label: "Give them their own household", disabled: members.length < 2, onSelect: () => setMoveBox({ kind: "move", personId: m.id, to: "new", withPartner: partner?.party_id === m.party_id }) },
               { key: "rm", label: "Remove from the guest list…", onSelect: () => setConfirmDrop(x.key) },
             ] : [{ key: "rm", label: "Remove this row", onSelect: () => setCard({ ...card, people: card.people.filter((y) => y.key !== x.key) }) }];
             return (
@@ -199,7 +208,7 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
                 )}
                 <details className="pp-more" open={open === x.key} onToggle={(e) => { const o = (e.target as HTMLDetailsElement).open; setOpen((cur) => (o ? x.key : cur === x.key ? null : cur)); }}>
                   <summary>More about {x.draft.first || "this person"} <span className="muted small">relatives, RSVP, local, notes</span></summary>
-                  {open === x.key && <PersonMore x={x} card={card} setP={setP} listId={`${listId}-${i}`} onRelativeDone={onClose} />}
+                  {open === x.key && <PersonMore x={x} card={card} setP={setP} listId={`${listId}-${i}`} onRelativeDone={onClose} dirty={dirty} />}
                 </details>
               </div>
             );
@@ -208,33 +217,45 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
             <Button onClick={() => { const key = `new:${seq}`; setSeq(seq + 1); setCard({ ...card, people: [...card.people, blankCardPerson(key, members, { side: card.side, kind: card.kind })] }); setOpen(key); }}>
               <span aria-hidden="true">＋</span> Add someone to this household
             </Button>
-            {party && otherParties.length > 0 && <Button kind="quiet" onClick={() => setMove({ kind: "merge", into: "" })}>Merge into another household…</Button>}
+            {party && otherParties.length > 0 && <Button kind="quiet" onClick={() => setMoveBox({ kind: "merge", into: "" })}>Merge into another household…</Button>}
           </div>
           {move && party && (
             <div className="pp-movebox wide" role="group" aria-label={move.kind === "merge" ? "Merge household" : "Move person"}>
               {move.kind === "move" ? (
                 <>
                   <Field label={`Move ${displayName(byId.get(move.personId) ?? { first: "", last: null, nick: null })} to`} wide>
-                    <select value={move.to} onChange={(e) => setMove({ ...move, to: e.target.value })} autoFocus>
+                    <select value={move.to} onChange={(e) => setMoveBox({ ...move, to: e.target.value })} autoFocus>
                       <option value="">Choose…</option>
                       <option value="new">Their own new household</option>
                       {otherParties.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                     </select>
                   </Field>
-                  {byId.get(move.personId)?.partner_id && <label className="pp-check"><input type="checkbox" checked={move.withPartner} onChange={(e) => setMove({ ...move, withPartner: e.target.checked })} /> Partner moves too</label>}
+                  {byId.get(move.personId)?.partner_id && <label className="pp-check"><input type="checkbox" checked={move.withPartner} onChange={(e) => setMoveBox({ ...move, withPartner: e.target.checked })} /> Partner moves too</label>}
                   <span className="k-field-hint">Happens right away; other unsaved edits in this card are dropped.</span>
                 </>
               ) : (
                 <Field label={`Merge ${party.name} into`} hint="Everyone moves; this household is removed. Happens right away." wide>
-                  <select value={move.into} onChange={(e) => setMove({ ...move, into: e.target.value })} autoFocus>
+                  <select value={move.into} onChange={(e) => setMoveBox({ ...move, into: e.target.value })} autoFocus>
                     <option value="">Choose…</option>
                     {otherParties.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                   </select>
                 </Field>
               )}
               <div className="pp-addrel">
-                <Button kind="primary" disabled={busy || (move.kind === "move" ? !move.to : !move.into)} onClick={() => void runMove()}>{move.kind === "move" ? "Move" : "Merge"}</Button>
-                <Button onClick={() => setMove(null)}>Cancel</Button>
+                {sure ? (
+                  <div className="flag warn" role="alert">
+                    {move.kind === "merge"
+                      ? `Merge ${party.name} into ${people.parties.find((x) => x.id === move.into)?.name ?? "that household"}? This can't be undone.`
+                      : `Move ${displayName(byId.get(move.personId) ?? { first: "", last: null, nick: null })} to ${move.to === "new" ? "their own household" : (people.parties.find((x) => x.id === move.to)?.name ?? "that household")}? Other unsaved edits in this card are dropped.`}{" "}
+                    <Button kind="primary" disabled={busy} onClick={() => void runMove()}>{move.kind === "move" ? "Move" : "Merge"}</Button>{" "}
+                    <Button onClick={() => setSure(false)}>Cancel</Button>
+                  </div>
+                ) : (
+                  <>
+                    <Button kind="primary" disabled={busy || (move.kind === "move" ? !move.to : !move.into)} onClick={() => setSure(true)}>{move.kind === "move" ? "Move" : "Merge"}</Button>
+                    <Button onClick={() => setMoveBox(null)}>Cancel</Button>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -269,8 +290,8 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
 }
 
 /** The folded-out details of one person in the card. */
-function PersonMore({ x, card, setP, listId, onRelativeDone }: {
-  x: CardPerson; card: CardDraft; setP(key: string, patch: Partial<PersonDraft>): void; listId: string; onRelativeDone(): void;
+function PersonMore({ x, card, setP, listId, onRelativeDone, dirty }: {
+  x: CardPerson; card: CardDraft; setP(key: string, patch: Partial<PersonDraft>): void; listId: string; onRelativeDone(): void; dirty: boolean;
 }) {
   const { people, settings } = useData();
   const g = useMemo(() => graph(people.people), [people.people]);
@@ -292,7 +313,7 @@ function PersonMore({ x, card, setP, listId, onRelativeDone }: {
       <PersonPicker label="Partner" people={people.people} selected={d.partner_id ? [d.partner_id] : []} max={1} exclude={noSelf} onChange={(ids) => set("partner_id", ids[0] ?? null)} />
       <PersonPicker label="Parents (up to 2)" people={people.people} selected={d.parent_ids} max={2} exclude={noParent} onChange={(ids) => set("parent_ids", ids)} />
       {x.original && x.original.kind === "family" && (
-        <div className="k-field wide"><span className="k-field-label">Place by relation</span><PlaceRelation person={x.original} onDone={onRelativeDone} /></div>
+        <div className="k-field wide"><span className="k-field-label">Place by relation</span><PlaceRelation person={x.original} onDone={onRelativeDone} blockedHint={dirty ? "Save first" : undefined} /></div>
       )}
       <Field label="RSVP"><select value={d.rsvp} onChange={(e) => set("rsvp", e.target.value as PersonDraft["rsvp"])}>{RSVPS.map((s) => <option key={s}>{s}</option>)}</select></Field>
       <Field label="Exception to the household">

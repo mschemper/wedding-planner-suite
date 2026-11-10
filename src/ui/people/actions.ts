@@ -9,7 +9,8 @@ import { branchEdit, bulkEdit, type BulkChange, decisionEdit, inviteAllEdit, kid
 export type SaveFail = Extract<SaveResult, { ok: false }>;
 
 export interface Actions {
-  decide(p: Party, d: Decision): void;
+  /** resolves true when saved */
+  decide(p: Party, d: Decision): Promise<boolean>;
   kids(p: Party, r: KidsRule): void;
   talk(p: Party, on: boolean): void;
   policy(v: KidsPolicy): void;
@@ -27,17 +28,18 @@ export interface Actions {
 }
 
 export function useActions(): Actions {
-  const { edit, people, settings } = useData();
+  const { edit, people, settings, notifyFailure } = useData();
   const [error, setError] = useState<SaveFail | null>(null);
-  const run = useCallback(async (patches: Patch[], label: string) => {
-    if (!patches.length) return;
+  const run = useCallback(async (patches: Patch[], label: string): Promise<boolean> => {
+    if (!patches.length) return true;
     const r = await edit(patches, label);
-    if (!r.ok) setError(r); // a later success must not hide an earlier failure; SaveError's dismiss clears it
-  }, [edit]);
+    if (!r.ok) { setError(r); notifyFailure(r.message); } // a later success must not hide an earlier failure; SaveError's dismiss clears it
+    return r.ok;
+  }, [edit, notifyFailure]);
   const parties = people.parties;
   const names = settings.branchNames;
   return useMemo<Actions>(() => ({
-    decide: (p, d) => { const e = decisionEdit(p, parties, d); void run([e.patch], e.label); },
+    decide: (p, d) => { const e = decisionEdit(p, parties, d); return run([e.patch], e.label); },
     kids: (p, r) => { const e = kidsEdit(p, r); void run([e.patch], e.label); },
     talk: (p, on) => { const e = talkEdit(p, on); void run([e.patch], e.label); },
     policy: (v) => { const e = policyEdit(v); void run([e.patch], e.label); },
@@ -53,6 +55,7 @@ export function useActions(): Actions {
       if (!e.patches.length) return true;
       const r = await edit(e.patches, e.label);
       setError(r.ok ? null : r);
+      if (!r.ok) notifyFailure(r.message);
       return r.ok;
     },
     linkParents: (childIds, unit) => {
@@ -60,5 +63,5 @@ export function useActions(): Actions {
       void run(linkParentsPatches(childIds, unit, people), `${n === 1 ? "1 person" : `${n} people`} placed under ${unit.names}`);
     },
     error, clearError: () => setError(null),
-  }), [parties, names, run, error, people, edit]);
+  }), [parties, names, run, error, people, edit, notifyFailure]);
 }

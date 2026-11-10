@@ -4,6 +4,7 @@ import type { Op } from "../../api/types";
 import type { Options, Quote, QuoteStatus, Scenario } from "../../engine/types";
 import { SaveError } from "../SaveError";
 import { useData, type SaveResult } from "../data";
+import { Field } from "../kit/kit";
 import { quoteIssue } from "./model";
 
 export const ALL_IN = "*";
@@ -32,6 +33,7 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
   const [vendor, setVendor] = useState(existing?.vendor ?? "");
   const [status, setStatus] = useState<QuoteStatus>(existing?.status ?? "received");
   const [receivedOn, setReceivedOn] = useState(existing?.received_on ?? "");
+  const [qdate, setQdate] = useState(existing?.date ?? "");
   const [tax, setTax] = useState(existing?.includes_tax ?? false);
   const [notes, setNotes] = useState(existing?.notes ?? "");
   const [err, setErr] = useState("");
@@ -53,7 +55,7 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
     setErr("");
     const row = {
       scenario_id: scenario.id, item_desc: line, options: scope ? (JSON.parse(scope) as Options) : null, basis, amount: n,
-      includes_tax: tax, vendor: vendor.trim() || null, received_on: receivedOn || null, status, notes: notes.trim() || null,
+      includes_tax: tax, vendor: vendor.trim() || null, received_on: receivedOn || null, date: qdate || null, status, notes: notes.trim() || null,
     };
     const op: Op = existing
       ? { table: "quotes", op: "update", id: existing.id, version: existing.version, row }
@@ -66,27 +68,27 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
   }
 
   const amountField = (
-    <label>Amount ($)
+    <Field label="Amount ($)">
       <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} onKeyDown={(e) => e.key === "Enter" && void submit()} />
-    </label>
+    </Field>
   );
   const basisField = (
-    <label>Basis
+    <Field label="Basis">
       <select value={basis} onChange={(e) => setBasis(e.target.value as Quote["basis"])}>
         <option value="total">Total</option>
         <option value="perGuest">Per guest</option>
       </select>
-    </label>
+    </Field>
   );
-  const vendorField = <label>Vendor<input value={vendor} onChange={(e) => setVendor(e.target.value)} /></label>;
+  const vendorField = <Field label="Vendor"><input value={vendor} onChange={(e) => setVendor(e.target.value)} /></Field>;
   const statusField = (
-    <label>Status
+    <Field label="Status">
       <select value={status} onChange={(e) => setStatus(e.target.value as QuoteStatus)}>
         <option value="requested">Requested (not applied)</option>
         <option value="received">Received</option>
         <option value="accepted">Accepted</option>
       </select>
-    </label>
+    </Field>
   );
   const taxField = (
     <label className="q-check"><input type="checkbox" checked={tax} onChange={(e) => setTax(e.target.checked)} />Includes tax / gratuity</label>
@@ -103,7 +105,8 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
     return (
       <div className="q-mini">
         {amountField}{basisField}{vendorField}{statusField}
-        {isZero && <label className="wide">Why $0?<input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. included in the venue package" /></label>}
+        <Field label="Only for this date"><input type="date" value={qdate} onChange={(e) => setQdate(e.target.value)} /></Field>
+        {isZero && <Field label="Why $0?" wide><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. included in the venue package" /></Field>}
         <div className="wide">{taxField}</div>
         <div className="wide">{buttons}</div>
         <div className="wide"><SaveError result={fail} onDismiss={() => setFail(null)} /></div>
@@ -112,20 +115,21 @@ export function QuoteForm({ scenario, existing, preset, compact, onDone, onCance
   }
   return (
     <div className="q-form">
-      <label>Line
+      <Field label="Line">
         <select value={line} onChange={(e) => setLine(e.target.value)}>
           <option value={ALL_IN}>* All-in total (replaces every line)</option>
           {descs.map((d) => <option key={d} value={d}>{d}</option>)}
           {line !== ALL_IN && !descs.includes(line) && <option value={line}>{line}</option>}
         </select>
-      </label>
-      <label>Applies to
+      </Field>
+      <Field label="Applies to">
         <select value={scope} onChange={(e) => setScope(e.target.value)}>{scopes.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}</select>
-      </label>
+      </Field>
       {amountField}{basisField}{vendorField}{statusField}
-      <label>Received on<input type="date" value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} /></label>
+      <Field label="Received on"><input type="date" value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} /></Field>
+      <Field label="Only for this date" hint="Leave empty to apply on every date."><input type="date" value={qdate} onChange={(e) => setQdate(e.target.value)} /></Field>
       {taxField}
-      <label className="wide">Notes<textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
+      <Field label="Notes" wide><textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
       <div className="wide">{buttons}</div>
       <div className="wide"><SaveError result={fail} onDismiss={() => setFail(null)} /></div>
     </div>

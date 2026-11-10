@@ -27,7 +27,7 @@ export function PasteTasks({ open, onClose }: { open: boolean; onClose(): void }
     if (r.ok) close(); else setFail(r);
   };
   return (
-    <Sheet title="Paste tasks" open={open} onClose={close}
+    <Sheet title="Paste tasks" open={open} onClose={close} dirty={open && !!text.trim()}
       footer={<><Button onClick={close}>Cancel</Button><Button kind="primary" disabled={busy || !ops.length} onClick={() => void add()}>Add {ops.length} task{ops.length === 1 ? "" : "s"}</Button></>}>
       <Field label="Task list from the email sweep (JSON)" wide hint="Run docs/skills/email-sweep.md in a Claude session, then paste its JSON here.">
         <textarea className="pl-paste" value={text} onChange={(e) => setText(e.target.value)} rows={6} spellCheck={false} />

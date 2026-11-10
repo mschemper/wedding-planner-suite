@@ -151,7 +151,7 @@ export function buildScenarios(p: Params = DEFAULT_PARAMS): Scenario[] {
   {
     id: 5, name: "The Joinery", location: "Logan Square · Chicago", kind: "local",
     desc: "Boutique 2,400 sq ft loft with skylight, covered patio, upstairs speakeasy lounge and an on-site apartment. Recommended (not required) vendor list.",
-    tag: "Loft", confidence: 80, min: 50, max: 100, def: 75, capacity: { hardMax: 160 },
+    tag: "Loft", confidence: 80, min: 50, max: 160, def: 75, capacity: { hardMax: 160 },
     flag: "Likely venue: Sat May 29, 2027 offered at the Friday rate ($7,000; Shay, 3 Nov 2026; enter as a quote). 160 seated with dance floor. Hours 2 PM–midnight. Bar packages carry a $4,000 minimum; tax/gratuity on the bar unconfirmed. OPEN: jazz combo permission, catering minimums.",
     seasons: [
       { name: "winter", from: "11-01", to: "02-29" },

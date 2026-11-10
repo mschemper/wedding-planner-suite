@@ -6,6 +6,7 @@ import type { Quote, Scenario } from "../../engine/types";
 import { SaveError } from "../SaveError";
 import { useData, type SaveResult } from "../data";
 import { Button, Chip, EmptyState, type ChipTone } from "../kit/kit";
+import { fmtDate } from "../compare";
 import { money } from "../format";
 import { ALL_IN, QuoteForm } from "./QuoteForm";
 import "./quotes.css";
@@ -42,7 +43,7 @@ function QuoteItem({ sc, q, applied, readOnly }: { sc: Scenario; q: VQuote; appl
         {q.includes_tax && <Chip>incl. tax</Chip>}
       </div>
       <div className="q-meta">
-        {[q.vendor, q.received_on && `received ${q.received_on}`, scope && `only ${scope}`, q.updated_by && `by ${q.updated_by}`].filter(Boolean).join(" · ")}
+        {[q.vendor, q.received_on && `received ${q.received_on}`, scope && `only ${scope}`, q.date && `${fmtDate(q.date, { month: "short", day: "numeric" })} only`, q.updated_by && `by ${q.updated_by}`].filter(Boolean).join(" · ")}
       </div>
       {q.notes && <div className="q-meta">{q.notes}</div>}
       {q.status !== "requested" && !applied && <div className="q-err">not applied at default date/options</div>}

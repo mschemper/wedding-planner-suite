@@ -66,3 +66,17 @@ describe("quotes in computeBudget", () => {
     expect(b.total).toBe(55000);
   });
 });
+
+describe("dated quotes (B14)", () => {
+  const dated = q({ date: "2027-05-29" });
+  it("applies only on its own date; a null date applies everywhere", () => {
+    const on = computeBudget(sc, 100, undefined, { quotes: [dated], date: "2027-05-29" });
+    const off = computeBudget(sc, 100, undefined, { quotes: [dated], date: "2027-06-05" });
+    const none = computeBudget(sc, 100, undefined, { quotes: [dated] });
+    expect(row(on, "Venue rental (Saturday)")).toMatchObject({ amount: 8000, quoted: true });
+    expect(row(off, "Venue rental (Saturday)").quoted).toBeFalsy();
+    expect(none.rows.some((r) => r.quoted)).toBe(false);
+    expect(applicableQuotes(sc, [dated, q({ id: "q2" })], undefined, "2027-06-05").map((x) => x.id)).toEqual(["q2"]);
+    expect(computeBudget(sc, 100, undefined, { quotes: [q({})], date: "2027-06-05" }).rows.some((r) => r.quoted)).toBe(true);
+  });
+});

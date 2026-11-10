@@ -50,7 +50,7 @@ export function Timeline({ venueId, date }: TimelineProps) {
       <SaveError result={fail} onDismiss={() => setFail(null)} />
       {sorted.length === 0 ? (
         <>
-          <EmptyState>No steps yet.</EmptyState>
+          <EmptyState>No steps yet. Add the first one, like guests arriving, or start from the template.</EmptyState>
           {!offline && (
             <div className="tl-actions">
               <Button kind="primary" disabled={busy} onClick={() => void start()}>Start from the Joinery template</Button>

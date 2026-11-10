@@ -54,13 +54,8 @@
 .pl-mh.is-archived .pl-mh-text { color: var(--muted); font-weight: 400; }
 .pl-mh-n { flex: none; width: 22px; text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 .pl-mh-main { flex: 1 1 160px; min-width: 0; padding: 4px 0; }
-.pl-menu { position: relative; flex: none; }
-.pl-menu-pop { position: absolute; right: 0; top: 100%; z-index: 5; min-width: 150px; padding: 4px; display: grid; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 18%, transparent); }
-.pl-menu-item { min-height: 44px; padding: 0 12px; border: 0; background: none; text-align: left; font-size: 15px; border-radius: 8px; }
-.pl-menu-item:hover:not(:disabled), .pl-menu-item:focus-visible { background: var(--ground); }
-.pl-menu-item:disabled { color: var(--muted); cursor: default; }
 /* one line per must-have: number · text · ⋯ (venue marks moved to the Venues grid in v10) */
 .pl-mh { display: grid; grid-template-columns: 22px minmax(0, 1fr) 44px; grid-template-areas: "n main menu"; column-gap: 8px; align-items: center; padding: 4px 0 6px; border-bottom: 1px dashed var(--line); }
 .pl-mh > .pl-mh-n { grid-area: n; }
 .pl-mh > .pl-mh-main { grid-area: main; padding: 2px 0; }
-.pl-mh > .pl-menu { grid-area: menu; justify-self: end; }
+.pl-mh > .pp-menu { grid-area: menu; justify-self: end; }

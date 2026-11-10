@@ -37,7 +37,7 @@ export function TourMode({ scenarioId, venueName, onClose }: { scenarioId: numbe
   }
 
   return (
-    <Sheet title={`Tour · ${venueName}`} open onClose={onClose} footer={
+    <Sheet title={`Tour · ${venueName}`} open onClose={onClose} dirty={ops.length > 0} footer={
       <div className="vn-tour-foot">
         <Button onClick={onClose} disabled={busy}>Cancel</Button>
         <Button kind="primary" onClick={() => void onSave()} disabled={busy || !ops.length}>{busy ? "Saving…" : `Save answers (${ops.length} changed)`}</Button>

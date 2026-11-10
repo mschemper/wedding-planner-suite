@@ -117,6 +117,8 @@ export interface Quote {
   vendor?: string | null;
   /** "YYYY-MM-DD" */
   received_on?: string | null;
+  /** "YYYY-MM-DD": applies only when the budget is computed for this date; null = every date */
+  date?: string | null;
   status: QuoteStatus;
   notes?: string | null;
 }

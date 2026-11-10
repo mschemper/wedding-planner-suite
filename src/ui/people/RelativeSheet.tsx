@@ -1,6 +1,6 @@
 // "Add relative" mini-sheet (REVIEW-v6 R1): first, last, age, household. Links, side, branch, generation and kids' room
 // come from the person it is added to (src/people/relatives.ts). One save.
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { defaultHousehold, REL_LABEL, relativeIssues, relativeOps, type RelativeInput, type RelKind } from "../../people/relatives";
 import { displayName, type Age } from "../../people/types";
 import { branchName } from "../../data/params";
@@ -22,6 +22,9 @@ export function RelativeSheet({ target, onClose }: { target: RelativeTarget | nu
     first: "", last: rel === "partner" ? "" : of?.last ?? "", age: rel === "parent" ? "adult" : startAge,
     household: of ? defaultHousehold(of, rel, rel === "parent" ? "adult" : startAge) : "new", householdName: "",
   }));
+  const initial = useRef<string | null>(null);
+  if (initial.current === null) initial.current = JSON.stringify(d);
+  const dirty = !!target && JSON.stringify(d) !== initial.current;
   const [problems, setProblems] = useState<string[]>([]);
   const [err, setErr] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,7 +47,7 @@ export function RelativeSheet({ target, onClose }: { target: RelativeTarget | nu
   };
 
   return (
-    <Sheet title={of ? `Add ${ART[rel]} of ${name}` : "Add relative"} open={!!target} onClose={onClose}
+    <Sheet title={of ? `Add ${ART[rel]} of ${name}` : "Add relative"} open={!!target} onClose={onClose} dirty={dirty}
       footer={<><Button onClick={onClose}>Cancel</Button><Button kind="primary" disabled={busy || !of} onClick={() => void onSave()}>{busy ? "Saving…" : `Add ${REL_LABEL[rel].toLowerCase()}`}</Button></>}>
       <SaveError result={err} onDismiss={() => setErr(null)} />
       {problems.length > 0 && <div className="flag warn" role="alert"><ul className="save-issues">{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>}

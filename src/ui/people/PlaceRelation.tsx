@@ -8,7 +8,7 @@ import { useData, type SaveResult } from "../data";
 import { Button } from "../kit/kit";
 import { SaveError } from "../SaveError";
 
-export function PlaceRelation({ person, onDone, compact }: { person: Person; onDone?(): void; compact?: boolean }) {
+export function PlaceRelation({ person, onDone, compact, blockedHint }: { person: Person; onDone?(): void; compact?: boolean; /** set while the sheet has unsaved edits: Place is disabled and shows this */ blockedHint?: string }) {
   const { people, save, version, settings } = useData();
   const [anchor, setAnchor] = useState("");
   const [rel, setRel] = useState<Rel>("aunt/uncle");
@@ -51,7 +51,8 @@ export function PlaceRelation({ person, onDone, compact }: { person: Person; onD
       <select value={rel} onChange={(e) => setRel(e.target.value as Rel)} aria-label="Relation">
         {PLACE_RELATIONS.map((r) => <option key={r} value={r}>{PLACE_LABEL[r]}</option>)}
       </select>
-      <Button kind="primary" disabled={!anchor || busy} onClick={() => void go()}>{busy ? "Placing…" : "Place"}</Button>
+      <Button kind="primary" disabled={!anchor || busy || !!blockedHint} onClick={() => void go()}>{busy ? "Placing…" : "Place"}</Button>
+      {blockedHint && <span className="small muted" role="status">{blockedHint}: placing closes this sheet and drops your edits.</span>}
       {msg && <span className="small muted" role="status">{msg}</span>}
       {!compact && <span className="pp-hint">Parents or grandparents who aren't coming are linked behind the scenes and never shown.</span>}
     </div>

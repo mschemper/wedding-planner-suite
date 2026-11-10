@@ -8,6 +8,7 @@ import { LOCALS, RSVPS, SIDES, displayName, type Age, type Person } from "../../
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Segmented, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
+import { DiscardAsk } from "./DiscardAsk";
 import { PlaceRelation } from "./PlaceRelation";
 import { draftFrom, draftIssues, defaultHouseholdName, partnerNotice, personOps, personSummary, type PersonDraft } from "./model";
 
@@ -77,6 +78,10 @@ export function PersonSheet({ target, onClose, rel, onRelative }: {
   const [confirmDel, setConfirmDel] = useState(false);
   const [relinkOk, setRelinkOk] = useState(false);
   const nameTouched = useRef(false);
+  const initial = useRef<string | null>(null);
+  if (initial.current === null) initial.current = JSON.stringify(draft);
+  const dirty = !!target && JSON.stringify(draft) !== initial.current;
+  const [askRel, setAskRel] = useState<{ of: string; kind: RelKind } | null>(null);
   const g = useMemo(() => graph(people.people), [people.people]);
   const byId = useMemo(() => new Map(people.people.map((p) => [p.id, p])), [people.people]);
   const set = <K extends keyof PersonDraft>(k: K, v: PersonDraft[K]) => setDraft((d) => ({ ...d, [k]: v }));
@@ -142,7 +147,7 @@ export function PersonSheet({ target, onClose, rel, onRelative }: {
     </>
   );
   return (
-    <Sheet title={title} open={open} onClose={onClose}
+    <Sheet title={title} open={open} onClose={onClose} dirty={dirty}
       footer={confirmDel ? (
         <>
           <span className="small">Delete {original ? displayName(original) : "this person"}? Links to them are cleared.</span>
@@ -158,6 +163,7 @@ export function PersonSheet({ target, onClose, rel, onRelative }: {
       )}>
       {original && <p className="pp-sub">{personSummary(original, rel)}{original.branch ? ` · ${branchName(settings, original.branch)}` : ""}</p>}
       <SaveError result={err} onDismiss={() => setErr(null)} />
+      {askRel && <DiscardAsk name={title} onDiscard={() => { const a = askRel; setAskRel(null); onRelative(a.of, a.kind); }} onKeep={() => setAskRel(null)} />}
       {problems.length > 0 && <div className="flag warn" role="alert"><ul className="save-issues">{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>}
       <div className="pp-form">
         <Field label="First name"><input value={draft.first} onChange={(e) => set("first", e.target.value)} autoComplete="off" /></Field>
@@ -209,7 +215,7 @@ export function PersonSheet({ target, onClose, rel, onRelative }: {
             <span className="k-field-label">Add a relative of {original.nick || original.first}</span>
             <div className="pp-addrel">
               {relativeChoices(original).map((k) => (
-                <Button key={k} onClick={() => onRelative(original.id, k)}><span aria-hidden="true">＋</span> {REL_LABEL[k]}</Button>
+                <Button key={k} onClick={() => (dirty ? setAskRel({ of: original.id, kind: k }) : onRelative(original.id, k))}><span aria-hidden="true">＋</span> {REL_LABEL[k]}</Button>
               ))}
             </div>
           </div>
@@ -218,7 +224,7 @@ export function PersonSheet({ target, onClose, rel, onRelative }: {
         {original && original.kind === "family" && !isPlaceholder && (
           <div className="k-field wide">
             <span className="k-field-label">Place by relation</span>
-            <PlaceRelation person={original} onDone={onClose} />
+            <PlaceRelation person={original} onDone={onClose} blockedHint={dirty ? "Save first" : undefined} />
           </div>
         )}
 

@@ -32,7 +32,7 @@ const num = (s: string) => (s.trim() === "" ? NaN : Number(s.replace(/[$,\s]/g, 
 const hint = (k: ParamKey) =>
   k === "floralsBase" ? DEFAULT_PARAMS.floralsBase.map(([g, v]) => `${g}: ${money(v)}`).join(" · ") : String(DEFAULT_PARAMS[k]);
 
-export function PricesForm() {
+export function PricesForm({ onDirty }: { onDirty?(d: boolean): void } = {}) {
   const { params, paramRows, raw, save } = useData();
   const rowOf = (k: string) => paramRows.find((r) => r.key === k);
   const [draft, setDraft] = useState<Record<string, string>>(() =>
@@ -43,6 +43,10 @@ export function PricesForm() {
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [done, setDone] = useState("");
+
+  const dirty = PARAM_KEYS.filter((k) => k !== "floralsBase").some((k) => draft[k] !== String(params[k])) ||
+    !same(pairs, params.floralsBase.map(([g, v]) => [String(g), String(v)]));
+  useEffect(() => { onDirty?.(dirty); return () => onDirty?.(false); }, [dirty, onDirty]);
 
   async function run(ops: Op[], msg: string) {
     setBusy(true);

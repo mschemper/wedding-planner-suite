@@ -1,5 +1,5 @@
 // Assumptions sheet: price params (PricesForm) + shared settings: held date and date windows (DESIGN-v4 §1.5).
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Op } from "../../api/types";
 import { Button, Field, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
@@ -8,7 +8,7 @@ import { money } from "../format";
 import { PricesForm } from "./PricesForm";
 import { parseHeld, parseWindows, windowsToDraft, type WindowDraft } from "./model";
 
-function SettingsForm() {
+function SettingsForm({ onDirty }: { onDirty(d: boolean): void }) {
   const { settings, save, version } = useData();
   const [held, setHeld] = useState(settings.heldDate ?? "");
   const [wins, setWins] = useState<WindowDraft[]>(() => windowsToDraft(settings.dateWindows));
@@ -16,6 +16,9 @@ function SettingsForm() {
   const [done, setDone] = useState("");
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const dirty = held !== (settings.heldDate ?? "") || JSON.stringify(wins) !== JSON.stringify(windowsToDraft(settings.dateWindows));
+  useEffect(() => { onDirty(dirty); return () => onDirty(false); }, [dirty, onDirty]);
 
   async function onSave() {
     setErr(""); setDone(""); setFail(null);
@@ -80,16 +83,20 @@ function ReadOnly() {
 export function AssumptionsButton() {
   const { offline } = useData();
   const [open, setOpen] = useState(false);
+  const [dS, setDS] = useState(false);
+  const [dP, setDP] = useState(false);
+  const onS = useCallback((d: boolean) => setDS(d), []);
+  const onP = useCallback((d: boolean) => setDP(d), []);
   return (
     <>
       <Button onClick={() => setOpen(true)}>Assumptions</Button>
-      <Sheet title="Assumptions" open={open} onClose={() => setOpen(false)}>
+      <Sheet title="Assumptions" open={open} onClose={() => setOpen(false)} dirty={dS || dP}>
         {offline ? <ReadOnly /> : (
           <>
             <h3 className="vn-h3">Dates</h3>
-            <SettingsForm />
+            <SettingsForm onDirty={onS} />
             <h3 className="vn-h3">Prices</h3>
-            <PricesForm />
+            <PricesForm onDirty={onP} />
           </>
         )}
       </Sheet>

@@ -12,7 +12,8 @@ import {
   householdDraft, householdIssues, householdPatch, inviteAllEdit, jsonExport, matchesRow, moveRank, nextDecision, NO_FILTER, partnerNotice, personOps, quickFriendIssues,
   friendLastNameFixes, quickFriendName, quickFriendOps, relationFinder, relationSummary, roomCheck, seatsText, tierEdit, timeAgo,
 } from "../src/ui/people/model";
-import { loadPrefs } from "../src/ui/prefs";
+import { loadPrefs, PREFS_VERSION, savePrefs } from "../src/ui/prefs";
+import { menuNextIndex } from "../src/ui/people/Menu";
 
 const D = fixture as unknown as PeopleData;
 const clone = (): PeopleData => JSON.parse(JSON.stringify(D));
@@ -199,6 +200,43 @@ describe("prefs migration", () => {
     expect(withStore("envelopes")).toBe("decide");
     expect(withStore("friends")).toBe("decide");
     expect(withStore("nope")).toBeNull();
+  });
+});
+
+describe("prefs version", () => {
+  const load = (stored: unknown) => {
+    const g = globalThis as unknown as { localStorage?: unknown };
+    g.localStorage = { getItem: () => JSON.stringify(stored), setItem: () => undefined };
+    try { return loadPrefs().capacityVenue; } finally { delete g.localStorage; }
+  };
+  it("resets a stored Firehouse (17) once when the version is missing or old", () => {
+    expect(load({ capacityVenue: 17 })).toBeNull();
+    expect(load({ capacityVenue: 17, v: PREFS_VERSION - 1 })).toBeNull();
+  });
+  it("keeps a venue chosen under the current version, and other venues", () => {
+    expect(load({ capacityVenue: 17, v: PREFS_VERSION })).toBe(17);
+    expect(load({ capacityVenue: 5 })).toBe(5);
+  });
+  it("saves the version", () => {
+    const g = globalThis as unknown as { localStorage?: unknown };
+    let saved = "";
+    g.localStorage = { getItem: () => null, setItem: (_k: string, v: string) => { saved = v; } };
+    try { savePrefs(loadPrefs()); } finally { delete g.localStorage; }
+    expect(JSON.parse(saved).v).toBe(PREFS_VERSION);
+  });
+});
+
+describe("menu keyboard", () => {
+  it("arrows wrap, Home/End jump, other keys ignored", () => {
+    expect(menuNextIndex("ArrowDown", 0, 3)).toBe(1);
+    expect(menuNextIndex("ArrowDown", 2, 3)).toBe(0);
+    expect(menuNextIndex("ArrowUp", 0, 3)).toBe(2);
+    expect(menuNextIndex("ArrowUp", -1, 3)).toBe(2);
+    expect(menuNextIndex("ArrowDown", -1, 3)).toBe(0);
+    expect(menuNextIndex("Home", 2, 3)).toBe(0);
+    expect(menuNextIndex("End", 0, 3)).toBe(2);
+    expect(menuNextIndex("a", 0, 3)).toBeNull();
+    expect(menuNextIndex("ArrowDown", 0, 0)).toBeNull();
   });
 });
 

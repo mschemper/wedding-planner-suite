@@ -1,7 +1,7 @@
 // Venues tab (DESIGN-v4 §2): compare bar, shortlist, must-have matrix, venue detail, archive, assumptions.
 import { useEffect, useState } from "react";
 import { Card, EmptyState } from "../kit/kit";
-import { useCompare } from "../compare";
+import { useCompare, useWeddingSummary } from "../compare";
 import { useData } from "../data";
 import { useNav } from "../nav";
 import { usePrefs } from "../usePrefs";
@@ -20,6 +20,7 @@ export function VenuesScreen() {
   const { status, scenarios } = useData();
   const { openVenue } = useNav();
   const cmp = useCompare();
+  const wedding = useWeddingSummary();
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export function VenuesScreen() {
       </div>
       {note}
       <CompareBar />
-      <Shortlist active={cmp.active} onOpen={open} />
+      <Shortlist active={cmp.active} onOpen={open} wedding={wedding} date={cmp.date} />
       <FitMatrix active={cmp.active} />
       <Archive archive={cmp.archive} onOpen={open} />
       <p className="vn-foot">

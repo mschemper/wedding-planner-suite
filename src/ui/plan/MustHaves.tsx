@@ -1,42 +1,14 @@
 // Plan → Must-haves: compact ordered list (number, text, ⋯ menu), inline edit, add, archive/restore.
 // v10 (R4): how each venue fits lives only in the Venues grid; this list links there.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { orderedMustHaves } from "../../plan/fit";
 import type { MustHave } from "../../plan/types";
 import { useData, type SaveResult } from "../data";
 import { Button, Card, EmptyState, Field } from "../kit/kit";
 import { SaveError } from "../SaveError";
 import { useNav } from "../nav";
+import { Menu } from "../people/Menu";
 import { addMustHaveOp, archivePatch, musthaveEditPatch, reorderPatches } from "./model";
-
-interface MenuItem { label: string; disabled?: boolean; onSelect(): void }
-
-/** Small ⋯ menu: 44px trigger, closes on outside tap / Escape / selection. */
-function RowMenu({ label, items, disabled }: { label: string; items: MenuItem[]; disabled?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const box = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: Event) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); trigger.current?.focus(); } };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
-  }, [open]);
-  return (
-    <div className="pl-menu" ref={box}>
-      <button ref={trigger} type="button" className="k-icon-btn" aria-label={label} aria-haspopup="menu" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)}>⋯</button>
-      {open && (
-        <div className="pl-menu-pop" role="menu" aria-label={label}>
-          {items.map((it) => (
-            <button key={it.label} type="button" role="menuitem" className="pl-menu-item" disabled={it.disabled} onClick={() => { setOpen(false); it.onSelect(); }}>{it.label}</button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function Row({ m, idx, list, fail }: { m: MustHave; idx: number; list: MustHave[]; fail(r: SaveResult): void }) {
   const { edit, offline, version } = useData();
@@ -74,13 +46,13 @@ function Row({ m, idx, list, fail }: { m: MustHave; idx: number; list: MustHave[
         )}
       </div>
       {!offline && !editing && (
-        <RowMenu label={`More actions: ${m.text}`} disabled={busy} items={m.archived
-          ? [{ label: "Restore", onSelect: () => void run(() => edit([archivePatch(m, false)], `Restored: ${m.text}`)) }]
+        <Menu label={`More actions: ${m.text}`} align="right" triggerClass="k-icon-btn" trigger={<span aria-hidden="true">⋯</span>} items={m.archived
+          ? [{ key: "restore", label: "Restore", disabled: busy, onSelect: () => void run(() => edit([archivePatch(m, false)], `Restored: ${m.text}`)) }]
           : [
-            { label: "Move up", disabled: idx === 0, onSelect: () => move(-1) },
-            { label: "Move down", disabled: idx === list.length - 1, onSelect: () => move(1) },
-            { label: "Edit", onSelect: () => setEditing(true) },
-            { label: "Archive", onSelect: () => void run(() => edit([archivePatch(m, true)], `Archived: ${m.text}`)) },
+            { key: "up", label: "Move up", disabled: busy || idx === 0, onSelect: () => move(-1) },
+            { key: "down", label: "Move down", disabled: busy || idx === list.length - 1, onSelect: () => move(1) },
+            { key: "edit", label: "Edit", disabled: busy, onSelect: () => setEditing(true) },
+            { key: "archive", label: "Archive", disabled: busy, onSelect: () => void run(() => edit([archivePatch(m, true)], `Archived: ${m.text}`)) },
           ]} />
       )}
     </li>

@@ -165,10 +165,10 @@ export function sunsetLocal(day: string, at = CHICAGO): string | null {
 
 // ---------- timeline ----------
 
-/** Minutes from the day's start; 00:00–04:59 count as after midnight (+24 h). */
+/** Minutes from the day's start; 00:00–02:59 count as after midnight (+24 h). */
 export function toMin(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
-  return (h < 5 ? h + 24 : h) * 60 + m;
+  return (h < 3 ? h + 24 : h) * 60 + m;
 }
 /** "HH:MM" from minutes (wraps past midnight). */
 export function fromMin(min: number): string {

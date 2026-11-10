@@ -97,6 +97,8 @@ function parseSetting(key: SettingKey, v: unknown): { ok: true; value: unknown }
   const ok = Array.isArray(v) && v.length >= 1 && v.length <= 4 && v.every((w) =>
     w && typeof w === "object" && typeof w.name === "string" && w.name.trim() && [w.from, w.to, w.ref].every((d) => typeof d === "string" && DAY.test(d)) &&
     w.from <= w.to && w.ref >= w.from && w.ref <= w.to);
+  if (ok && (v as { from: string; to: string }[]).some((w) => (Date.parse(`${w.to}T00:00:00Z`) - Date.parse(`${w.from}T00:00:00Z`)) / 86400000 > 366))
+    return { ok: false, msg: "a date window can span at most 366 days" };
   return ok ? { ok: true, value: v } : { ok: false, msg: "dateWindows needs 1–4 {name, from, to, ref} with from ≤ ref ≤ to" };
 }
 

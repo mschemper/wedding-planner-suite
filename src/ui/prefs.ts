@@ -27,6 +27,8 @@ export interface Prefs {
 
 const KEY = "wps.prefs.v2";
 const OLD_KEY = "wps.prefs.v1";
+/** schema version stored beside the prefs; < 2: capacityVenue 17 (old Firehouse default) resets to the wedding venue */
+export const PREFS_VERSION = 2;
 export const DEFAULT_PREFS: Prefs = {
   tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: null, peopleView: null, theme: "auto", daySection: "venue",
 };
@@ -52,7 +54,8 @@ export function loadPrefs(): Prefs {
       const tab: Tab = old.tab === "guests" ? "people" : old.tab === "budget" || old.tab === "quotes" ? "venues" : "today";
       return { ...DEFAULT_PREFS, tab, contingency: Number.isFinite(old.contingency) ? Number(old.contingency) : 0 };
     }
-    const p = JSON.parse(raw) as Partial<Prefs>;
+    const p = JSON.parse(raw) as Partial<Prefs> & { v?: number };
+    const stale = typeof p.v !== "number" || p.v < PREFS_VERSION;
     return {
       tab: TABS.includes(p.tab as Tab) ? (p.tab as Tab) : DEFAULT_PREFS.tab,
       guestBasis: p.guestBasis === "ceiling" || p.guestBasis === "custom" || p.guestBasis === "expected" ? p.guestBasis : "considered",
@@ -60,7 +63,7 @@ export function loadPrefs(): Prefs {
       date: typeof p.date === "string" && DAY.test(p.date) ? p.date : null,
       contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : 0,
       selected: typeof p.selected === "number" ? p.selected : null,
-      capacityVenue: typeof p.capacityVenue === "number" ? p.capacityVenue : null,
+      capacityVenue: typeof p.capacityVenue === "number" && !(stale && p.capacityVenue === 17) ? p.capacityVenue : null,
       peopleView: migrateView(p.peopleView),
       theme: p.theme === "day" || p.theme === "dusk" ? p.theme : "auto",
       daySection: DAY_SECTIONS.includes(p.daySection as DaySection) ? (p.daySection as DaySection) : DEFAULT_PREFS.daySection,
@@ -72,7 +75,7 @@ export function loadPrefs(): Prefs {
 
 export function savePrefs(p: Prefs): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(p));
+    localStorage.setItem(KEY, JSON.stringify({ ...p, v: PREFS_VERSION }));
   } catch {
     /* storage unavailable: settings just won't persist */
   }

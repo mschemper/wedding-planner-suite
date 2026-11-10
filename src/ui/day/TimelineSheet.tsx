@@ -1,5 +1,5 @@
 // Timeline step sheet: draft + Save (create via save, update via edit with Undo); delete with confirm.
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { TimelineRow } from "../../plan/types";
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Sheet } from "../kit/kit";
@@ -16,6 +16,8 @@ export function TimelineSheet({ row, onClose }: { row: TimelineRow | null; onClo
   const set = (p: Partial<TimelineDraft>) => setDraft((d) => ({ ...d, ...p }));
   const bad = draftError(draft);
   const changes = row ? timelineChanges(row, draft) : {};
+  const start = useRef(JSON.stringify(draft));
+  const dirty = !offline && (row ? Object.keys(changes).length > 0 : JSON.stringify(draft) !== start.current);
   const run = async (f: () => Promise<SaveResult>) => {
     setBusy(true);
     const r = await f();
@@ -28,7 +30,7 @@ export function TimelineSheet({ row, onClose }: { row: TimelineRow | null; onClo
     void run(() => edit([{ table: "timeline", id: row.id, row: changes }], `Edited: ${draft.title.trim()}`));
   };
   return (
-    <Sheet title={row ? "Edit step" : "Add step"} open onClose={onClose}
+    <Sheet title={row ? "Edit step" : "Add step"} open onClose={onClose} dirty={dirty}
       footer={offline ? <Button onClick={onClose}>Close</Button> : confirm && row ? (
         <>
           <span className="tl-confirm">Delete this step for good?</span>

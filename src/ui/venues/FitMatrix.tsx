@@ -43,7 +43,7 @@ export function NoteSheet({ target, onClose, onSave }: { target: NoteTarget | nu
   const [busy, setBusy] = useState(false);
   if (target !== seen) { setSeen(target); setDraft(target ? noteOf(fit, target.scenarioId, target.musthaveId) : ""); }
   return (
-    <Sheet title={target ? `${target.venue} · note` : "Note"} open={!!target} onClose={onClose}
+    <Sheet title={target ? `${target.venue} · note` : "Note"} open={!!target} onClose={onClose} dirty={!!target && draft !== noteOf(fit, target.scenarioId, target.musthaveId)}
       footer={<><Button kind="quiet" onClick={onClose}>Cancel</Button><Button kind="primary" disabled={busy} onClick={() => {
         if (!target || busy) return;
         setBusy(true);

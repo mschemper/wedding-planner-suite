@@ -229,6 +229,32 @@ describe("writes", () => {
     expect((await write([{ table: "params", op: "create", row: { key: "dateWindows", value: [{ name: "x", from: "2027-06-01", to: "2027-05-01", ref: "2027-05-15" }] } }])).status).toBe(400);
   });
 
+  it("dateWindows longer than 366 days rejected (B25)", async () => {
+    const w = (to: string) => [{ name: "x", from: "2027-01-01", to, ref: "2027-05-15" }];
+    const bad = await write([{ table: "params", op: "create", row: { key: "dateWindows", value: w("2028-03-01") } }]);
+    expect(bad.status).toBe(400);
+    expect(((await bad.json()) as ApiErrorBody).message).toMatch(/366/);
+    await ok([{ table: "params", op: "create", row: { key: "dateWindows", value: w("2027-12-31") } }]);
+  });
+
+  it("quotes.date validates and round-trips (B14)", async () => {
+    const row = { scenario_id: 5, item_desc: "Venue rental (summer/fall Saturday)", basis: "total", amount: 7000, status: "received", vendor: "Joinery" };
+    expect((await write([{ table: "quotes", op: "create", row: { ...row, date: "May 29" } }])).status).toBe(400);
+    const r = await ok([{ table: "quotes", op: "create", row: { ...row, date: "2027-05-29" } }, { table: "quotes", op: "create", row: { ...row, amount: 8000 } }]);
+    expect(r.data.quotes.map((x) => x.date).sort()).toEqual([null, "2027-05-29"].sort());
+  });
+
+  it("task create with an existing source is skipped; tmp id maps to the existing row (B23)", async () => {
+    const mk = (tmp: string) => ({ table: "tasks", op: "create", row: { id: tmp, title: "Milestone", source: "milestone:test" } }) as Op;
+    const first = await ok([mk("tmp:a"), mk("tmp:b")]);
+    expect(first.ids["tmp:b"]).toBe(first.ids["tmp:a"]);
+    const n = first.data.tasks.filter((t) => t.source === "milestone:test").length;
+    expect(n).toBe(1);
+    const again = await ok([mk("tmp:c")]);
+    expect(again.ids["tmp:c"]).toBe(first.ids["tmp:a"]);
+    expect(again.data.tasks.filter((t) => t.source === "milestone:test").length).toBe(1);
+  });
+
   it("audit records before/after; trimmed to AUDIT_KEEP", async () => {
     await ok([{ table: "parties", op: "update", id: "H-M4", version: 1, row: { talk: true, talk_note: "ask Angela" } }]);
     const a = (await (await call("/api/audit?limit=5")).json()) as { tbl: string; before: { talk: number }; after: { talk: boolean } }[];

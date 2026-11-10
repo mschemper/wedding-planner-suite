@@ -67,9 +67,24 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
   const ids: Record<string, string> = {};
   const createIds = new Map<Op, string>();
   const taken: Partial<Record<TableName, Set<string>>> = {};
+  // B23: a task create whose non-null `source` already exists (stored, or earlier in this batch) is skipped; its tmp id maps to the existing row.
+  const skipped = new Set<Op>();
+  const sources = new Map<string, string>();
+  for (const r of st.tasks.values()) if (typeof r.source === "string" && r.source) sources.set(r.source, String(r.id));
   for (const o of ops as Op[]) {
     if (o.op !== "create") continue;
     const row = (o.row ?? {}) as Rec;
+    if (o.table === "tasks" && typeof row.source === "string" && row.source) {
+      const have = sources.get(row.source);
+      if (have !== undefined) {
+        if (isTmp(row.id)) {
+          if (row.id in ids) return fail(400, "bad_request", `tmp id ${row.id} used twice`);
+          ids[row.id] = have;
+        }
+        skipped.add(o);
+        continue;
+      }
+    }
     const spec = SPECS[o.table];
     let id: string;
     if (spec.prefix) {
@@ -95,6 +110,7 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
       ids[row[spec.pk] as string] = id;
     }
     createIds.set(o, id);
+    if (o.table === "tasks" && typeof row.source === "string" && row.source) sources.set(row.source, id);
   }
   const resolve = (v: unknown): unknown => (Array.isArray(v) ? v.map(resolve) : isTmp(v) ? (ids[v] ?? v) : v);
   const hasTmp = (v: unknown): boolean => (Array.isArray(v) ? v.some(hasTmp) : isTmp(v));
@@ -104,6 +120,7 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     const { pk } = SPECS[o.table];
     const map = st[o.table];
     const refs = REFS[o.table] ?? [];
+    if (skipped.has(o)) continue;
     if (o.op === "create") {
       const raw: Rec = { ...(o.row ?? {}) };
       if (o.table !== "params" && o.table !== "venues" && o.table !== "custom_venues") delete raw[pk];

@@ -31,7 +31,7 @@ export function QuickAddFriend({ rings, onClose }: { rings: Ring[]; onClose(): v
     if (r.ok) { setErr(null); setAdded(`Added ${f.first.trim()}.`); setF({ ...blank, circle: f.circle, known_by: f.known_by, tier: f.tier }); firstRef.current?.focus(); } else { setAdded(""); setErr(r); }
   };
   return (
-    <Sheet title="Quick-add a friend" open onClose={onClose}>
+    <Sheet title="Quick-add a friend" open onClose={onClose} dirty={!!(f.first.trim() || (f.last ?? "").trim() || f.partner.trim() || f.partnerLast?.trim() || f.plusOne)}>
       <form className="pp-quick" onSubmit={(e) => { e.preventDefault(); void submit(); }} aria-label="Add a friend">
         <SaveError result={err} onDismiss={() => setErr(null)} />
         {problems.length > 0 && <div className="flag warn" role="alert">{problems.join(" ")}</div>}

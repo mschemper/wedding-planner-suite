@@ -76,7 +76,7 @@ export function OurVenue({ venueId, date }: OurVenueProps) {
       </Card>
 
       <Card title="Money">
-        {!ws || !b ? <EmptyState>No price yet for this venue.</EmptyState> : (
+        {!ws || !b ? <EmptyState>We do not have a price for this venue yet.</EmptyState> : (
           <>
             <div className="ov-big">{approx ? "≈ " : ""}{money(b.total)}</div>
             <p className="ov-muted">{ws.guestsLabel} · {fmtDay(ws.date, true)} · confidence {sc.confidence}%</p>

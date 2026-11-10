@@ -25,6 +25,7 @@ export function Vendors({ venueId }: VendorsProps) {
   const today = chicagoToday();
   const sum = vendorSummary(vendors, today);
   const recommended = VENUE_FACTS[venueId]?.recommended ?? {};
+  const hasSuggestions = Object.values(recommended).some((l) => l && l.length > 0);
   const addNew = (category?: VendorCategory, name?: string) => setSheet({ vendor: null, initial: emptyDraft(category, name, venueId) });
   const markPaid = (p: Payment) => void edit([markPaidPatch(p, today)], markPaidLabel(p));
   const nextDue = sum.next ? dueLabel(sum.next.due, today) : null;
@@ -44,7 +45,7 @@ export function Vendors({ venueId }: VendorsProps) {
       </Card>
 
       <Card title="By category">
-        {!vendors.length && <EmptyState>No vendors yet. Add one, or tap a suggestion below.</EmptyState>}
+        {!vendors.length && <EmptyState>{hasSuggestions ? "No vendors yet. Add the first one, like your photographer, or tap a suggestion below." : "No vendors yet. Add the first one, like your photographer."}</EmptyState>}
         <ul className="vd-list">
           {sum.byCategory.map(({ category, best, count }) => (
             <li key={category} className="vd-row">
@@ -60,7 +61,7 @@ export function Vendors({ venueId }: VendorsProps) {
                 </div>
               ) : (
                 <div className="vd-empty">
-                  <span className="vd-more">None yet</span>
+                  <span className="vd-more">Nobody yet</span>
                   {!offline && <Button onClick={() => addNew(category)}>Add</Button>}
                   {!offline && (
                     <span className="vd-sugg">

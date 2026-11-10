@@ -48,7 +48,7 @@ export function TaskSheet({ task, venues, onClose }: { task: Task; venues: Venue
     if (r.ok) onClose(); else setFail(r);
   };
   return (
-    <Sheet title="Task" open onClose={onClose}
+    <Sheet title="Task" open onClose={onClose} dirty={!offline && Object.keys(changes).length > 0}
       footer={offline ? <Button onClick={onClose}>Close</Button> : confirm ? (
         <>
           <span className="pl-confirm">Delete this task for good?</span>

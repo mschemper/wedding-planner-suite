@@ -30,7 +30,18 @@ export function OneByOne({ rings, side, room, rel, act, onClose }: {
   const skipped = ids.filter((id) => rows.get(id)?.party.invite === "undecided");
 
   const next = () => setI((n) => Math.min(n + 1, ids.length));
-  const choose = (d: Choice) => { if (!row) return; if (row.party.invite !== d) act.decide(row.party, d); next(); };
+  const [saving, setSaving] = useState(false);
+  // advance only once the save has resolved ok; on failure stay on the card (act.decide raised the toast)
+  const choose = async (d: Choice) => {
+    if (!row || saving) return;
+    if (row.party.invite !== d) {
+      setSaving(true);
+      const ok = await act.decide(row.party, d);
+      setSaving(false);
+      if (!ok) return;
+    }
+    next();
+  };
   useEffect(() => {
     if (!row) return;
     const onKey = (e: KeyboardEvent) => {
@@ -38,7 +49,7 @@ export function OneByOne({ rings, side, room, rel, act, onClose }: {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
       const hit = CHOICES.find((c) => c.key === e.key);
-      if (hit) { e.preventDefault(); choose(hit.d); } else if (e.key === "s" || e.key === "S") { e.preventDefault(); next(); }
+      if (hit) { e.preventDefault(); void choose(hit.d); } else if (e.key === "s" || e.key === "S") { e.preventDefault(); next(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -78,7 +89,7 @@ export function OneByOne({ rings, side, room, rel, act, onClose }: {
           {row.party.invite !== "undecided" && <p className="pp-hint">Now: {DECISION_LABEL[row.party.invite]}</p>}
           <div className="pp-obo-btns" role="group" aria-label="Decision">
             {CHOICES.map(({ d, key }) => (
-              <button key={d} type="button" className={`k-btn pp-obo-btn${d === "invite" ? " k-btn-primary" : ""}`} aria-pressed={row.party.invite === d} onClick={() => choose(d)}>
+              <button key={d} type="button" className={`k-btn pp-obo-btn${d === "invite" ? " k-btn-primary" : ""}`} aria-pressed={row.party.invite === d} disabled={saving} onClick={() => void choose(d)}>
                 <DecisionMark state={d} /> {DECISION_LABEL[d]} <kbd>{key}</kbd>
               </button>
             ))}

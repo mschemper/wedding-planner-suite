@@ -18,6 +18,7 @@
 .pp-menu-head { padding: 8px 12px 2px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .pp-menu-item { display: flex; align-items: center; gap: 8px; min-height: 44px; width: 100%; padding: 6px 12px; border: 0; border-radius: 10px; background: none; text-align: left; font-size: 15px; color: var(--ink); }
 .pp-menu-item:hover:not(:disabled) { background: color-mix(in srgb, var(--blush) 22%, transparent); }
+.pp-menu-item:focus-visible { background: color-mix(in srgb, var(--blush) 22%, transparent); outline: 2px solid var(--euc-ink); outline-offset: -2px; }
 .pp-menu-item:disabled { color: var(--muted); opacity: .7; cursor: default; }
 .pp-menu-mark { width: 16px; color: var(--euc-ink); font-weight: 700; }
 .pp-chipbtn { min-height: 44px; min-width: 44px; padding: 0 2px; border: 0; background: none; display: inline-flex; align-items: center; }

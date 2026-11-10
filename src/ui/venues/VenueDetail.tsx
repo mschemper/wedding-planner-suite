@@ -5,7 +5,8 @@ import { Sprig } from "../garden/motifs";
 import { SaveError } from "../SaveError";
 import { useData, type SaveResult } from "../data";
 import { usePrefs } from "../usePrefs";
-import { fmtDate } from "../compare";
+import { fmtDate, useWeddingSummary } from "../compare";
+import { weddingNote } from "./weddingNote";
 import { orderedMustHaves, verdictOf } from "../../plan/fit";
 import { VENUE_STATUSES, type VenueStatus } from "../../plan/types";
 import type { VenueSummary } from "../../plan/venueSummary";
@@ -64,6 +65,7 @@ export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSu
   const { edit, quotes, musthaves, fit, offline, raw } = useData();
   const { prefs } = usePrefs();
   const fe = useFitEdit();
+  const wedding = useWeddingSummary();
   const [target, setTarget] = useState<NoteTarget | null>(null);
   const [touring, setTouring] = useState(false);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
@@ -117,6 +119,7 @@ export function VenueDetail({ v, scenarios, guests, date, onBack }: { v: VenueSu
           )}
         </div>
         <p className="vn-meta">{capacityText(v)} · {fitText(v.fit)}</p>
+        {weddingNote(wedding, sc.id, v.guests, date) && <p className="vn-meta">{weddingNote(wedding, sc.id, v.guests, date)}</p>}
         {!offline && <Button onClick={() => setTouring(true)}>Tour mode</Button>}
         {touring && <TourMode scenarioId={sc.id} venueName={sc.name} onClose={() => setTouring(false)} />}
         <SaveError result={fail} onDismiss={() => setFail(null)} />

@@ -1,5 +1,5 @@
 // Vendor edit/create sheet (DESIGN-v11): draft strings, commit on Save; delete with confirm.
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { VENDOR_CATEGORIES, VENDOR_STATUSES, type Vendor, type VendorCategory, type VendorStatus } from "../../plan/types";
 import { VENDOR_LABEL } from "../../plan/day";
 import { useData, type SaveResult } from "../data";
@@ -19,6 +19,8 @@ export function VendorSheet({ vendor, initial, onClose }: { vendor: Vendor | nul
   const { errors, warnings } = checkDraft(draft);
   const patch = vendor ? updatePatch(vendor, draft) : null;
   const unchanged = !!patch && !Object.keys(patch.row ?? {}).length;
+  const start = useRef(JSON.stringify(initial));
+  const dirty = !offline && (vendor ? !unchanged : JSON.stringify(draft) !== start.current);
   const run = async (f: () => Promise<SaveResult>) => {
     setBusy(true);
     const r = await f();
@@ -27,7 +29,7 @@ export function VendorSheet({ vendor, initial, onClose }: { vendor: Vendor | nul
   };
   const doSave = () => run(() => (vendor && patch ? edit([patch], `Edited: ${draft.name.trim()}`) : save([createVendorOp(draft)])));
   return (
-    <Sheet title={vendor ? "Vendor" : "Add vendor"} open onClose={onClose}
+    <Sheet title={vendor ? "Vendor" : "Add vendor"} open onClose={onClose} dirty={dirty}
       footer={offline ? <Button onClick={onClose}>Close</Button> : confirm && vendor ? (
         <>
           <span className="vd-confirm pl-confirm">Delete this vendor for good?</span>

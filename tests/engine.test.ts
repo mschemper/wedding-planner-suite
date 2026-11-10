@@ -43,7 +43,7 @@ describe("computeBudget", () => {
 
 describe("helpers", () => {
   it("snapGuests clamps to scenario grid", () => {
-    expect(snapGuests(scenarioById(5), 250)).toBe(100);
+    expect(snapGuests(scenarioById(5), 250)).toBe(150);
     expect(snapGuests(scenarioById(13), 50)).toBe(150);
   });
   it("diffByCategory sums to total delta", () => {
@@ -142,5 +142,16 @@ describe("quote edge cases", () => {
     expect(pick([q({ id: "a", received_on: "2020-01-01" }), q({ id: "b", received_on: "2021-01-01" })])).toBe("b");
     expect(pick([q({ id: "b" }), q({ id: "a" })])).toBe("b");
     expect(pick([q({ id: "a" }), q({ id: "b" })])).toBe("b");
+  });
+});
+
+describe("Joinery max 160 (B15)", () => {
+  it("prices 140 guests extrapolated, not snapped", () => {
+    const j = scenarioById(5);
+    expect(j.max).toBe(160);
+    const b = computeBudget(j, 140);
+    expect(b.total).toBeGreaterThan(computeBudget(j, 100).total);
+    expect(b.rows.some((r) => r.extrapolated)).toBe(true);
+    expect(b.unavailable).toBeUndefined();
   });
 });

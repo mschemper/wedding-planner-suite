@@ -57,7 +57,7 @@ Live, 22 Oct 2026 evening (REVIEW-v6 §2): 121 people, 56 households; decisions 
 ## Platform
 
 - Cloudflare Workers + Static Assets + D1 + Access, account `mschemper@gmail.com` (ID 57b28195dc1564bee550b665117db76c). Access team `sukursschemper.cloudflareaccess.com`, one-time PIN, allowed: Mark + Angela. D1 `wedding-planner` id 87b1c95c-7e87-4307-98a3-cac03d0a3937 (ENAM).
-- Migrations applied: 0001–0005 (0005 on 23 Oct 2026); 0006 (vendors, timeline) on 9 Nov 2026. v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
+- Migrations applied: 0001–0005 (0005 on 23 Oct 2026); 0006 (vendors, timeline) on 9 Nov 2026. 0007 (quotes.date) committed, NOT applied: next deploy runs it, then `scripts/v12-live-data.sql` (dates the May 29 $7,000 quote). v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
 - Latest backup (before v11): `data/private/d1-backup-v10.sql` (9 Nov 2026, 698 INSERT rows); Time Travel bookmark before 0006: 0000003a-00000002-0000511f-e40f45be727f0598a37106786b869db1. Older backups + bookmarks: HISTORY.md.
 - Deploy, rollback, re-seed: docs/DEPLOY.md.
 

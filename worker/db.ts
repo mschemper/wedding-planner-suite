@@ -75,7 +75,7 @@ export const SPECS: Record<TableName, Spec> = {
     pk: "id", create: true, del: true,
     cols: [t("id"), i("scenario_id", { required: true }), t("item_desc", { required: true }), { name: "options", type: "json" },
       e("basis", ["total", "perGuest"], "total"), { name: "amount", type: "real", required: true }, b("includes_tax"), t("vendor"),
-      t("received_on", { date: true }), e("status", ["requested", "received", "accepted"], undefined, true), t("notes")],
+      t("received_on", { date: true }), e("status", ["requested", "received", "accepted"], undefined, true), t("notes"), t("date", { date: true })],
   },
   params: { pk: "key", create: true, del: true, cols: [t("key", { required: true }), { name: "value", type: "json" }] },
   // v7 (0004): venues added in the app; client picks scenario_id >= 1000 (write.ts), archived through venues.active, never deleted

@@ -132,7 +132,7 @@ export function AddVenueButton({ onAdded }: { onAdded(id: number, name: string):
   return (
     <>
       <Button onClick={() => setOpen(true)}>Add venue</Button>
-      <Sheet title="Add a venue" open={open} onClose={close}
+      <Sheet title="Add a venue" open={open} onClose={close} dirty={JSON.stringify(d) !== JSON.stringify(blankDraft())}
         footer={
           <div className="av-foot">
             <Button kind="primary" disabled={busy || issues.length > 0} onClick={() => void add()}>{busy ? "Adding…" : "Add as potential venue"}</Button>

@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { Card, Chip, EmptyState } from "../kit/kit";
 import { Sprig } from "../garden/motifs";
 import type { VenueSummary } from "../../plan/venueSummary";
-import { fmtDate } from "../compare";
+import { fmtDate, type WeddingSummary } from "../compare";
+import { weddingNote } from "./weddingNote";
 import { money } from "../format";
 import { capacityText, fitPct, fitText, mailHref, pricedAtText, statusLabel, statusTone, telHref, windowParts } from "./model";
 
@@ -98,7 +99,9 @@ function VenueTitle({ v, onOpen }: { v: VenueSummary; onOpen(id: number): void }
   );
 }
 
-export function Shortlist({ active, onOpen }: { active: VenueSummary[]; onOpen(id: number): void }) {
+export function Shortlist({ active, onOpen, wedding = null, date = "" }: { active: VenueSummary[]; onOpen(id: number): void; wedding?: WeddingSummary | null; date?: string }) {
+  const noteOf = (v: VenueSummary) => weddingNote(wedding, v.scenario.id, v.guests, date);
+  const anyNote = active.some((v) => noteOf(v));
   return (
     <Card title="Shortlist" corner>
       {!active.length && <EmptyState>No venues on the shortlist. Add one from the Archive below.</EmptyState>}
@@ -107,6 +110,7 @@ export function Shortlist({ active, onOpen }: { active: VenueSummary[]; onOpen(i
           <article key={v.scenario.id} className={`vn-card${v.budget?.unavailable || (v.capacity && !v.capacity.ok) ? " vn-dim" : ""}`} aria-label={v.scenario.name}>
             <div className="vn-card-head"><VenueTitle v={v} onOpen={onOpen} /><StatusChip v={v} /></div>
             <Alerts v={v} />
+            {noteOf(v) && <p className="vn-meta">{noteOf(v)}</p>}
             <dl className="vn-facts">
               {ROWS.map((r) => <div key={r.key}><dt>{r.label}</dt><dd>{r.cell(v)}</dd></div>)}
             </dl>
@@ -123,6 +127,7 @@ export function Shortlist({ active, onOpen }: { active: VenueSummary[]; onOpen(i
             </thead>
             <tbody>
               <tr><th scope="row">Alerts</th>{active.map((v) => <td key={v.scenario.id}><Alerts v={v} />{!v.budget?.unavailable && !v.budget?.warnings.length && <span className="vn-meta">None</span>}</td>)}</tr>
+              {anyNote && <tr><th scope="row">Today and Day</th>{active.map((v) => <td key={v.scenario.id}>{noteOf(v) ? <span className="vn-meta">{noteOf(v)}</span> : null}</td>)}</tr>}
               {ROWS.map((r) => <tr key={r.key}><th scope="row">{r.label}</th>{active.map((v) => <td key={v.scenario.id}>{r.cell(v)}</td>)}</tr>)}
             </tbody>
           </table>
