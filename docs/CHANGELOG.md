@@ -2,7 +2,7 @@
 
 ## v11 - The Joinery on Sat May 29 2027, Day tab (9 Nov 2026)
 
-**Not deployed yet.** D1 migration 0006 (`vendors`, `timeline`) + `scripts/v11-live-data.sql` (held date May 29, Joinery held, Firehouse backup, Ravenswood + River Room archived, Mark's 5 Nov Joinery quotes moved to the new line names). Design: docs/DESIGN-v11.md (Mark picked a new Day tab).
+**Deployed** 9 Nov 2026 (Worker version 5dcf0c0a). D1 migration 0006 (`vendors`, `timeline`) + `scripts/v11-live-data.sql` (held date May 29, Joinery held, Firehouse backup, Ravenswood + River Room archived, Mark's 5 Nov Joinery quotes moved to the new line names). Design: docs/DESIGN-v11.md (Mark picked a new Day tab).
 
 **Day tab** (new, 5th): **Our venue** — The Joinery on Sat May 29 with countdown, sunset, budget at the expected headcount (May 29 quote shown), room check against 160 seats (kids included), bar-minimum cost per guest, six venue photos + floor plan, rules, what's included, lodging, open questions, and "Add milestones to Plan" (21 dated planning steps counted back from the date). **Vendors** — one list per category with status, amounts, deposit/balance due and paid dates, overdue payments, the Joinery's recommended vendors as one-tap suggestions. **Timeline** — run of show from a Joinery template (2 PM–midnight, 5-hour bar), checks against venue hours, sunset marker, printable.
 

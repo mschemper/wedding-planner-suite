@@ -4,7 +4,7 @@ One row per release, newest first (RELEASE.md rule 10). **New rows <= 200 charac
 
 | Version | Size / setup | Lead | Subagents (model: tokens) | Rework | Verdict and next time |
 |---|---|---|---|---|---|
-| v11 Joinery May 29, Day tab (9 Nov 2026) | Large: Opus lead + data layer; 1 Opus review; 3 Sonnet builders | Opus | Opus 0.12M; Sonnet 0.11M, 0.10M, 0.10M | Low: 12 lead fixes | Fitted |
+| v11 Joinery May 29, Day tab (9 Nov 2026, deployed) | Large: Opus lead + data layer; 1 Opus review; 3 Sonnet builders | Opus | Opus 0.12M; Sonnet 0.11M, 0.10M, 0.10M | Low: 12 lead fixes | Fitted |
 | v10 bug sweep, ranges, tour mode (25 Oct 2026, deployed) | Medium: Opus lead; 2 Sonnet reviews, 1 Sonnet builder | Opus | Sonnet 0.16M, 0.26M, 0.09M | Low: 1 test fixed, tour CSS | Fitted |
 | v9 Jungalow, People fixes, API removal (23 Oct 2026, deployed) | Medium: lead backout, review, engine, theme; 1 Sonnet builder | Opus | Sonnet 0.16M | Low: 2 Vite restarts | Fitted |
 | v8 Household card, names follow people, Prairie & Steel, Ask the planner (23 Oct 2026, deployed) + v7 research hotfix (deployed) | Large: live naming audit, 3 theme mockups, 1 decision round, lead data layer (0005 + Worker name sync, /api/ask + proposal checks), 2 Sonnet builders in parallel (theme; Ask panel), lead household card, headless QA; hotfix from a separate worktree mid-release | Opus (audit, design, data layer, Worker, household card, hotfix, QA, docs) — lead tokens not measurable | Sonnet 0.16M (theme), Sonnet 0.11M (Ask panel) | Low: shell-quoting slips cost two retries; WSL git push hung on credentials (pushed from Windows instead) | Fitted. Next: one release per session again; the hotfix path (worktree off main) worked without disturbing builders. |

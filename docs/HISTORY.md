@@ -83,6 +83,7 @@ Newest first. Each entry: what changed and why.
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
 
 ## Release log (moved from STATE.md, 23 Oct 2026)
+- v9 Jungalow Lounge (tag v9, 9.0.0, no migration): deployed 23 Oct 2026, Worker version 95a4afda-912a-4df1-bdc1-4aa0dcde5659.
 - Backup before v10: `data/private/d1-backup-v9.sql` (25 Oct 2026, 651 INSERT rows). Before v9: `d1-backup-v8.sql` (23 Oct 2026, 537 rows).
 - v8 Household card, Prairie & Steel (tag v8, 8.0.0, migration 0005): deployed 23 Oct 2026, Worker version 13029a97-51d7-4ada-b654-15a29db6458a.
 - v10 review: docs/mockups/v10-review.html (design review R1–R7, ideas N1–N12). Mark: yes R1, R2, R4, R5, N2; no R6, R7, N1, N3, N4; R3, N5–N12 unanswered.
@@ -94,7 +95,7 @@ Newest first. Each entry: what changed and why.
 - Designs/reviews by release: DESIGN-v3/v4/v5/v7/v8/v9, REVIEW-v2/v3/v4-people/v6, v9 review (mockups/v9-review.html); mockups docs/mockups/. Looks: Twinkle garden (v4, DESIGN-v4 §6) -> Conservatory Modern (v7) -> Prairie & Steel (v8) -> Jungalow Lounge (v9, current).
 
 ## Backups (moved from STATE.md)
-- Before v9: data/private/d1-backup-v8.sql (23 Oct 2026). Before v8: data/private/d1-backup-v7.sql (23 Oct 2026). Before v7: d1-backup-v6.sql (22 Oct). Before v6: d1-backup-v5.sql (22 Oct). Before v5: d1-backup-v4.sql (7 in-app edits); Time Travel bookmark before 0003: 0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8. Before v4: d1-backup-v3.sql; bookmark before 0002: 00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a.
+- Before v10: data/private/d1-backup-v9.sql (25 Oct 2026, 651 rows). Before v9: data/private/d1-backup-v8.sql (23 Oct 2026). Before v8: data/private/d1-backup-v7.sql (23 Oct 2026). Before v7: d1-backup-v6.sql (22 Oct). Before v6: d1-backup-v5.sql (22 Oct). Before v5: d1-backup-v4.sql (7 in-app edits); Time Travel bookmark before 0003: 0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8. Before v4: d1-backup-v3.sql; bookmark before 0002: 00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a.
 - Friend tiers set on live from the workbook InviteTier (A→Must, B→Want, C→Nice to have), 22 Oct 2026.
 
 ## Guest data at seed, 22 Oct 2026 (moved from STATE.md)
