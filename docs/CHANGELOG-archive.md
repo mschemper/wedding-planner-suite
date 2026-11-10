@@ -2,6 +2,18 @@
 
 Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.md.
 
+## v10 - Bug sweep, window price ranges, tour mode (25 Oct 2026)
+
+**Deployed** 25 Oct 2026 (Worker version 5904b91d). No D1 migration. Review page (design review + ideas): docs/mockups/v10-review.html; Mark said yes to R1, R2, R4, R5, N2.
+
+**Fixes** (two code reviews, logic + UI): clearing the held date no longer fails the save; impossible dates (2027-13-45) are refused; a replaced quote is no longer flagged "didn't match any line"; a household's cost is priced at the same count as the venue total and says "nothing extra (flat quote)" when an all-in quote covers it; an added venue with only percent lines stays "awaiting rates"; named kids follow the kids rule before their household is decided; Escape on a ⋯ menu no longer closes the household card; a failed save stays on screen; holding a key in one-by-one Decide no longer decides a run of households; bulk edits and "Invite all undecided" touch only the households shown; the household card saves after Reload; the note sheet closes only when saved; a status change keeps unsaved venue details; "done" dates are Chicago dates; negative amounts read "−$…"; small controls are 44px.
+
+**Venues**: each date window shows its cheapest and dearest Saturday ("$36,644 (Sat, May 1) – $37,644"); a total priced at a different count than the one picked says so ("priced at 50 guests, the venue's smallest modelled count").
+
+**Tour mode** (venue detail): every must-have as a question with Yes / Partly / No / Not asked and a note; one Save fills the must-have grid.
+
+**People**: the room check shows a key under the bar (in, if room, undecided, seats) and the cost with the venue's name. **Plan**: must-haves list only; how venues fit lives on Venues.
+
 ## v9 - Jungalow Lounge look, one-by-one Decide, Tidy up; Claude API features removed (23 Oct 2026)
 
 **Deployed** 23 Oct 2026 (Worker version 95a4afda). No D1 migration. `ANTHROPIC_API_KEY` secret deleted. Review page (looks, People fixes, ideas): docs/mockups/v9-review.html; Mark picked B · Jungalow Lounge. Design note: docs/DESIGN-v9.md.

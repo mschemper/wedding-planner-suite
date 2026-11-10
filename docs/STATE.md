@@ -3,14 +3,14 @@
 Read after AGENTS.md. Only what is true now. Open work -> BACKLOG.md. Past releases, old backups, seed-time numbers -> HISTORY.md "Release log". Files per subject -> CODEMAP.md.
 Keep: current + previous release rows only, latest backup only, no history. `tests/docs.test.ts` gates size and version.
 
-Last updated: 10 November 2026 (v11 deployed; review fixes + B14-B25 committed on main, not deployed: docs/REVIEW-v11.md).
+Last updated: 10 November 2026 (v12).
 
 ## Version
 
 | | |
 |---|---|
-| Current | **v11** (tag `v11`, package.json 11.0.0): The Joinery on Sat May 29 2027; Day tab (our venue + photos, vendors, timeline), wedding countdown, plan-back milestones; Joinery repriced from its own sheets; migration 0006 + scripts/v11-live-data.sql (both applied). Deployed 9 Nov 2026, Worker version 5dcf0c0a-a7af-461d-b9af-8962abca2129; unauthenticated `/`, `/api/version`, photos → Access login (verified); signed-in view not checked |
-| Previous | **v10** (tag `v10`, 10.0.0), deployed 25 Oct 2026, Worker version 5904b91d-009e-41dd-9784-85781427ed6c; no migration. Rollback: docs/DEPLOY.md |
+| Current | **v12** (tag `v12`, package.json 12.0.0): whole-app review fixes (docs/REVIEW-v11.md): dated quotes, Joinery to 160, safer edits, keyboard menus; migration 0007 + scripts/v12-live-data.sql. DEPLOYING |
+| Previous | **v11** (tag `v11`, 11.0.0), deployed 9 Nov 2026, Worker version 5dcf0c0a-a7af-461d-b9af-8962abca2129; migration 0006. Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Look | Jungalow Lounge (docs/DESIGN-v9.md); Day tab layout docs/DESIGN-v11.md. Older looks and designs: HISTORY.md |
 
@@ -57,8 +57,8 @@ Live, 22 Oct 2026 evening (REVIEW-v6 §2): 121 people, 56 households; decisions 
 ## Platform
 
 - Cloudflare Workers + Static Assets + D1 + Access, account `mschemper@gmail.com` (ID 57b28195dc1564bee550b665117db76c). Access team `sukursschemper.cloudflareaccess.com`, one-time PIN, allowed: Mark + Angela. D1 `wedding-planner` id 87b1c95c-7e87-4307-98a3-cac03d0a3937 (ENAM).
-- Migrations applied: 0001–0005 (0005 on 23 Oct 2026); 0006 (vendors, timeline) on 9 Nov 2026. 0007 (quotes.date) committed, NOT applied: next deploy runs it, then `scripts/v12-live-data.sql` (dates the May 29 $7,000 quote). v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
-- Latest backup (before v11): `data/private/d1-backup-v10.sql` (9 Nov 2026, 698 INSERT rows); Time Travel bookmark before 0006: 0000003a-00000002-0000511f-e40f45be727f0598a37106786b869db1. Older backups + bookmarks: HISTORY.md.
+- Migrations applied: 0001–0005 (0005 on 23 Oct 2026); 0006 (vendors, timeline) on 9 Nov 2026. 0007 (quotes.date) + `scripts/v12-live-data.sql` on 10 Nov 2026. v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
+- Latest backup (before v12): `data/private/d1-backup-v11.sql` (10 Nov 2026, 703 INSERT rows); Time Travel bookmark before 0007: 0000003e-00000000-0000511f-91d6ac82b1bd508412f58788bd44a34a. Older backups + bookmarks: HISTORY.md.
 - Deploy, rollback, re-seed: docs/DEPLOY.md.
 
 ## Standing preferences (Mark)
