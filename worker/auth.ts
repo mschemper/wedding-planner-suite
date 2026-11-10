@@ -14,7 +14,8 @@ const remoteJwks = (team: string) => {
   return cached.jwks;
 };
 
-export async function authenticate(req: Request, env: Env, jwks?: JWTVerifyGetKey): Promise<AuthResult> {
+/** `feed` = the route is a read-only feed: an Access service token listed in FEED_CLIENT_IDS also passes (email "service:<id>"). */
+export async function authenticate(req: Request, env: Env, jwks?: JWTVerifyGetKey, feed = false): Promise<AuthResult> {
   const host = new URL(req.url).hostname;
   if (env.DEV_ACCESS_EMAIL && (host === "localhost" || host === "127.0.0.1")) return { ok: true, email: env.DEV_ACCESS_EMAIL.toLowerCase() };
 
@@ -29,6 +30,11 @@ export async function authenticate(req: Request, env: Env, jwks?: JWTVerifyGetKe
       issuer: team, audience: auds, algorithms: ["RS256"], clockTolerance: 60,
     });
     const email = String(payload.email ?? "").toLowerCase();
+    const service = String(payload.common_name ?? "").toLowerCase();
+    if (!email && service) {
+      if (feed && list(env.FEED_CLIENT_IDS).includes(service)) return { ok: true, email: `service:${service}` };
+      return { ok: false, status: 403, message: "Service token not allowed here" };
+    }
     if (!allowed.includes(email)) return { ok: false, status: 403, message: "This account is not on the guest list for the planner" };
     return { ok: true, email };
   } catch {

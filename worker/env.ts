@@ -25,6 +25,8 @@ export interface Env {
   ACCESS_AUD?: string;
   /** comma list; only these emails may use the API */
   ALLOWED_EMAILS?: string;
+  /** comma list of Access service-token Client IDs allowed on /api/feed/* only (docs/FEED.md) */
+  FEED_CLIENT_IDS?: string;
   /** local dev only, from .dev.vars or the vite dev middleware; honoured only on localhost */
   DEV_ACCESS_EMAIL?: string;
 }

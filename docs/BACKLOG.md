@@ -32,6 +32,9 @@ Each price answer replaces an estimate in `src/data/scenarios.ts` → golden + H
 
 ## Requested / planned (features)
 
+### F16. Plan on the Bauhaus wall -- M
+Built, not released: `/api/feed/plan` + service-token auth (docs/FEED.md). Left: release + deploy with FEED.md "Setup"; consumer mode `wedding` in bauhaus-dashboard (countdown, progress, next tasks; Jungalow look, flat; on demand + 2-3x/day).
+
 ### P1. Angela's first sign-in — XS
 Angela opens the link and enters her email for the PIN. Not yet confirmed.
 

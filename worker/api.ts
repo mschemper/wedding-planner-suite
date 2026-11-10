@@ -1,6 +1,10 @@
 // /api router (DESIGN-v3 §3; /api/version DESIGN-v4 §3). Same origin only: no CORS; writes need JSON + a matching Origin (CSRF).
 import type { JWTVerifyGetKey } from "jose";
-import type { ApiErrorBody, AuditEntry, WriteRequest } from "../src/api/types";
+import type { ApiErrorBody, AuditEntry, ParamRow, WriteRequest } from "../src/api/types";
+import { mergeSettings } from "../src/data/params";
+import { planFeed } from "../src/plan/feed";
+import { chicagoToday } from "../src/plan/tasks";
+import type { Task, VenueRow } from "../src/plan/types";
 import { authenticate } from "./auth";
 import { loadState, stateToApi } from "./db";
 import type { Env } from "./env";
@@ -18,11 +22,21 @@ export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey):
     if (!origin || origin !== url.origin) return err(403, "forbidden", "Cross-site request refused");
     if (!(req.headers.get("Content-Type") ?? "").includes("application/json")) return err(403, "forbidden", "JSON only");
   }
-  const auth = await authenticate(req, env, jwks);
+  const isFeed = url.pathname === "/api/feed/plan" && req.method === "GET";
+  const auth = await authenticate(req, env, jwks, isFeed);
   if (!auth.ok) return err(auth.status, auth.status === 403 ? "forbidden" : auth.status === 500 ? "server" : "unauthorized", auth.message);
 
   try {
     if (url.pathname === "/api/version" && req.method === "GET") return json({ version: pkg.version });
+
+    if (isFeed) {
+      const st = await loadState(env.DB);
+      const now = new Date();
+      const tasks = [...st.tasks.values()] as unknown as Task[];
+      const venues = [...st.venues.values()] as unknown as VenueRow[];
+      const settings = mergeSettings([...st.params.values()] as unknown as ParamRow[]);
+      return json(planFeed(tasks, venues, settings, chicagoToday(now), now.toISOString()));
+    }
 
     if (url.pathname === "/api/data" && req.method === "GET") return json(stateToApi(await loadState(env.DB), auth.email));
 

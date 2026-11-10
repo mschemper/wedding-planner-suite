@@ -39,6 +39,23 @@ export interface ApiData {
   me: string;
 }
 
+/** GET /api/feed/plan (docs/FEED.md): read-only Plan summary for the Bauhaus wall. Bump `feed` on breaking change. */
+export interface PlanFeed {
+  feed: number;
+  /** ISO UTC */
+  generated_at: string;
+  /** YYYY-MM-DD, America/Chicago */
+  today: string;
+  /** null when no held date is set */
+  wedding: { date: string; days: number; weeks: number; label: string; past: boolean; venue_status: string | null } | null;
+  progress: { done: number; open: number; total: number; pct: number };
+  counts: { overdue: number; week: number; nodate: number };
+  /** open tasks, overdue first then by due date */
+  next: { title: string; due: string | null; days: number | null; group: "overdue" | "week" | "later" | "nodate"; owner: string; category: string }[];
+  /** last day of "this week" (today + 7) */
+  week_end: string;
+}
+
 export interface Issue {
   level: "error" | "warning";
   /** row id the issue is about */

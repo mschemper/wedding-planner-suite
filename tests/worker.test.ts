@@ -4,7 +4,7 @@ import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWTVerifyG
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import fixture from "../data/fixtures/garden.sample.json";
 import pkg from "../package.json";
-import type { ApiData, ApiErrorBody, Op, WriteResult } from "../src/api/types";
+import type { ApiData, ApiErrorBody, Op, PlanFeed, WriteResult } from "../src/api/types";
 import { SEED_FIT, SEED_MUSTHAVES, SEED_TASKS, SEED_VENUES } from "../src/data/seed-v4";
 import { SqliteD1 } from "../scripts/d1-sqlite";
 import { handleApi } from "../worker/api";
@@ -75,6 +75,25 @@ describe("auth", () => {
   it("dev bypass is ignored on a non-localhost host", async () => {
     const r = await call("/api/data", {}, "https://wedding.example.workers.dev", env);
     expect(r.status).toBe(500);
+  });
+  it("service token: allowed on /api/feed/plan only, and only when listed", async () => {
+    const svc = async () => new SignJWT({ common_name: "pi-client.access" }).setProtectedHeader({ alg: "RS256", kid: "k1" })
+      .setIssuer(TEAM).setAudience(AUD).setIssuedAt().setExpirationTime("1h").sign(key);
+    const e = { ...prod(), FEED_CLIENT_IDS: "pi-client.access" };
+    const at = async (path: string, env2: Env) =>
+      call(path, { headers: { "Cf-Access-Jwt-Assertion": await svc() } }, "https://wedding.example.workers.dev", env2, jwks);
+    const r = await at("/api/feed/plan", e);
+    expect(r.status).toBe(200);
+    const f = (await r.json()) as PlanFeed;
+    expect(f.feed).toBe(1);
+    expect(JSON.stringify(f)).not.toMatch(/detail|source|email|people/);
+    expect((await at("/api/data", e)).status).toBe(403);
+    expect((await at("/api/audit", e)).status).toBe(403);
+    expect((await at("/api/feed/plan", prod())).status).toBe(403);
+  });
+  it("signed-in user can read the feed too", async () => {
+    const r = await call("/api/feed/plan", { headers: { "Cf-Access-Jwt-Assertion": await token({}) } }, "https://wedding.example.workers.dev", prod(), jwks);
+    expect(r.status).toBe(200);
   });
   it("wrangler.jsonc never carries the dev bypass", () => {
     expect(readFileSync("wrangler.jsonc", "utf8")).not.toMatch(/DEV_ACCESS_EMAIL"\s*:/);

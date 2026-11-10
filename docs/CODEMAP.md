@@ -31,6 +31,7 @@ Organised by the thing you're changing, not by folder.
 | Settings (date windows, held date, kids policy) | `src/data/params.ts` `Settings` | `tests/plan.test.ts` |
 | D1 schema / columns | `migrations/NNNN_*.sql` (new file), `worker/db.ts` `SPECS` | `tests/worker.test.ts` |
 | Save rules (ids, partner mirror, deletes) | `worker/write.ts` | `tests/worker.test.ts` |
+| Plan feed for the wall (`/api/feed/plan`) | `src/plan/feed.ts`, `worker/api.ts`, `worker/auth.ts` (service token); docs/FEED.md | `tests/feed.test.ts`, `tests/worker.test.ts` |
 | API contract / client | `src/api/types.ts`, `src/api/client.ts` | — |
 | Data in the UI, one-tap edit + Undo | `src/ui/data.tsx` (`useData`, `edit`, `useAudit`) | — |
 | Shell, tabs, theme toggle | `src/ui/App.tsx`, `src/ui/nav.tsx`, `src/ui/prefs.ts`, `src/ui/usePrefs.tsx` | `npm run dev` |
