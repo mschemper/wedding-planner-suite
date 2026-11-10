@@ -86,11 +86,14 @@ export function VerdictPicker({ verdict, onCycle, label, disabled }: { verdict: 
 export const verdictText = (v: Verdict) => VERDICT_TEXT[v];
 
 /** Side sheet (desktop) / bottom sheet (phone). Escape and the backdrop close it; focus moves into it. */
-export function Sheet({ title, open, onClose, children, footer }: { title: string; open: boolean; onClose(): void; children: ReactNode; footer?: ReactNode }) {
+/** dirty = unsaved edits: Esc / backdrop / ✕ ask "Discard changes?" first (B16). */
+export function Sheet({ title, open, onClose, children, footer, dirty = false }: { title: string; open: boolean; onClose(): void; children: ReactNode; footer?: ReactNode; dirty?: boolean }) {
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
-  const close = useRef(onClose);
-  close.current = onClose;
+  const [asking, setAsking] = useState(false);
+  const tryClose = () => { if (dirty) setAsking(true); else onClose(); };
+  const close = useRef(tryClose);
+  close.current = tryClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
@@ -102,11 +105,17 @@ export function Sheet({ title, open, onClose, children, footer }: { title: strin
   if (!open) return null;
   return (
     <div className="k-sheet-wrap">
-      <div className="k-sheet-backdrop" onClick={onClose} />
+      <div className="k-sheet-backdrop" onClick={tryClose} />
       <div className="k-sheet" role="dialog" aria-modal="true" aria-labelledby={id} tabIndex={-1} ref={ref}>
-        <div className="k-sheet-head"><h2 id={id}>{title}</h2><button type="button" className="k-icon-btn" onClick={onClose} aria-label="Close">✕</button></div>
+        <div className="k-sheet-head"><h2 id={id}>{title}</h2><button type="button" className="k-icon-btn" onClick={tryClose} aria-label="Close">✕</button></div>
         <div className="k-sheet-body">{children}</div>
-        {footer && <div className="k-sheet-foot">{footer}</div>}
+        {asking && dirty ? (
+          <div className="k-sheet-foot k-sheet-ask" role="alert">
+            <span>Discard your changes?</span>
+            <Button onClick={() => setAsking(false)}>Keep editing</Button>
+            <Button kind="danger" onClick={() => { setAsking(false); onClose(); }}>Discard</Button>
+          </div>
+        ) : footer && <div className="k-sheet-foot">{footer}</div>}
       </div>
     </div>
   );
@@ -114,8 +123,10 @@ export function Sheet({ title, open, onClose, children, footer }: { title: strin
 
 /** "Saved · Undo" toast for the last edit() (src/ui/data.tsx). Mounted once in App. Auto-hides after 6 s. */
 export function UndoToast() {
-  const { undoState, undo, dismissUndo } = useData();
-  const [failed, setFailed] = useState<string | null>(null);
+  const { undoState, undo, dismissUndo, failure, notifyFailure } = useData();
+  const [failedUndo, setFailedUndo] = useState<string | null>(null);
+  const failed = failedUndo ?? failure;
+  const setFailed = (m: string | null) => { setFailedUndo(m); if (!m) notifyFailure(null); };
   useEffect(() => {
     if (!undoState) return;
     setFailed(null);
@@ -127,7 +138,7 @@ export function UndoToast() {
     const t = setTimeout(() => setFailed(null), 8000);
     return () => clearTimeout(t);
   }, [failed]);
-  if (failed) return <div className="k-toast" role="alert"><span>Undo failed · {failed}</span><button type="button" className="k-toast-btn" onClick={() => setFailed(null)}>OK</button></div>;
+  if (failed) return <div className="k-toast" role="alert"><span>{failedUndo ? "Undo failed" : "Not saved"} · {failed}</span><button type="button" className="k-toast-btn" onClick={() => setFailed(null)}>OK</button></div>;
   if (!undoState) return null;
   return (
     <div className="k-toast" role="status">

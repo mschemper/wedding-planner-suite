@@ -25,6 +25,8 @@ export interface Patch {
   id: string;
   /** null = delete the row (only used by Undo of a newly created params row) */
   row: Record<string, unknown> | null;
+  /** Undo only: the row version right after the edit, so a newer change by someone else returns 409 instead of being overwritten */
+  expect?: number;
 }
 
 export interface UndoState {
@@ -74,6 +76,9 @@ export interface DataCtx {
   undoState: UndoState | null;
   undo(): Promise<SaveResult>;
   dismissUndo(): void;
+  /** a failed save the screen may have scrolled away from; UndoToast shows it (B17) */
+  failure: string | null;
+  notifyFailure(message: string | null): void;
   reload(): Promise<void>;
 }
 
@@ -93,6 +98,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<DataCtx["status"]>(OFFLINE ? "ready" : "loading");
   const [error, setError] = useState<{ message: string; kind?: ApiErrorBody["error"] }>();
   const [undoState, setUndo] = useState<UndoState | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
   const rawRef = useRef<ApiData | null>(null);
   rawRef.current = raw;
 
@@ -139,22 +145,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return `${p.id} no longer exists — reload`;
       }
       if (!p.row) ops.push({ table: p.table, op: "delete", id: p.id, version: Number(cur.version) });
-      else ops.push({ table: p.table, op: "update", id: p.id, version: Number(cur.version), row: p.row });
+      else ops.push({ table: p.table, op: "update", id: p.id, version: p.expect ?? Number(cur.version), row: p.row });
     }
     return ops;
   }, [findRow]);
 
   const edit = useCallback(async (patches: Patch[], label: string): Promise<SaveResult> => {
+    // A delete cannot be undone (ids are server-assigned): save it, offer no Undo.
+    const undoable = patches.every((p) => p.row !== null);
     const inverse: Patch[] = patches.map((p) => {
       const cur = findRow(p.table, p.id);
       if (!cur) return { table: p.table, id: p.id, row: null };
-      return { table: p.table, id: p.id, row: Object.fromEntries(Object.keys(p.row ?? {}).map((k) => [k, cur[k] ?? null])) };
+      return { table: p.table, id: p.id, expect: Number(cur.version) + 1, row: Object.fromEntries(Object.keys(p.row ?? {}).map((k) => [k, cur[k] ?? null])) };
     });
     const ops = toOps(patches);
     if (typeof ops === "string") return { ok: false, kind: "not_found", message: ops };
     if (!ops.length) return { ok: true, ids: {} };
     const r = await save(ops);
-    if (r.ok) setUndo({ label, inverse, at: Date.now() });
+    if (r.ok) setUndo(undoable ? { label, inverse, at: Date.now() } : null);
     return r;
   }, [findRow, toOps, save]);
 
@@ -186,9 +194,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       timeline: raw?.timeline ?? [],
       paramRows, params, settings, scenarios: [...buildScenarios(params), ...(raw?.custom_venues ?? []).map(customScenario)],
       invite, headcount: headcount(people, settings.kidsPolicy, invite),
-      version, save, edit, undoState, undo, dismissUndo: () => setUndo(null), reload,
+      version, save, edit, undoState, undo, dismissUndo: () => setUndo(null), failure, notifyFailure: setFailure, reload,
     };
-  }, [raw, status, error, version, save, edit, undoState, undo, reload]);
+  }, [raw, status, error, version, save, edit, undoState, undo, failure, reload]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
