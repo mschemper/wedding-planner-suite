@@ -61,3 +61,42 @@ export interface Task {
 }
 
 export const fitId = (scenarioId: number, musthaveId: string) => `${scenarioId}:${musthaveId}`;
+
+// v11 Day tab (migration 0006): vendor bookings + day-of timeline.
+export const VENDOR_CATEGORIES = ["catering", "bar", "photo", "video", "music", "florals", "planner", "cake", "beauty", "attire", "stationery", "rentals", "transport", "officiant", "lodging", "other"] as const;
+export const VENDOR_STATUSES = ["idea", "contacted", "quoted", "booked", "passed"] as const;
+export type VendorCategory = (typeof VENDOR_CATEGORIES)[number];
+export type VendorStatus = (typeof VENDOR_STATUSES)[number];
+
+/** A vendor we are considering or have booked (D1 `vendors`, id V01…). Money in dollars. */
+export interface Vendor {
+  id: string;
+  category: VendorCategory;
+  name: string;
+  status: VendorStatus;
+  /** contract / quoted total */
+  amount?: number | null;
+  deposit?: number | null;
+  /** YYYY-MM-DD */
+  deposit_due?: string | null;
+  balance_due?: string | null;
+  /** business contact (email / phone / site) */
+  contact?: string | null;
+  notes?: string | null;
+  /** venue this vendor is tied to (e.g. the Joinery bar), optional */
+  scenario_id?: number | null;
+  sort?: number | null;
+}
+
+/** One step of the wedding-day run of show (D1 `timeline`, id TL01…). */
+export interface TimelineRow {
+  id: string;
+  /** "HH:MM" 24h; 00:00–04:59 counts as after midnight (src/plan/day.ts) */
+  start: string;
+  /** duration, 0–720 */
+  minutes: number;
+  title: string;
+  place?: string | null;
+  who?: string | null;
+  notes?: string | null;
+}

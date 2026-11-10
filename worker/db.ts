@@ -4,7 +4,7 @@ import { isDay, parseParamValue } from "../src/data/params";
 import { CUSTOM_ID_MIN } from "../src/data/custom";
 import { SCENARIOS } from "../src/data/scenarios";
 import { AGES, KIDS_RULES, KINDS, KNOWN_BY, DECISIONS, LOCALS, OVERRIDES, RSVPS, SIDES } from "../src/people/types";
-import { CATEGORIES, OWNERS, TASK_STATUSES, VENUE_STATUSES, VERDICTS } from "../src/plan/types";
+import { CATEGORIES, OWNERS, TASK_STATUSES, VENDOR_CATEGORIES, VENDOR_STATUSES, VENUE_STATUSES, VERDICTS } from "../src/plan/types";
 import type { D1Database, D1PreparedStatement } from "./env";
 
 export type Rec = Record<string, unknown>;
@@ -17,6 +17,8 @@ export interface Col {
   enum?: readonly string[];
   /** YYYY-MM-DD */
   date?: boolean;
+  /** HH:MM, 00:00–23:59 */
+  time?: boolean;
   /** value on create when absent */
   def?: unknown;
 }
@@ -82,6 +84,18 @@ export const SPECS: Record<TableName, Spec> = {
     cols: [i("scenario_id", { required: true }), t("name", { required: true }), t("location"), e("kind", ["local", "destination"], "local"), t("description"),
       i("capacity_seated"), i("capacity_kids"), i("capacity_cocktail"), i("confidence", { def: 40, required: true }),
       { name: "items", type: "json", def: [] }, { name: "sources", type: "json", def: [] }, t("notes"), t("researched_at", { date: true })],
+  },
+  // v11 (0006): Day tab
+  vendors: {
+    pk: "id", prefix: "V", width: 2, create: true, del: true,
+    cols: [t("id"), e("category", VENDOR_CATEGORIES, "other"), t("name", { required: true }), e("status", VENDOR_STATUSES, "idea"),
+      { name: "amount", type: "real" }, { name: "deposit", type: "real" }, t("deposit_due", { date: true }), t("balance_due", { date: true }),
+      t("contact"), t("notes"), i("scenario_id"), i("sort")],
+  },
+  timeline: {
+    pk: "id", prefix: "TL", width: 2, create: true, del: true,
+    cols: [t("id"), t("start", { required: true, time: true }), i("minutes", { def: 30, required: true }), t("title", { required: true }),
+      t("place"), t("who"), t("notes")],
   },
 };
 
@@ -153,11 +167,14 @@ export const stateToApi = (st: State, me: string): ApiData => ({
   tasks: [...st.tasks.values()],
   quotes: [...st.quotes.values()],
   custom_venues: [...st.custom_venues.values()],
+  vendors: [...st.vendors.values()],
+  timeline: [...st.timeline.values()],
   params: [...st.params.values()] as unknown as ParamRow[],
   me,
 }) as unknown as ApiData;
 
 const DATE = { test: (s: string) => isDay(s) };
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 /** A code scenario, or an added venue id (v7; that its row exists is checked in write.ts). */
 const knownScenario = (id: unknown) => SCENARIOS.some((s) => s.id === id) || (Number.isInteger(id) && (id as number) >= CUSTOM_ID_MIN);
 
@@ -184,6 +201,7 @@ export function normalize(table: TableName, patch: Rec, isCreate: boolean): { ok
       }
       if (c.enum && !c.enum.includes(String(v))) return { ok: false, msg: `bad ${k} "${v}"` };
       if (c.date && !DATE.test(String(v))) return { ok: false, msg: `${k} must be YYYY-MM-DD` };
+      if (c.time && !TIME.test(String(v))) return { ok: false, msg: `${k} must be HH:MM` };
     }
     row[k] = v ?? null;
   }
@@ -201,7 +219,10 @@ export function normalize(table: TableName, patch: Rec, isCreate: boolean): { ok
   }
   if (table === "parties" && row.tier != null && !((row.tier as number) >= 1 && (row.tier as number) <= 4)) return { ok: false, msg: "tier must be 1–4" };
   if (table === "parties" && row.unnamed_kids != null && !((row.unnamed_kids as number) >= 0 && (row.unnamed_kids as number) <= 20)) return { ok: false, msg: "unnamed_kids must be 0–20" };
-  if ((table === "fit" || table === "tasks") && row.scenario_id != null && !knownScenario(row.scenario_id))
+  if (table === "vendors" && ((row.amount != null && (row.amount as number) < 0) || (row.deposit != null && (row.deposit as number) < 0)))
+    return { ok: false, msg: "amounts must be ≥ 0" };
+  if (table === "timeline" && row.minutes != null && !((row.minutes as number) >= 0 && (row.minutes as number) <= 720)) return { ok: false, msg: "minutes must be 0–720" };
+  if ((table === "fit" || table === "tasks" || table === "vendors") && row.scenario_id != null && !knownScenario(row.scenario_id))
     return { ok: false, msg: "unknown scenario_id" };
   if (table === "params") {
     const p = parseParamValue(String(row.key ?? ""), row.value);

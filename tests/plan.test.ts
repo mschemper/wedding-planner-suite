@@ -79,14 +79,14 @@ describe("venue summary", () => {
   });
   it("active shortlist vs archive", () => {
     const { active, archive } = summarizeAll(input);
-    expect(active.map((v) => v.scenario.id)).toEqual([17, 18, 4, 5]);
-    expect(archive).toHaveLength(SCENARIOS.length - 4);
+    expect(active.map((v) => v.scenario.id)).toEqual([17, 5]);
+    expect(archive).toHaveLength(SCENARIOS.length - 2);
   });
 });
 
 describe("settings", () => {
   it("defaults, valid overrides, invalid rows ignored", () => {
     expect(mergeSettings([]).kidsPolicy).toBe("ours");
-    expect(mergeSettings([{ key: "kidsPolicy", value: "all" }, { key: "heldDate", value: "nope" }])).toMatchObject({ kidsPolicy: "all", heldDate: "2027-06-12" });
+    expect(mergeSettings([{ key: "kidsPolicy", value: "all" }, { key: "heldDate", value: "nope" }])).toMatchObject({ kidsPolicy: "all", heldDate: "2027-05-29" });
   });
 });

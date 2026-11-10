@@ -11,7 +11,7 @@ import type { Quote, Scenario } from "../engine/types";
 import { headcount, type Headcount } from "../people/headcount";
 import { inviteCtx, type InviteCtx } from "../people/invite";
 import type { PeopleData } from "../people/types";
-import type { Fit, MustHave, Task, VenueRow } from "../plan/types";
+import type { Fit, MustHave, Task, TimelineRow, Vendor, VenueRow } from "../plan/types";
 
 export const OFFLINE = import.meta.env.MODE === "offline";
 
@@ -51,6 +51,9 @@ export interface DataCtx {
   fit: Fit[];
   tasks: Task[];
   quotes: Quote[];
+  /** v11 Day tab */
+  vendors: Vendor[];
+  timeline: TimelineRow[];
   paramRows: ParamRow[];
   /** price params: doc values + stored overrides */
   params: Params;
@@ -179,6 +182,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       fit: raw?.fit ?? (OFFLINE ? SEED_FIT : []),
       tasks: raw?.tasks ?? [],
       quotes: raw?.quotes ?? [],
+      vendors: raw?.vendors ?? [],
+      timeline: raw?.timeline ?? [],
       paramRows, params, settings, scenarios: [...buildScenarios(params), ...(raw?.custom_venues ?? []).map(customScenario)],
       invite, headcount: headcount(people, settings.kidsPolicy, invite),
       version, save, edit, undoState, undo, dismissUndo: () => setUndo(null), reload,

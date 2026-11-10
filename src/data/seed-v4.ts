@@ -7,23 +7,23 @@ import { SCENARIOS } from "./scenarios";
 const gmail = (hex: string) => `https://mail.google.com/mail/u/0/#all/${hex}`;
 
 const ACTIVE: Record<number, Partial<VenueRow>> = {
+  5: {
+    status: "held", hold_date: "2027-05-29", tour_date: "2026-10-30", contact_name: "Shay", contact_email: "info@thejoinerychicago.com",
+    next_step: "Sign the contract before the free one-week hold ends (offered 3 Nov 2026)",
+    notes: "Likely venue. Sat May 29, 2027 at the Friday rate ($7,000). Capacity 160 seated with dance floor. Recommended (not required) vendor list; in-house bar packages or BYOB.",
+  },
   17: {
     status: "held", hold_date: "2027-06-12", tour_date: "2026-10-20", contact_name: "Sarah and Teddy (Event Producers)",
-    contact_email: "events@firehousechicago.com", next_step: "Ask when the June 12 hold resolves",
-    notes: "Hold pending the previous couple. Typical day: ceremony 5pm outdoors, cocktail hour in the garden, dinner + dancing inside, last song 11pm. Upstairs room fits a kids' party.",
-  },
-  18: { status: "researching", next_step: "Get the rate sheet, F&B minimum, catering/bar policy and 2027 dates" },
-  4: {
-    status: "researching", contact_name: "Alex Seavey", contact_email: "aseavey@riverroomchicago.com", contact_phone: "630-809-2686",
-    next_step: "Book a tour (Calendly link in email) or drop it",
-    notes: "Free lot across the street; valet for an extra fee. Fully ADA first floor, 5 single-stall bathrooms. Peak Saturdays need 100+ on the bar package.",
-  },
-  5: {
-    status: "researching", contact_name: "Shay", contact_email: "info@thejoinerychicago.com", next_step: "Confirm a visit time (asked 21 Oct)",
-    notes: "Capacity 160 seated with dance floor. Approved-list caterer, florals, planner. BYOB through the venue.",
+    contact_email: "events@firehousechicago.com", next_step: "Backup: release the June 12 hold once the Joinery is signed",
+    notes: "Backup venue. Hold pending the previous couple. Typical day: ceremony 5pm outdoors, cocktail hour in the garden, dinner + dancing inside, last song 11pm. Upstairs room fits a kids' party.",
   },
 };
 const ARCHIVE: Record<number, Partial<VenueRow>> = {
+  18: { status: "researching", next_step: "Archived 9 Nov 2026 (Joinery likely)" },
+  4: {
+    status: "researching", contact_name: "Alex Seavey", contact_email: "aseavey@riverroomchicago.com", contact_phone: "630-809-2686",
+    notes: "Free lot across the street; valet for an extra fee. Fully ADA first floor, 5 single-stall bathrooms. Peak Saturdays need 100+ on the bar package.",
+  },
   3: { contact_name: "Colleen Plowman", contact_email: "events@salvageone.com", contact_phone: "312-733-0098" },
   8: { status: "passed", contact_name: "Mackenzie Murphy", contact_email: "mackenzie@16oncenterchicago.com",
     notes: "Quote 18 Jun 2026: $10k rental + $20k F&B minimum + $1,500 ceremony fee; cocktail-style only." },

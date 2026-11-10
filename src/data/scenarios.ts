@@ -5,7 +5,7 @@ import { DEFAULT_PARAMS, type Params } from "./params";
 
 const bar = (choice: string) => ({ options: { bar: choice } });
 const scope = (choice: string) => ({ options: { scope: choice } });
-const barOpt = (choices: [string, string], def = choices[0]): OptionDef => ({ key: "bar", label: "Bar service", choices, def });
+const barOpt = (choices: [string, string, ...string[]], def = choices[0]): OptionDef => ({ key: "bar", label: "Bar service", choices, def });
 const at = (vals: [number, number, number, number]): [number, number][] => [[75, vals[0]], [125, vals[1]], [200, vals[2]], [250, vals[3]]];
 /** Benchmarks 14–16 come only as totals in the source; model as anchored bands per option. */
 const allIn = (choice: string, anchors: [number, number][]): LineItem => ({
@@ -150,19 +150,30 @@ export function buildScenarios(p: Params = DEFAULT_PARAMS): Scenario[] {
   },
   {
     id: 5, name: "The Joinery", location: "Logan Square · Chicago", kind: "local",
-    desc: "Boutique 2,400 sq ft loft. Open vendor policy.",
-    tag: "Loft", confidence: 75, min: 50, max: 100, def: 75, capacity: { hardMax: 160 },
-    flag: "Capacity 160 seated with dance floor (venue, 25 Jun 2026). Caterer, florals, planner from the approved list; bar is BYOB through the venue. OPEN QUESTION: jazz combo band permission.",
-    options: [barOpt(["Tier 1 (Beer & Wine)", "Tier 2 (Full Bar)"])],
+    desc: "Boutique 2,400 sq ft loft with skylight, covered patio, upstairs speakeasy lounge and an on-site apartment. Recommended (not required) vendor list.",
+    tag: "Loft", confidence: 80, min: 50, max: 100, def: 75, capacity: { hardMax: 160 },
+    flag: "Likely venue: Sat May 29, 2027 offered at the Friday rate ($7,000; Shay, 3 Nov 2026; enter as a quote). 160 seated with dance floor. Hours 2 PM–midnight. Bar packages carry a $4,000 minimum; tax/gratuity on the bar unconfirmed. OPEN: jazz combo permission, catering minimums.",
+    seasons: [
+      { name: "winter", from: "11-01", to: "02-29" },
+      { name: "spring", from: "03-01", to: "04-30" },
+      { name: "summer/fall", from: "05-01", to: "10-31" },
+    ],
+    docSeason: "summer/fall",
+    seasonSource: "The Joinery brochure (2026.10.03, received 22 Oct 2026): Saturday $6,000 Nov–Feb, $7,000 Mar–Apr, $9,500 May–Oct; tax included; holidays/long weekends may cost more",
+    sources: ["https://www.thejoinerychicago.com"],
+    options: [barOpt(["Tier 1 Standard", "Tier 2 Premium", "Tier 3 All-inclusive"])],
     items: [
-      { cat: "Venue & site", desc: "Venue rental (Saturday)", type: "fixed", amount: 9500 },
+      { cat: "Venue & site", desc: "Venue rental (winter Saturday)", type: "fixed", amount: 6000, appliesIf: { seasons: ["winter"] } },
+      { cat: "Venue & site", desc: "Venue rental (spring Saturday)", type: "fixed", amount: 7000, appliesIf: { seasons: ["spring"] } },
+      { cat: "Venue & site", desc: "Venue rental (summer/fall Saturday)", type: "fixed", amount: 9500, appliesIf: { seasons: ["summer/fall"] } },
       { cat: "Venue & site", desc: "Event insurance", type: "fixed", amount: 250 },
       { cat: "Food & beverage", desc: "Catering (open vendor)", type: "perGuest", rate: 150, taxable: true },
       cake(),
-      { cat: "Food & beverage", desc: "Bar — Tier 1", type: "perGuest", rate: 35, taxable: true, appliesIf: bar("Tier 1 (Beer & Wine)") },
-      { cat: "Food & beverage", desc: "Bar — Tier 2", type: "perGuest", rate: 45, taxable: true, appliesIf: bar("Tier 2 (Full Bar)") },
+      { cat: "Food & beverage", desc: "Bar — Tier 1 Standard ($4,000 min)", type: "minSpend", min: 4000, rate: 34, taxable: true, appliesIf: bar("Tier 1 Standard") },
+      { cat: "Food & beverage", desc: "Bar — Tier 2 Premium ($4,000 min)", type: "minSpend", min: 4000, rate: 44, taxable: true, appliesIf: bar("Tier 2 Premium") },
+      { cat: "Food & beverage", desc: "Bar — Tier 3 All-inclusive ($4,000 min)", type: "minSpend", min: 4000, rate: 55, taxable: true, appliesIf: bar("Tier 3 All-inclusive") },
       { cat: "Food & beverage", desc: "Tax + gratuity (~20%)", type: "percent", rate: 0.2 },
-      { cat: "Rentals & production", desc: "Tableware / glassware", type: "perGuest", rate: 12 },
+      { cat: "Rentals & production", desc: "Dinnerware / flatware (tables, 170 chairs, bar glassware included)", type: "perGuest", rate: 12 },
       photo(),
       band(p.band, "Joel Paterson and Friends (confirm allowed)"),
       { cat: "Flowers & décor", desc: "Florals", type: "bands", anchors: florals() },

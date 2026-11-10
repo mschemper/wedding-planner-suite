@@ -2,6 +2,12 @@
 
 Newest first. Each entry: what changed and why.
 
+## v11 — 2026-11-09 · The Joinery, Sat May 29 2027
+- Joinery (S5) repriced off the doc onto the venue's own sheets: brochure "2026.10.03" (Drive "The Joinery Chicago.pdf", 22 Oct 2026) Saturday $6,000 Nov–Feb / $7,000 Mar–Apr / $9,500 May–Oct, tax included; bar sheet photo (Drive, 30 Oct 2026) Tier 1 $34 / Tier 2 $44 / Tier 3 $55 pp, $4,000 bar minimum, $5 pp under-21 fee (not modelled). Golden S5 rows recomputed from line items; old Tier 1/2 ($35/$45, no minimum) dropped.
+- Bar kept taxable (+20%) though the sheet says "all bar and license fees" included: conservative until Shay confirms.
+- May 29 rate ($7,000, "charged as a Friday rate", Shay 3 Nov 2026) entered as a D1 quote, not in code: the model keeps the published Saturday price; the quote shows the offer.
+- Wedding date and venue = settings `heldDate` + the venue row whose `hold_date` equals it (no new setting). Firehouse kept active as backup.
+
 ## v5 — 2026-10-22 · People tab rebuild
 - Order by closeness, not alphabet: decisions follow inner → outer; the A–Z list mixed a sister among cousins-in-law (REVIEW-v4-people P1).
 - Rings + fill line over a capacity bar alone: "do we invite the cousins?" is answered where the cousins are.

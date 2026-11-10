@@ -17,8 +17,11 @@ export const GOLDEN: Golden[] = [
   [4, { bar: "Beer & Wine" }, { 100: 51995, 125: 59320 }, "2027-05-15"],
   [4, { bar: "Full Bar" }, { 50: 33665, 75: 41300 }, "2027-03-20"],
   [4, { bar: "Full Bar" }, { 100: 53435, 125: 61120 }, "2027-05-15"],
-  [5, { bar: "Tier 1 (Beer & Wine)" }, { 50: 33560, 75: 39855, 100: 46150 }],
-  [5, { bar: "Tier 2 (Full Bar)" }, { 50: 34160, 75: 40755, 100: 47350 }],
+  // S5: v11 repriced from The Joinery brochure + bar sheet (Oct 2026): 3 bar tiers with a $4,000 bar minimum; Saturday rental by season. HISTORY.md v11.
+  [5, { bar: "Tier 1 Standard" }, { 50: 36260, 75: 41505, 100: 46750 }],
+  [5, { bar: "Tier 2 Premium" }, { 50: 36260, 75: 41505, 100: 47230 }],
+  [5, { bar: "Tier 3 All-inclusive" }, { 50: 36260, 75: 41655, 100: 48550 }],
+  [5, { bar: "Tier 1 Standard" }, { 50: 33760, 75: 39005, 100: 44250 }, "2027-03-20"],
   [6, { bar: "Beer & Wine" }, { 50: 28975, 75: 35825, 100: 46175, 125: 53575 }],
   [6, { bar: "Full Bar" }, { 50: 29935, 75: 37265, 100: 48095, 125: 55975 }],
   [7, { bar: "BYO Beer & Wine" }, { 50: 26500, 75: 31175, 100: 35850, 125: 40600 }],

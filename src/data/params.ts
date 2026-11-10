@@ -68,7 +68,7 @@ export const DEFAULT_SETTINGS: Settings = {
     { name: "Late spring", from: "2027-05-01", to: "2027-06-30", ref: "2027-06-12" },
     { name: "Early fall", from: "2027-09-01", to: "2027-10-31", ref: "2027-09-18" },
   ],
-  heldDate: "2027-06-12",
+  heldDate: "2027-05-29",
   kidsPolicy: "ours",
   branchNames: {},
 };

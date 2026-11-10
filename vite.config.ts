@@ -80,6 +80,8 @@ export default defineConfig(({ mode, command }) => {
   if (!offline && command === "serve") plugins.push(devApi());
   return {
     plugins,
+    // offline = one self-contained file: no public/ assets (venue photos are hosted-only)
+    publicDir: offline ? false : "public",
     build: { outDir: offline ? "dist-offline" : "dist", emptyOutDir: true },
     // REVIEW-v3 R18 / BACKLOG B3: the dev server never serves private data or local secrets.
     server: { fs: { deny: [".env", ".env.*", "*.{crt,pem}", ".dev.vars", "**/data/private/**"] } },

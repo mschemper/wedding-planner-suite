@@ -86,7 +86,7 @@ describe("guards and compare", () => {
     expect(computeBudget(scenarioById(2), NaN).total).toBeGreaterThan(0);
   });
   it("matchOptions maps bar tier by position", () => {
-    expect(matchOptions(scenarioById(2), { bar: "Full Bar" }, scenarioById(5))).toEqual({ bar: "Tier 2 (Full Bar)" });
+    expect(matchOptions(scenarioById(2), { bar: "Full Bar" }, scenarioById(5))).toEqual({ bar: "Tier 2 Premium" });
     expect(matchOptions(scenarioById(2), { bar: "Full Bar" }, scenarioById(12))).toEqual({ scope: "Full scope" });
   });
 });

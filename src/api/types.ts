@@ -2,7 +2,7 @@
 import type { CustomVenue } from "../data/custom";
 import type { Quote } from "../engine/types";
 import type { Party, Person } from "../people/types";
-import type { Fit, MustHave, Task, VenueRow } from "../plan/types";
+import type { Fit, MustHave, Task, TimelineRow, Vendor, VenueRow } from "../plan/types";
 
 export interface RowMeta {
   version: number;
@@ -13,7 +13,7 @@ export interface RowMeta {
 }
 export type Versioned<T> = T & RowMeta;
 
-export type TableName = "people" | "parties" | "venues" | "musthaves" | "fit" | "tasks" | "quotes" | "params" | "custom_venues";
+export type TableName = "people" | "parties" | "venues" | "musthaves" | "fit" | "tasks" | "quotes" | "params" | "custom_venues" | "vendors" | "timeline";
 
 export interface ParamRow extends RowMeta {
   key: string;
@@ -30,6 +30,10 @@ export interface ApiData {
   quotes: Versioned<Quote>[];
   /** v7: venues added in the app (researched or typed in) */
   custom_venues: Versioned<CustomVenue>[];
+  /** v11 (0006): vendor bookings */
+  vendors: Versioned<Vendor>[];
+  /** v11 (0006): day-of run of show */
+  timeline: Versioned<TimelineRow>[];
   params: ParamRow[];
   /** the signed-in email */
   me: string;

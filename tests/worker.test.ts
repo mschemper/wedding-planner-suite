@@ -94,7 +94,7 @@ describe("csrf + routing", () => {
     expect(d.people).toHaveLength(fixture.people.length);
     expect(d.parties).toHaveLength(fixture.parties.length);
     expect(d.venues.length).toBe(SEED_VENUES.length);
-    expect(d.venues.filter((v) => v.active).map((v) => v.scenario_id).sort()).toEqual([17, 18, 4, 5].sort());
+    expect(d.venues.filter((v) => v.active).map((v) => v.scenario_id).sort()).toEqual([17, 5].sort());
     expect(person(d, "M003").parent_ids).toEqual(["M001", "M002"]);
     expect(person(d, "C003").kids_room).toBe(true);
     expect(party(d, "H-A3").talk).toBe(true);
