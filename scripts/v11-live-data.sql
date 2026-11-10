@@ -17,6 +17,10 @@ UPDATE venues SET next_step = 'Backup: release the June 12 hold once the Joinery
 UPDATE venues SET active = 0, version = version + 1, updated_at = '2026-11-09T00:00:00Z', updated_by = 'deploy:v11'
   WHERE scenario_id IN (18, 4) AND active = 1;
 
-INSERT OR IGNORE INTO quotes (id, scenario_id, item_desc, options, basis, amount, includes_tax, vendor, received_on, status, notes, version, updated_at, updated_by)
-  VALUES ('v11-joinery-may29-rental', 5, 'Venue rental (summer/fall Saturday)', 'null', 'total', 7000, 1, 'The Joinery (Shay)', '2026-11-03', 'received',
-  'Sat May 29, 2027 charged at the Friday rate; held free for one week from 3 Nov. Tax included; +3.1% if paid by card.', 1, '2026-11-09T00:00:00Z', 'deploy:v11');
+-- Mark's Joinery quotes (5 Nov 2026) point at v10 line names; move them to the v11 lines so they keep applying. Values untouched.
+UPDATE quotes SET item_desc = 'Venue rental (summer/fall Saturday)', version = version + 1, updated_at = '2026-11-09T00:00:00Z', updated_by = 'deploy:v11'
+  WHERE scenario_id = 5 AND item_desc = 'Venue rental (Saturday)';
+UPDATE quotes SET item_desc = 'Bar — Tier 1 Standard ($4,000 min)', options = '{"bar":"Tier 1 Standard"}', version = version + 1, updated_at = '2026-11-09T00:00:00Z', updated_by = 'deploy:v11'
+  WHERE scenario_id = 5 AND item_desc = 'Bar — Tier 1';
+UPDATE quotes SET item_desc = 'Bar — Tier 2 Premium ($4,000 min)', options = '{"bar":"Tier 2 Premium"}', version = version + 1, updated_at = '2026-11-09T00:00:00Z', updated_by = 'deploy:v11'
+  WHERE scenario_id = 5 AND item_desc = 'Bar — Tier 2';

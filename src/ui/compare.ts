@@ -1,6 +1,7 @@
 // Shared selector for Today + Venues: what guest count and date the venues are priced at, and every venue's summary.
 import { useMemo } from "react";
 import type { BudgetRow, Quote } from "../engine/types";
+import { defaultOpts } from "../engine/compute";
 import { weddingVenue } from "../plan/day";
 import { summarize, summarizeAll, type VenueSummary } from "../plan/venueSummary";
 import { useData } from "./data";
@@ -71,7 +72,8 @@ export function useWeddingSummary(): WeddingSummary | null {
     return {
       summary, date: settings.heldDate, guests: summary.guests, guestsLabel: label,
       rentalQuote: b?.rows.find((r) => r.cat === "Venue & site" && r.quoted),
-      unmatched: b?.unmatchedQuotes ?? [],
+      // quotes for another option (e.g. a different bar tier) are not "unmatched" here, just not chosen
+      unmatched: (b?.unmatchedQuotes ?? []).filter((q) => Object.entries(q.options ?? {}).every(([k, v]) => defaultOpts(s)[k] === v)),
     };
   }, [scenarios, venues, musthaves, fit, quotes, hc, settings, prefs.guests, prefs.contingency]);
 }

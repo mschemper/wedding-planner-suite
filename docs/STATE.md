@@ -35,7 +35,7 @@ Live, 22 Oct 2026 evening (REVIEW-v6 §2): 121 people, 56 households; decisions 
 
 - **Firehouse live quotes to delete (Mark, in the app):** Tax + service $0, Event insurance $0, Photography $500 (entered 22 Oct 07:27, no vendor; Mark confirmed test taps). They lower the Firehouse total ≈ $7,600 at 75 guests. Venues → Firehouse → Quotes → delete each.
 - Quote documents: Google Drive folder https://drive.google.com/drive/folders/1HWECgGPfEdzSJ6sazixw2Rp3WB9xG2vn (22 Oct: The Joinery Chicago.pdf). Quotes-from-email plan: REVIEW-v6 §4 (BACKLOG F18–F20).
-- Joinery: brochure (22 Oct), bar sheet + vendor list photos (30 Oct) in the Drive folder; May 29 $7,000 quote = D1 quote `v11-joinery-may29-rental` (scripts/v11-live-data.sql). Venue photos: `public/venues/joinery/` (venue's site, downloaded with Mark's OK 9 Nov; hosted build only).
+- Joinery: brochure (22 Oct), bar sheet + vendor list photos (30 Oct) in the Drive folder; May 29 $7,000 + bar quotes entered by Mark 5 Nov, relabelled to the v11 lines by scripts/v11-live-data.sql. Venue photos: `public/venues/joinery/` (venue's site, downloaded with Mark's OK 9 Nov; hosted build only).
 
 ## Open questions to venues (tasks in the app)
 
