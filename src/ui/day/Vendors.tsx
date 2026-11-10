@@ -20,7 +20,7 @@ const StatusChip = ({ s }: { s: VendorStatus }) => <Chip tone={TONE[s]}><span ar
 interface SheetState { vendor: Vendor | null; initial: VendorDraft }
 
 export function Vendors({ venueId }: VendorsProps) {
-  const { vendors, edit, offline } = useData();
+  const { vendors, edit, offline, version } = useData();
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const today = chicagoToday();
   const sum = vendorSummary(vendors, today);
@@ -28,6 +28,7 @@ export function Vendors({ venueId }: VendorsProps) {
   const addNew = (category?: VendorCategory, name?: string) => setSheet({ vendor: null, initial: emptyDraft(category, name, venueId) });
   const markPaid = (p: Payment) => void edit([markPaidPatch(p, today)], markPaidLabel(p));
   const nextDue = sum.next ? dueLabel(sum.next.due, today) : null;
+  const liveVendor = sheet?.vendor ? vendors.find((v) => v.id === sheet.vendor!.id) ?? null : null;
 
   return (
     <div className="vd">
@@ -83,14 +84,14 @@ export function Vendors({ venueId }: VendorsProps) {
                   {paymentText(p)} · {p.vendor.name}{p.amount != null ? ` · ${money(p.amount)}` : ""} ·{" "}
                   <span className={d.overdue ? "vd-late" : undefined}>{d.overdue && <span aria-hidden="true">⚠ </span>}{d.text}</span>
                 </span>
-                {!offline && <Button onClick={() => markPaid(p)}>Mark paid</Button>}
+                {!offline && <Button aria-label={`Mark ${paymentText(p).toLowerCase()} paid: ${p.vendor.name}`} onClick={() => markPaid(p)}>Mark paid</Button>}
               </div>
             );
           })}
         </Card>
       )}
 
-      {sheet && <VendorSheet key={sheet.vendor?.id ?? `new-${sheet.initial.category}-${sheet.initial.name}`} vendor={sheet.vendor} initial={sheet.initial} onClose={() => setSheet(null)} />}
+      {sheet && (!sheet.vendor || liveVendor) && <VendorSheet key={liveVendor ? `${liveVendor.id}-${version("vendors", liveVendor.id) ?? 0}` : `new-${sheet.initial.category}-${sheet.initial.name}`} vendor={liveVendor} initial={liveVendor ? draftOf(liveVendor) : sheet.initial} onClose={() => setSheet(null)} />}
     </div>
   );
 }

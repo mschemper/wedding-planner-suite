@@ -12,7 +12,7 @@ import { TaskFields, TaskSheet } from "./TaskSheet";
 import { NO_FILTER, createTaskOp, draftError, emptyDraft, filterTasks, type TaskDraft, type TaskFilter } from "./model";
 
 export function Tasks({ highlight }: { highlight: string | null }) {
-  const { tasks, save, offline, status } = useData();
+  const { tasks, save, offline, status, version } = useData();
   const { active } = useCompare();
   const today = chicagoToday();
   const [filter, setFilter] = useState<TaskFilter>(NO_FILTER);
@@ -22,6 +22,7 @@ export function Tasks({ highlight }: { highlight: string | null }) {
   const [draft, setDraft] = useState<TaskDraft>(emptyDraft);
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
+  const [note, setNote] = useState("");
   const venues = useMemo(() => active.map((v) => ({ id: v.scenario.id, name: v.scenario.name })), [active]);
   const groups = useMemo(() => groupTasks(filterTasks(tasks, filter), today), [tasks, filter, today]);
   const open = tasks.find((t) => t.id === openId) ?? null;
@@ -43,7 +44,11 @@ export function Tasks({ highlight }: { highlight: string | null }) {
     setBusy(true);
     const r = await save([createTaskOp(draft, "manual", today)]);
     setBusy(false);
-    if (r.ok) { setDraft(emptyDraft()); setFail(null); setAdding(false); } else setFail(r);
+    if (r.ok) {
+      const hidden = (filter.owner && draft.owner !== filter.owner) || (filter.category && draft.category !== filter.category);
+      setNote(hidden ? "Added — hidden by filters" : "");
+      setDraft(emptyDraft()); setFail(null); setAdding(false);
+    } else setFail(r);
   };
 
   return (
@@ -58,6 +63,7 @@ export function Tasks({ highlight }: { highlight: string | null }) {
           <SaveError result={fail} onDismiss={() => setFail(null)} />
         </form>
       )}
+      {note && <p className="pl-hint" role="status">{note}</p>}
       <div className="pl-filters" role="group" aria-label="Filter tasks">
         {OWNERS.map((o) => <FilterChip key={o} on={filter.owner === o} onClick={() => toggleOwner(o)}>{o}</FilterChip>)}
         <span className="pl-sep" aria-hidden="true" />
@@ -76,7 +82,7 @@ export function Tasks({ highlight }: { highlight: string | null }) {
           </ul>
         </section>
       ))}
-      {open && <TaskSheet key={open.id} task={open} venues={venues} onClose={() => setOpenId(null)} />}
+      {open && <TaskSheet key={`${open.id}:${version("tasks", open.id) ?? 0}`} task={open} venues={venues} onClose={() => setOpenId(null)} />}
       <PasteTasks open={paste} onClose={() => setPaste(false)} />
     </Card>
   );

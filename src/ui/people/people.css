@@ -148,7 +148,8 @@
 .pp-branch { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 6px 12px 10px; margin-bottom: 12px; }
 .pp-branch-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .pp-branch-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; border: 0; background: none; padding: 0; color: var(--ink); text-align: left; }
-.pp-branch-toggle h3 { font-size: 21px; margin: 0; }
+.pp-branch-h { margin: 0; font-size: 21px; }
+.pp-branch-toggle { font: inherit; }
 .pp-chev { width: 16px; color: var(--euc-ink); }
 .pp-rename { flex: 1 1 200px; max-width: 320px; }
 .pp-branch-body { padding-top: 4px; }

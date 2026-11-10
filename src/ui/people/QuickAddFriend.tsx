@@ -1,5 +1,5 @@
 // Quick-add a friend (v9: moved from the Friends view into the Add menu). A Sheet that stays open so several friends go in a row.
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import type { Ring } from "../../people/rings";
 import { FRIEND_TIER_LABEL } from "../../people/tier";
 import { KNOWN_BY, type KnownBy } from "../../people/types";
@@ -19,6 +19,7 @@ export function QuickAddFriend({ rings, onClose }: { rings: Ring[]; onClose(): v
   const [err, setErr] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState("");
+  const firstRef = useRef<HTMLInputElement>(null);
   const set = <K extends keyof QuickFriend>(k: K, v: QuickFriend[K]) => setF((x) => ({ ...x, [k]: v }));
   const submit = async () => {
     const issues = quickFriendIssues(f);
@@ -27,7 +28,7 @@ export function QuickAddFriend({ rings, onClose }: { rings: Ring[]; onClose(): v
     setBusy(true);
     const r = await save(quickFriendOps({ ...f, partnerLast: f.partnerLast?.trim() || f.last }, byTier.find((t) => t.tier === f.tier)?.rows.map((x) => x.party) ?? []));
     setBusy(false);
-    if (r.ok) { setErr(null); setAdded(`Added ${f.first.trim()}.`); setF({ ...blank, circle: f.circle, known_by: f.known_by, tier: f.tier }); } else { setAdded(""); setErr(r); }
+    if (r.ok) { setErr(null); setAdded(`Added ${f.first.trim()}.`); setF({ ...blank, circle: f.circle, known_by: f.known_by, tier: f.tier }); firstRef.current?.focus(); } else { setAdded(""); setErr(r); }
   };
   return (
     <Sheet title="Quick-add a friend" open onClose={onClose}>
@@ -36,7 +37,7 @@ export function QuickAddFriend({ rings, onClose }: { rings: Ring[]; onClose(): v
         {problems.length > 0 && <div className="flag warn" role="alert">{problems.join(" ")}</div>}
         {added && <p className="small" role="status">{added}</p>}
         <div className="pp-quick-grid">
-          <Field label="First name"><input value={f.first} onChange={(e) => set("first", e.target.value)} autoComplete="off" /></Field>
+          <Field label="First name"><input ref={firstRef} autoFocus value={f.first} onChange={(e) => set("first", e.target.value)} autoComplete="off" /></Field>
           <Field label="Last name"><input value={f.last} onChange={(e) => set("last", e.target.value)} autoComplete="off" /></Field>
           <Field label="Partner's first name"><input value={f.partner} disabled={f.plusOne} onChange={(e) => set("partner", e.target.value)} autoComplete="off" /></Field>
           <Field label="Partner's last name" hint="Leave empty if the same"><input value={f.partnerLast} disabled={f.plusOne || !f.partner.trim()} onChange={(e) => set("partnerLast", e.target.value)} placeholder={f.last} autoComplete="off" /></Field>

@@ -204,6 +204,18 @@ describe("writes", () => {
     expect((await write([{ table: "custom_venues", op: "delete", id: "1000", version: 1 }])).status).toBe(400);
   });
 
+  it("custom venue shape rules; tmp: text saves; vendor deposit <= amount", async () => {
+    const v = { scenario_id: 1001, name: "H", confidence: 50, sources: ["https://example.com"], items: [] };
+    for (const bad of [{ sources: "x" }, { sources: [1] }, { capacity_seated: -1 }, { capacity_seated: 1.5 }, { confidence: 101 }, { confidence: -1 }])
+      expect((await write([{ table: "custom_venues", op: "create", row: { ...v, ...bad } }])).status, JSON.stringify(bad)).toBe(400);
+    await ok([{ table: "tasks", op: "create", row: { title: "tmp: call venue" } }]);
+    expect((await data()).tasks.some((t) => t.title === "tmp: call venue")).toBe(true);
+    expect((await write([{ table: "vendors", op: "create", row: { name: "DJ", amount: 100, deposit: 200 } }])).status).toBe(400);
+    const r = await ok([{ table: "vendors", op: "create", row: { name: "DJ", amount: 100, deposit: 50 } }]);
+    const vd = r.data.vendors.find((x) => x.name === "DJ")!;
+    expect((await write([{ table: "vendors", op: "update", id: vd.id, version: vd.version, row: { deposit: 500 } }])).status).toBe(400);
+  });
+
   it("tasks: create and check off", async () => {
     let r = await ok([{ table: "tasks", op: "create", row: { title: "Book florist", owner: "Angela", category: "vendor", due: "2026-12-01" } }]);
     const id = r.ids["tmp:x"] ?? r.data.tasks.find((t) => t.title === "Book florist")!.id;

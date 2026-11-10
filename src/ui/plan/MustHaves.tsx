@@ -39,7 +39,8 @@ function RowMenu({ label, items, disabled }: { label: string; items: MenuItem[];
 }
 
 function Row({ m, idx, list, fail }: { m: MustHave; idx: number; list: MustHave[]; fail(r: SaveResult): void }) {
-  const { edit, offline } = useData();
+  const { edit, offline, version } = useData();
+  const mv = version("musthaves", m.id);
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(m.text);
   const [detail, setDetail] = useState(m.detail ?? "");
@@ -49,6 +50,8 @@ function Row({ m, idx, list, fail }: { m: MustHave; idx: number; list: MustHave[
     const p = reorderPatches(list, idx, dir);
     if (p) void run(() => edit(p, `Moved: ${m.text}`));
   };
+  // a reload / other-device change / Undo replaces the row: drop stale drafts
+  useEffect(() => { setText(m.text); setDetail(m.detail ?? ""); }, [mv, m.text, m.detail]);
   const patch = musthaveEditPatch(m, text, detail);
   return (
     <li className={`pl-mh${m.archived ? " is-archived" : ""}`}>

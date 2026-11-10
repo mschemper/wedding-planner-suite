@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 9 Nov 2026 (v11 shipped: Joinery May 29, Day tab, vendors, timeline, milestones).
+Last reviewed: 9 Nov 2026 (v11 shipped; whole-app review: small bugs fixed, rest below as B14-B25).
 
 ---
 
@@ -103,3 +103,6 @@ v4 excludes the couple. Vendors (photographer, band, coordinator meals) and plus
 
 ### B13. Tour mode has no Undo — XS
 Tour mode saves with `save()` (one batch, creates allowed) so there is no Undo toast; changes are fixed by re-opening tour mode.
+
+### B14-B25. Review 9 Nov 2026, open items — docs/REVIEW-v11.md
+B14 quote dates (May 29 rate on every Saturday) M · B15 Joinery max 100 · B16 unsaved-edit loss · B17 hidden save errors · B18 Menu keys · B19 merge Undo · B20 Undo gaps · B21-B25 smaller.

@@ -55,6 +55,8 @@ export function TodayScreen() {
   const heldName = heldSc?.name;
   const wc = heldRow && settings.heldDate ? weddingCountdown(today, settings.heldDate) : null;
   const vs = useMemo(() => vendorSummary(vendors, today), [vendors, today]);
+  const room = heldSc ? roomCheck(hc, heldSc) : null;
+  const wb = ws?.summary.budget;
   const inv = hc.invited;
   const decided = inv.heads > 0 || hc.ifroom.heads > 0 || hc.undecidedParties > 0;
   const allMustHaves = () => {
@@ -68,7 +70,7 @@ export function TodayScreen() {
         <div className="td-big">{wc ? wc.big : cd.big}</div>
         <p className="td-muted">{wc && settings.heldDate && heldName ? weddingSub(settings.heldDate, shortVenueName(heldName)) : cd.sub}</p>
         <p className="td-chips">
-          {settings.heldDate && <Chip tone="peony">Held · {fmtDay(settings.heldDate, true)}{heldName ? ` · ${shortVenueName(heldName)}` : ""}</Chip>}
+          {settings.heldDate && !wc && <Chip tone="peony">Held · {fmtDay(settings.heldDate, true)}{heldName ? ` · ${shortVenueName(heldName)}` : ""}</Chip>}
           {settings.dateWindows.map((w) => <Chip key={w.name} tone="plain" title={`${fmtDay(w.from)} to ${fmtDay(w.to)}`}>{w.name}</Chip>)}
         </p>
       </Card>
@@ -100,16 +102,19 @@ export function TodayScreen() {
       </Card>
 
       {heldSc && (
-        <Card title="Our venue" className="span-6">
-          <div className="td-venue-name">{shortVenueName(heldSc.name)}</div>
-          {ws?.summary.budget && <p className="td-price">{money(ws.summary.budget.total)}<span className="td-venue-meta"> {ws.guestsLabel}</span></p>}
-          <p className="td-muted">Room {roomLine(roomCheck(hc, heldSc).expected, roomCheck(hc, heldSc).cap)}</p>
+        <Card title="Our venue" className="span-4">
+          <div className="td-venue-name">{heldSc.name}</div>
+          {ws && wb && <>
+            <p className="td-price">{wb.rows.some((r) => r.extrapolated) ? "≈ " : ""}{money(wb.total)}</p>
+            <p className="td-venue-meta">{ws.guestsLabel} · confidence {heldSc.confidence}%</p>
+          </>}
+          {room && <p className="td-muted">Room {roomLine(room.expected, room.cap)}{room.over ? " · ⚠ over if everyone invited comes" : ""}</p>}
           {!offline && <p className="td-muted">Vendors booked {vs.booked} / {vs.coreTotal}</p>}
           {!offline && <Button onClick={() => openDay("venue")}>Open Day</Button>}
         </Card>
       )}
 
-      <Card title="Next up" corner className="span-6">
+      <Card title="Next up" corner className={heldSc ? "span-8" : "span-6"}>
         {next.length === 0 ? (
           <EmptyState>{status === "loading" ? "Loading…" : offline ? "Tasks live in the online planner." : "No open tasks. Add one in Plan."}</EmptyState>
         ) : (
@@ -118,7 +123,7 @@ export function TodayScreen() {
         <Button kind="quiet" onClick={() => setTab("plan")}>All tasks</Button>
       </Card>
 
-      <Card title="Shortlist" className="span-6">
+      <Card title="Shortlist" className={heldSc ? "span-12" : "span-6"}>
         {active.length === 0 ? <EmptyState>No venues on the shortlist.</EmptyState> : (
           <div className="td-venues">{active.map((v, i) => <VenueTile key={v.scenario.id} v={v} i={i} onOpen={() => openVenue(v.scenario.id)} />)}</div>
         )}

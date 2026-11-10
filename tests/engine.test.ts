@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { addedCost, computeBudget, diffByCategory, guestStops, interp, matchOptions, seasonOf, snapGuests } from "../src/engine/compute";
+import type { Quote, Scenario } from "../src/engine/types";
 import { SCENARIOS, scenarioById } from "../src/data/scenarios";
 
 describe("interp", () => {
@@ -119,5 +120,27 @@ describe("household cost (v9)", () => {
     expect(addedCost({ ...s, priced: false }, 60, 2)).toBeNull();
     const cap = s.capacity?.hardMax;
     if (cap) expect(addedCost(s, cap, 50)).toBeNull();
+  });
+});
+
+describe("quote edge cases", () => {
+  const sc: Scenario = {
+    id: 9999, name: "T", location: "", desc: "", tag: "", kind: "local", confidence: 50, min: 20, max: 200, def: 50,
+    options: [{ key: "bar", label: "Bar", choices: ["A", "B"], def: "A" }],
+    items: [{ cat: "Food & beverage", desc: "Bar", type: "minSpend", min: 4000, rate: 0, taxable: true }],
+  } as unknown as Scenario;
+  const q = (o: Partial<Quote>): Quote => ({ id: "q1", scenario_id: 9999, item_desc: "Bar", basis: "perGuest", amount: 30, includes_tax: false, status: "received", ...o });
+  it("perGuest quote on a minSpend line keeps the minimum", () => {
+    expect(computeBudget(sc, 50, undefined, { quotes: [q({})] }).rows[0].amount).toBe(4000);
+    expect(computeBudget(sc, 200, undefined, { quotes: [q({})] }).rows[0].amount).toBe(6000);
+    expect(computeBudget(sc, 50, undefined, { quotes: [q({ basis: "total", amount: 1500 })] }).rows[0].amount).toBe(1500);
+  });
+  it("quote choice: accepted, then more specific, then newer, then id", () => {
+    const pick = (qs: Quote[]) => computeBudget(sc, 100, { bar: "A" }, { quotes: qs }).rows[0].quoteId;
+    expect(pick([q({ id: "a", status: "accepted" }), q({ id: "b", received_on: "2030-01-01" })])).toBe("a");
+    expect(pick([q({ id: "a", options: { bar: "A" }, received_on: "2020-01-01" }), q({ id: "b", received_on: "2030-01-01" })])).toBe("a");
+    expect(pick([q({ id: "a", received_on: "2020-01-01" }), q({ id: "b", received_on: "2021-01-01" })])).toBe("b");
+    expect(pick([q({ id: "b" }), q({ id: "a" })])).toBe("b");
+    expect(pick([q({ id: "a" }), q({ id: "b" })])).toBe("b");
   });
 });

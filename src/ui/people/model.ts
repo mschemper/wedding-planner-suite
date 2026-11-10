@@ -86,8 +86,9 @@ export function capacityScenarios(scenarios: Scenario[], venues: VenueRow[]): Sc
   const active = new Set(venues.filter((v) => v.active).map((v) => v.scenario_id));
   return scenarios.filter((s) => s.capacity?.hardMax).sort((a, b) => Number(active.has(b.id)) - Number(active.has(a.id)));
 }
-export function pickVenue(list: Scenario[], pref: number): Scenario | undefined {
-  return list.find((s) => s.id === pref) ?? list[0];
+export function pickVenue(list: Scenario[], pref: number | null, wedding?: number | null): Scenario | undefined {
+  const withCap = list.find((s) => s.capacity?.hardMax);
+  return list.find((s) => s.id === (pref ?? wedding)) ?? withCap ?? list[0];
 }
 
 // ---------- audit wording ----------

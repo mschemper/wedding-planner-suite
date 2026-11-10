@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import type { Scenario } from "../../engine/types";
 import { fillPoint, type Ring } from "../../people/rings";
 import { KIDS_POLICIES, type KidsPolicy } from "../../people/types";
+import { weddingVenue } from "../../plan/day";
 import { useCompare } from "../compare";
 import { useData } from "../data";
 import { money } from "../format";
@@ -24,11 +25,11 @@ export interface Room {
 }
 
 export function useRoom(rings: Ring[]): Room {
-  const { scenarios, venues } = useData();
+  const { scenarios, venues, settings } = useData();
   const { prefs, set } = usePrefs();
   const cmp = useCompare();
   const list = useMemo(() => capacityScenarios(scenarios, venues), [scenarios, venues]);
-  const sel = pickVenue(list, prefs.capacityVenue);
+  const sel = pickVenue(list, prefs.capacityVenue, weddingVenue(venues, settings)?.scenario_id);
   const cap = sel?.capacity?.hardMax ?? 0;
   const kidsRoom = !!sel?.kidsRoom;
   const check = useMemo(() => (sel && cap ? roomCheck(rings, cap, kidsRoom) : null), [rings, sel, cap, kidsRoom]);
@@ -45,7 +46,16 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
   const { sel, check: c, list } = room;
   const [open, setOpen] = useState(false);
   const bodyId = useId();
-  if (!sel || !c) return null;
+  const kidsMenu = (
+    <Menu label="Kids setting" align="right" triggerClass="pp-kidsbtn"
+      title={`Kids: ${POLICY_LABEL[settings.kidsPolicy]}`} trigger={<>Kids: {KIDS_SHORT[settings.kidsPolicy]} <span aria-hidden="true">▾</span></>}
+      items={[
+        { key: "h", heading: "Which kids come (each household can override)" },
+        ...KIDS_POLICIES.map((v: KidsPolicy) => ({ key: v, label: POLICY_LABEL[v], checked: settings.kidsPolicy === v, onSelect: () => act.policy(v) })),
+      ]} />
+  );
+  // no capacity check possible: still offer the Kids setting
+  if (!sel || !c) return <section className="pp-room" aria-label="Room check"><div className="pp-room-body is-open">{kidsMenu}</div></section>;
   const pct = (n: number) => `${(n / c.scale) * 100}%`;
   const total = c.invited + c.ifroom + c.undecided;
   const kidsCap = room.kidsRoom ? sel.capacity?.kids ?? null : null;
@@ -83,12 +93,7 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
       <span className="pp-cost" title="Budget at the venue for the guest basis chosen on Venues">
         {room.cost === undefined ? "" : room.cost === null ? "awaiting rates" : <><b>≈ {money(room.cost)}</b><small>at {sel.name}</small></>}
       </span>
-      <Menu label="Kids setting" align="right" triggerClass="pp-kidsbtn"
-        title={`Kids: ${POLICY_LABEL[settings.kidsPolicy]}`} trigger={<>Kids: {KIDS_SHORT[settings.kidsPolicy]} <span aria-hidden="true">▾</span></>}
-        items={[
-          { key: "h", heading: "Which kids come (each household can override)" },
-          ...KIDS_POLICIES.map((v: KidsPolicy) => ({ key: v, label: POLICY_LABEL[v], checked: settings.kidsPolicy === v, onSelect: () => act.policy(v) })),
-        ]} />
+      {kidsMenu}
       </div>
     </section>
   );

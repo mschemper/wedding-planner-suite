@@ -28,6 +28,7 @@ interface Touch {
 }
 
 const isTmp = (v: unknown): v is string => typeof v === "string" && v.startsWith("tmp:");
+const depositOver = (r: Rec) => typeof r.amount === "number" && typeof r.deposit === "number" && r.deposit > r.amount;
 const clone = (st: State): State => Object.fromEntries(Object.entries(st).map(([k, m]) => [k, new Map([...m].map(([id, r]) => [id, { ...r }]))])) as unknown as State;
 const peopleOf = (st: State): PeopleData => ({ people: [...st.people.values()], parties: [...st.parties.values()] } as unknown as PeopleData);
 const policyOf = (st: State) => mergeSettings([...st.params.values()] as { key: string; value: unknown }[]).kidsPolicy;
@@ -109,7 +110,8 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
       const n = normalize(o.table, raw, true);
       if (!n.ok) return fail(400, "bad_request", n.msg);
       for (const c of refs) if (c in n.row) n.row[c] = resolve(n.row[c]);
-      if (Object.values(n.row).some(hasTmp)) return fail(400, "bad_request", "reference to an unknown tmp: id");
+      if (refs.some((c) => hasTmp(n.row[c]))) return fail(400, "bad_request", "reference to an unknown tmp: id");
+      if (o.table === "vendors" && depositOver(n.row)) return fail(400, "bad_request", "deposit cannot exceed amount");
       let id = createIds.get(o)!;
       if (o.table === "fit") {
         id = `${n.row.scenario_id}:${n.row.musthave_id}`;
@@ -141,7 +143,8 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     if (o.table === "fit" && ("scenario_id" in n.row || "musthave_id" in n.row)) return fail(400, "bad_request", "fit scenario/must-have cannot change");
     const row: Rec = { ...cur };
     for (const [c, v] of Object.entries(n.row)) row[c] = refs.includes(c) ? resolve(v) : v;
-    if (Object.values(row).some(hasTmp)) return fail(400, "bad_request", "reference to an unknown tmp: id");
+    if (refs.some((c) => hasTmp(row[c]))) return fail(400, "bad_request", "reference to an unknown tmp: id");
+    if (o.table === "vendors" && depositOver(row)) return fail(400, "bad_request", "deposit cannot exceed amount");
     Object.assign(row, { version: Number(cur.version) + 1, updated_at: now, updated_by: who });
     map.set(o.id, row);
     touches.set(k, { table: o.table, id: o.id, op: "update", read: cur, after: row });

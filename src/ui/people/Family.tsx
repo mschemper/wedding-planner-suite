@@ -98,14 +98,16 @@ function Tray({ b, env }: { b: OutlineBranch; env: Env }) {
   }, [env.data, b.side, b.branch, rows]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [placing, setPlacing] = useState<string | null>(null);
-  const firstBest = rows.find((r) => picked.has(r.child.id))?.s.best;
+  // people who left the tray (Accept) drop out of the selection
+  const sel = useMemo(() => { const ids = new Set(rows.map((r) => r.child.id)); return new Set([...picked].filter((id) => ids.has(id))); }, [picked, rows]);
+  const firstBest = rows.find((r) => sel.has(r.child.id))?.s.best;
   const [unitKey, setUnitKey] = useState("");
   const unitFor = (key: string): ParentUnit | undefined => units.find((x) => x.ids.join("+") === key);
   const chosen = unitFor(unitKey) ?? firstBest ?? undefined;
   const toggle = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const link = () => {
-    if (!chosen || !picked.size) return;
-    env.act.linkParents([...picked], chosen);
+    if (!chosen || !sel.size) return;
+    env.act.linkParents([...sel], chosen);
     setPicked(new Set());
     setUnitKey("");
   };
@@ -116,7 +118,7 @@ function Tray({ b, env }: { b: OutlineBranch; env: Env }) {
         {rows.map(({ u, child, s }) => (
           <li key={u.id} className="pp-place-row">
             <label className="pp-place-pick">
-              <input type="checkbox" checked={picked.has(child.id)} onChange={() => toggle(child.id)} aria-label={`Select ${displayName(child)}`} />
+              <input type="checkbox" checked={sel.has(child.id)} onChange={() => toggle(child.id)} aria-label={`Select ${displayName(child)}`} />
             </label>
             <button type="button" className="pp-uname" onClick={() => env.onPerson(child.id)}><Names u={u} /></button>
             {env.rel(child) && <span className="k-chip k-chip-sage">{env.rel(child)}</span>}
@@ -134,9 +136,9 @@ function Tray({ b, env }: { b: OutlineBranch; env: Env }) {
           </li>
         ))}
       </ul>
-      {picked.size > 0 && (
+      {sel.size > 0 && (
         <div className="pp-bulk" role="group" aria-label="Link selected people">
-          <span><b>{picked.size}</b> selected · these are the kids of</span>
+          <span><b>{sel.size}</b> selected · these are the kids of</span>
           <select value={unitKey || (chosen ? chosen.ids.join("+") : "")} onChange={(e) => setUnitKey(e.target.value)} aria-label="Parents">
             <option value="">Choose parents…</option>
             {units.map((x) => <option key={x.ids.join("+")} value={x.ids.join("+")}>{x.names}</option>)}
@@ -169,9 +171,11 @@ function Branch({ b, env }: { b: OutlineBranch; env: Env }) {
           </>
         ) : (
           <>
-            <button type="button" className="pp-branch-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-              <span aria-hidden="true" className="pp-chev">{open ? "▾" : "▸"}</span><h3>{title}</h3><span className="muted small">{plural(b.count, "person", "people")}</span>
-            </button>
+            <h3 className="pp-branch-h">
+              <button type="button" className="pp-branch-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+                <span aria-hidden="true" className="pp-chev">{open ? "▾" : "▸"}</span><span>{title}</span><span className="muted small">{plural(b.count, "person", "people")}</span>
+              </button>
+            </h3>
             <button type="button" className="pp-rename-btn" aria-label={`Rename ${title}`} onClick={() => { setDraft(title); setEditing(true); }}><span aria-hidden="true">✎</span> Rename</button>
           </>
         )}

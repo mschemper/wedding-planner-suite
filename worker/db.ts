@@ -218,6 +218,13 @@ export function normalize(table: TableName, patch: Rec, isCreate: boolean): { ok
     if (row.options != null && (typeof row.options !== "object" || Array.isArray(row.options) || Object.values(row.options as Rec).some((v) => typeof v !== "string")))
       return { ok: false, msg: "options must map option key → choice" };
   }
+  if (table === "custom_venues") {
+    if ("sources" in row && row.sources != null && (!Array.isArray(row.sources) || row.sources.some((x) => typeof x !== "string")))
+      return { ok: false, msg: "sources must be a list of links" };
+    for (const k of ["capacity_seated", "capacity_kids", "capacity_cocktail"])
+      if (row[k] != null && (row[k] as number) < 0) return { ok: false, msg: `${k} must be ≥ 0` };
+    if (row.confidence != null && !((row.confidence as number) >= 0 && (row.confidence as number) <= 100)) return { ok: false, msg: "confidence must be 0–100" };
+  }
   if (table === "parties" && row.tier != null && !((row.tier as number) >= 1 && (row.tier as number) <= 4)) return { ok: false, msg: "tier must be 1–4" };
   if (table === "parties" && row.unnamed_kids != null && !((row.unnamed_kids as number) >= 0 && (row.unnamed_kids as number) <= 20)) return { ok: false, msg: "unnamed_kids must be 0–20" };
   if (table === "vendors" && ((row.amount != null && (row.amount as number) < 0) || (row.deposit != null && (row.deposit as number) < 0)))

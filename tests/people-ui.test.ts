@@ -350,3 +350,13 @@ describe("household card (v8)", () => {
     expect(ops[1]).toMatchObject({ table: "people", op: "create", row: { id: "tmp:p1", first: "Sam", party_id: "tmp:hh", side: "Angela", kind: "friend" } });
   });
 });
+
+import { pickVenue as pickVenueV12 } from "../src/ui/people/model";
+describe("room check venue default (people-ui)", () => {
+  it("null pref resolves to the wedding venue, else the first with capacity", () => {
+    const l = [{ id: 1 }, { id: 2, capacity: { hardMax: 80 } }, { id: 3, capacity: { hardMax: 90 } }] as never[];
+    expect(pickVenueV12(l, null, 3)?.id).toBe(3);
+    expect(pickVenueV12(l, null, null)?.id).toBe(2);
+    expect(pickVenueV12(l, 1, 3)?.id).toBe(1);
+  });
+});

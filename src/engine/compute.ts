@@ -86,13 +86,22 @@ export function applicableQuotes(sc: Scenario, quotes: Quote[] | undefined, opts
   );
 }
 
-/** accepted beats received; then the latest received_on. */
+/** accepted first; then more matched option keys (more specific); then newer received_on; then id. */
 function better(a: Quote, b: Quote): Quote {
-  if ((a.status === "accepted") !== (b.status === "accepted")) return a.status === "accepted" ? a : b;
-  return (b.received_on ?? "") > (a.received_on ?? "") ? b : a;
+  const acc = (q: Quote) => (q.status === "accepted" ? 1 : 0);
+  if (acc(a) !== acc(b)) return acc(a) > acc(b) ? a : b;
+  const spec = (q: Quote) => Object.keys(q.options ?? {}).length;
+  if (spec(a) !== spec(b)) return spec(a) > spec(b) ? a : b;
+  const da = a.received_on ?? "";
+  const db = b.received_on ?? "";
+  if (da !== db) return db > da ? b : a;
+  return b.id > a.id ? b : a;
 }
 
-const quoteAmount = (q: Quote, g: number) => Math.round(q.basis === "perGuest" ? q.amount * g : q.amount);
+const quoteAmount = (q: Quote, g: number, it?: LineItem) => {
+  const v = q.basis === "perGuest" ? q.amount * g : q.amount;
+  return Math.round(q.basis === "perGuest" && it?.type === "minSpend" ? Math.max(it.min, v) : v);
+};
 
 export function computeBudget(sc: Scenario, guests: number, opts: Options = defaultOpts(sc), co: ComputeOptions = {}): Budget {
   const g = Number.isFinite(guests) ? Math.max(0, Math.round(guests)) : 0;
@@ -124,7 +133,7 @@ export function computeBudget(sc: Scenario, guests: number, opts: Options = defa
     const { v, extrapolated } = itemAmount(it, g);
     const q = byDesc.get(it.desc);
     markMatched(it.desc);
-    const amt = q ? quoteAmount(q, g) : v;
+    const amt = q ? quoteAmount(q, g, it) : v;
     if (it.taxable && !(q && q.includes_tax)) taxBase += amt;
     const row: BudgetRow = q
       ? { cat: it.cat, desc: it.desc, amount: amt, extrapolated: false, quoted: true, quoteId: q.id, estimate: Math.round(v) }

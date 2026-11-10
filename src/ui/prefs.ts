@@ -16,8 +16,8 @@ export interface Prefs {
   contingency: number;
   /** venue detail open on the Venues tab */
   selected: number | null;
-  /** venue used for the room check on the People tab */
-  capacityVenue: number;
+  /** venue used for the room check on the People tab; null = the wedding venue */
+  capacityVenue: number | null;
   /** null = Decide */
   peopleView: PeopleView | null;
   theme: "auto" | "day" | "dusk";
@@ -28,7 +28,7 @@ export interface Prefs {
 const KEY = "wps.prefs.v2";
 const OLD_KEY = "wps.prefs.v1";
 export const DEFAULT_PREFS: Prefs = {
-  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: 17, peopleView: null, theme: "auto", daySection: "venue",
+  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: null, peopleView: null, theme: "auto", daySection: "venue",
 };
 
 /** v4 values: garden → family, envelopes → decide. v9: the Friends view folded into Decide. */
@@ -60,7 +60,7 @@ export function loadPrefs(): Prefs {
       date: typeof p.date === "string" && DAY.test(p.date) ? p.date : null,
       contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : 0,
       selected: typeof p.selected === "number" ? p.selected : null,
-      capacityVenue: typeof p.capacityVenue === "number" ? p.capacityVenue : DEFAULT_PREFS.capacityVenue,
+      capacityVenue: typeof p.capacityVenue === "number" ? p.capacityVenue : null,
       peopleView: migrateView(p.peopleView),
       theme: p.theme === "day" || p.theme === "dusk" ? p.theme : "auto",
       daySection: DAY_SECTIONS.includes(p.daySection as DaySection) ? (p.daySection as DaySection) : DEFAULT_PREFS.daySection,

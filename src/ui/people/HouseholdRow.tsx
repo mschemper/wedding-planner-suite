@@ -44,7 +44,7 @@ export function HouseholdRow({ row, relation, ctx, act, ringParties, onHousehold
     <li className={`pp-hrow st-${party.invite}${pick ? " has-pick" : ""}`} aria-label={party.name}>
       {pick && <span className="pp-hmark"><input type="checkbox" className="pp-pickbox" checked={pick.on} onChange={pick.toggle} aria-label={`Select ${party.name}`} /></span>}
       <div className="pp-hmain">
-        <button type="button" className="pp-hname" onClick={() => onHousehold(party.id)} aria-label={`Edit household: ${party.name}`}>
+        <button type="button" className="pp-hname" onClick={() => onHousehold(party.id)}>
           <b>{namesLine(row)}</b>
           {relation && <small>{relation}</small>}
         </button>

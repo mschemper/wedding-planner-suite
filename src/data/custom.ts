@@ -78,7 +78,7 @@ export function customScenario(v: CustomVenue): Scenario {
     capacity: seated || v.capacity_cocktail || v.capacity_kids ? { hardMax: seated, cocktail: v.capacity_cocktail ?? undefined, kids: v.capacity_kids ?? undefined } : undefined,
     kidsRoom: !!v.capacity_kids,
     priced: v.items.some((it) => it.type !== "percent"),
-    sources: v.sources.filter((s) => /^https?:\/\//i.test(s)),
+    sources: (Array.isArray(v.sources) ? v.sources : []).filter((s) => typeof s === "string" && /^https?:\/\//i.test(s)),
     flag: v.researched_at
       ? `Estimated from web research on ${v.researched_at}: confirm every number with the venue.`
       : "Entered by hand: confirm with the venue.",

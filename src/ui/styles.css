@@ -67,7 +67,7 @@ a { color: var(--euc-ink); }
 @media (max-width: 639px) {
   .g-top { padding: 40px 16px 26px; background: var(--band); } .g-title { font-size: 30px; }
   .g-tabs { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; margin: 0; gap: 0; justify-content: space-around; flex-wrap: nowrap;
-    width: auto; border: 0; border-radius: 0; background: var(--card); border-top: 1px solid var(--line); box-shadow: 0 -2px 12px rgba(0, 0, 0, .08); padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); }
+    width: auto; border: 0; border-radius: 0; background: var(--card); border-top: 1px solid var(--line); box-shadow: var(--shadow); padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); }
   .g-tab { flex: 1; border-radius: 12px; padding: 4px 2px; font-size: 12px; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 0; }
   .g-tab-icon { display: block; font-size: 18px; line-height: 1.2; }
   .g-theme { top: 0; right: 50px; }
@@ -232,7 +232,7 @@ select { padding: 6px 10px; border-radius: 3px; border: 1px solid var(--line); b
 .cmp-row span:last-child { font-weight: 800; }
 .cmp-row.total { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; font-weight: 800; }
 @media (max-width: 520px) {
-  .container { padding: 18px 12px 48px; }
+  .container { padding: 18px 12px calc(84px + env(safe-area-inset-bottom)); }
   .amts { gap: 6px; } .amts > span { width: 62px; } .amts > span:last-child:empty { display: none; }
   .total-banner-amount { font-size: 28px; }
   .budget-header, .budget-cat-header, .budget-row, .budget-total { padding: 8px 10px; }
@@ -259,3 +259,10 @@ h3.section-title { font-weight: 400; }
 /* v9: Young Serif (one weight) for the old serif slots, normal case; Figtree numbers stay bold */
 .guest-count, .card-title, .card-price, .stat-value, .total-banner-amount, .budget-total, .section-title, .detail-header-text h2, h3.section-title { font-weight: 400; }
 .k-stat-value { font-weight: 700; letter-spacing: 0; }
+
+/* print (v11): only the screen's content; the Timeline hides its own controls */
+@media print {
+  .g-top, .g-tabs, .dy-switch, .k-toast, .status-line { display: none !important; }
+  .container { padding: 0; max-width: none; }
+  .k-card { box-shadow: none; break-inside: avoid; }
+}

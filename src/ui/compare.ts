@@ -35,7 +35,10 @@ export function useCompare(): Compare {
     () => summarizeAll({ scenarios, venues, musthaves, fit, quotes, headcount: hc, guests: g, date, windows: settings.dateWindows, contingency: prefs.contingency }),
     [scenarios, venues, musthaves, fit, quotes, hc, g, date, settings.dateWindows, prefs.contingency],
   );
-  return { guests: g, guestsLabel, date, ...s };
+  // The wedding venue leads the shortlist; the rest keep their order.
+  const wid = weddingVenue(venues, settings)?.scenario_id;
+  const active = wid == null ? s.active : [...s.active.filter((v) => v.scenario.id === wid), ...s.active.filter((v) => v.scenario.id !== wid)];
+  return { guests: g, guestsLabel, date, ...s, active };
 }
 
 export const fmtDate = (d: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric", year: "numeric" }) =>

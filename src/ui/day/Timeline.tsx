@@ -2,7 +2,6 @@
 import { Fragment, useState } from "react";
 import { clock, endOf, sortTimeline, sunsetIndex, sunsetLocal, timelineIssues } from "../../plan/day";
 import { VENUE_FACTS } from "../../data/venueFacts";
-import type { TimelineRow } from "../../plan/types";
 import { useData, type SaveResult } from "../data";
 import { Button, Card, EmptyState } from "../kit/kit";
 import { SaveError } from "../SaveError";
@@ -13,8 +12,8 @@ import "./timeline.css";
 export interface TimelineProps { venueId: number; date: string }
 
 export function Timeline({ venueId, date }: TimelineProps) {
-  const { timeline, save, offline } = useData();
-  const [sheet, setSheet] = useState<TimelineRow | "new" | null>(null);
+  const { timeline, save, offline, version } = useData();
+  const [sheet, setSheet] = useState<string | "new" | null>(null);
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const hours = VENUE_FACTS[venueId]?.hours;
@@ -22,6 +21,7 @@ export function Timeline({ venueId, date }: TimelineProps) {
   const sorted = sortTimeline(timeline);
   const issueOf = new Map((hours ? timelineIssues(timeline, hours) : []).map((i) => [i.id, i.msg]));
   const markAt = sunset ? sunsetIndex(sorted, sunset) : -1;
+  const liveRow = sheet && sheet !== "new" ? timeline.find((r) => r.id === sheet) ?? null : null;
 
   const start = async () => {
     setBusy(true);
@@ -54,7 +54,6 @@ export function Timeline({ venueId, date }: TimelineProps) {
           {!offline && (
             <div className="tl-actions">
               <Button kind="primary" disabled={busy} onClick={() => void start()}>Start from the Joinery template</Button>
-              <Button onClick={() => setSheet("new")}>Add step</Button>
             </div>
           )}
         </>
@@ -66,7 +65,7 @@ export function Timeline({ venueId, date }: TimelineProps) {
               <Fragment key={r.id}>
                 {i === markAt && marker}
                 <li className="tl-row">
-                  <button type="button" className="tl-step" onClick={() => setSheet(r)} disabled={offline}>
+                  <button type="button" className="tl-step" onClick={() => setSheet(r.id)} disabled={offline}>
                     <span className="tl-time">{r.minutes > 0 ? `${clock(r.start)}–${clock(endOf(r))}` : clock(r.start)}</span>
                     <span className="tl-main">
                       <span className="tl-title">{r.title}</span>
@@ -82,7 +81,7 @@ export function Timeline({ venueId, date }: TimelineProps) {
           {markAt === sorted.length && marker}
         </ol>
       )}
-      {sheet && <TimelineSheet key={sheet === "new" ? "new" : sheet.id} row={sheet === "new" ? null : sheet} onClose={() => setSheet(null)} />}
+      {(sheet === "new" || liveRow) && <TimelineSheet key={liveRow ? `${liveRow.id}-${version("timeline", liveRow.id) ?? 0}` : "new"} row={liveRow} onClose={() => setSheet(null)} />}
     </div>
   );
 }

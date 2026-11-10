@@ -29,7 +29,7 @@ const VIEWS: { value: PeopleView; label: string }[] = [
 ];
 
 export function PeopleScreen() {
-  const { offline, people, invite, status } = useData();
+  const { offline, people, invite, status, version } = useData();
   const { prefs, set } = usePrefs();
   const { focus, clearFocus } = useNav();
   const act = useActions();
@@ -56,6 +56,11 @@ export function PeopleScreen() {
   const tidy = useMemo(() => tidyItems(people, rings), [people, rings]);
   const room = useRoom(rings);
   const view: PeopleView = prefs.peopleView ?? "decide";
+  // row versions in the sheet keys: a reload / other-device change / Undo resets the drafts
+  const vsum = (ids: (string | undefined)[], table: "people" | "parties") => ids.map((i) => (i ? version(table, i) ?? 0 : 0)).join(".");
+  const hhVer = hh?.partyId ? `${vsum([hh.partyId], "parties")}:${vsum(people.people.filter((p) => p.party_id === hh.partyId).map((p) => p.id), "people")}` : "";
+  const personVer = target?.mode === "edit" ? vsum([target.id], "people") : "";
+  const relVer = relT ? vsum([relT.of], "people") : "";
 
   useEffect(() => {
     if (!focus.person) return;
@@ -101,10 +106,10 @@ export function PeopleScreen() {
       {view === "family" && <Family rel={rel} act={act} onHousehold={openHousehold} onPerson={editPerson} onRelative={openRelative} />}
       {quick && <QuickAddFriend rings={rings} onClose={() => setQuick(false)} />}
       {tidyOpen && <TidySheet tidy={tidy} people={people} act={act} onClose={() => setTidyOpen(false)} onFamily={() => set({ peopleView: "family" })} onHousehold={openHousehold} />}
-      {hh && <HouseholdCard key={`h${hh.key}`} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onOpen={(id, f) => openCard({ partyId: id, focus: f })} onRelative={openRelative} />}
+      {hh && <HouseholdCard key={`h${hh.key}:${hhVer}`} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onOpen={(id, f) => openCard({ partyId: id, focus: f })} onRelative={openRelative} />}
       {picking && <HouseholdPicker onClose={() => setPicking(false)} onPick={(id) => { setPicking(false); openCard({ partyId: id, addNew: true }); }} onNew={() => { setPicking(false); openCard({ partyId: null }); }} />}
-      <PersonSheet key={target?.key ?? "none"} target={target} onClose={() => setTarget(null)} rel={rel} onRelative={openRelative} />
-      <RelativeSheet key={relT?.key ?? "r-none"} target={relT} onClose={() => setRelT(null)} />
+      <PersonSheet key={`${target?.key ?? "none"}:${personVer}`} target={target} onClose={() => setTarget(null)} rel={rel} onRelative={openRelative} />
+      <RelativeSheet key={`${relT?.key ?? "r-none"}:${relVer}`} target={relT} onClose={() => setRelT(null)} />
     </div>
   );
 }
