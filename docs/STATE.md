@@ -9,7 +9,7 @@ Last updated: 10 November 2026 (v12).
 
 | | |
 |---|---|
-| Current | **v12** (tag `v12`, package.json 12.0.0): whole-app review fixes (docs/REVIEW-v11.md): dated quotes, Joinery to 160, safer edits, keyboard menus; migration 0007 + scripts/v12-live-data.sql. DEPLOYING |
+| Current | **v12** (tag `v12`, package.json 12.0.0): whole-app review fixes (docs/REVIEW-v11.md): dated quotes, Joinery to 160, safer edits, keyboard menus; migration 0007 + scripts/v12-live-data.sql (both applied). Deployed 10 Nov 2026, Worker version 017f384b-e98d-4cbd-a564-c7d2afefc5d6; unauthenticated `/`, `/api/version`, photos → Access login (verified); signed-in view not checked |
 | Previous | **v11** (tag `v11`, 11.0.0), deployed 9 Nov 2026, Worker version 5dcf0c0a-a7af-461d-b9af-8962abca2129; migration 0006. Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Look | Jungalow Lounge (docs/DESIGN-v9.md); Day tab layout docs/DESIGN-v11.md. Older looks and designs: HISTORY.md |
