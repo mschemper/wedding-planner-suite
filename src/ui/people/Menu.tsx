@@ -1,5 +1,5 @@
 // Small popup menu (Add, Export, Kids, row ⋯), shared with Plan. Opens on the first item; Arrow Up/Down (wrap), Home/End move; Escape, Tab, outside tap or choosing closes (focus returns to the trigger). Items are 44px targets.
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyEvent, type ReactNode } from "react";
 import "./people.css";
 
 export type MenuItem =
@@ -20,7 +20,17 @@ export function Menu({ label, trigger, items, align = "left", triggerClass = "k-
   label: string; trigger: ReactNode; items: MenuItem[]; align?: "left" | "right"; triggerClass?: string; title?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [side, setSide] = useState(align);
   const root = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+  // Flip to the other side when the list would run off a narrow screen.
+  useLayoutEffect(() => {
+    if (!open) { setSide(align); return; }
+    const r = list.current?.getBoundingClientRect();
+    if (!r) return;
+    if (r.left < 4) setSide("left");
+    else if (r.right > window.innerWidth - 4) setSide("right");
+  }, [open, align]);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const enabled = () => Array.from(root.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ?? []);
   useEffect(() => { if (open) enabled()[0]?.focus(); }, [open]);
@@ -51,7 +61,7 @@ export function Menu({ label, trigger, items, align = "left", triggerClass = "k-
     <div className="pp-menu" ref={root}>
       <button ref={triggerRef} type="button" className={triggerClass} aria-haspopup="menu" aria-expanded={open} aria-label={label} title={title} onClick={() => setOpen((o) => !o)}>{trigger}</button>
       {open && (
-        <div className={`pp-menu-list ${align}`} role="menu" aria-label={label} onKeyDown={onListKey}>
+        <div ref={list} className={`pp-menu-list ${side}`} role="menu" aria-label={label} onKeyDown={onListKey}>
           {items.map((it) => "heading" in it
             ? <div key={it.key} className="pp-menu-head" role="presentation">{it.heading}</div>
             : (

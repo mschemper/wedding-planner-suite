@@ -1,5 +1,5 @@
 # REVIEW-v11 -- whole-app review, 9 Nov 2026 (after v11 deploy)
-Three Sonnet reviewers (engine/Worker/data; Today/Venues/Day; People/Plan) + lead visual pass. Open items = BACKLOG B14-B25.
+Three Sonnet reviewers (engine/Worker/data; Today/Venues/Day; People/Plan) + lead visual pass. B14-B25 fixed 10 Nov 2026 (commits ec5c323, 22fb6c3 + menu edge fix); not deployed. Deploy needs migration 0007 then scripts/v12-live-data.sql.
 
 ## Fixed (commit after v11, not deployed)
 - Today: grid rows full (Our venue span-4, Next up span-8, Shortlist span-12); price shows ≈ + confidence; meta in sans 13px; room line says over capacity; held chip hidden when countdown shows; full venue name.
@@ -10,7 +10,12 @@ Three Sonnet reviewers (engine/Worker/data; Today/Venues/Day; People/Plan) + lea
 - Plan: "Added — hidden by filters" hint.
 - Engine/Worker: perGuest quote on a minimum-spend line keeps the minimum; quote choice deterministic (accepted, specificity, newer, id); bad custom_venues `sources`/capacity/confidence rejected and tolerated on read; "tmp:" ref check only on ref columns; vendor deposit > amount rejected.
 
-## Open (detail)
+## Fixed 10 Nov (B14-B25)
+- B14 quotes.date (0007); dated quote applies on its date only; QuoteForm "Only for this date"; v12 script dates the May 29 $7,000.
+- B15 Joinery max 160 (≈ past 100). B16 kit Sheet `dirty` → "Discard your changes?"; relative/place flows guarded. B17 failure toast; One by one advances after save. B18 Menu keyboard (shared with Plan); flips side at screen edge. B19 merge/move confirm. B20 deletes offer no Undo; Undo sends post-edit version (409 on newer edits).
+- B21 Venues note when basis/date differ from Today. B22 only 00:00-02:59 is after midnight. B23 duplicate milestone source skipped in write.ts. B24 prefs v2 resets stored 17. B25 366-day window cap, QuoteForm on Field, plain Day copy.
+
+## Original findings (detail)
 ### B14. Quotes have no date: the May 29 $7,000 prices every summer Saturday — M (review 9 Nov)
 `src/engine/compute.ts` applicableQuotes. Venues date ranges and any non-held date show $7,000 (model $9,500). Fix: nullable `quotes.date` (migration 0007 + SPECS), match `co.date`; or skip date-less rate quotes off the held date. Mark picks.
 

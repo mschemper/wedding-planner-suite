@@ -3,7 +3,7 @@
 Read after AGENTS.md. Only what is true now. Open work -> BACKLOG.md. Past releases, old backups, seed-time numbers -> HISTORY.md "Release log". Files per subject -> CODEMAP.md.
 Keep: current + previous release rows only, latest backup only, no history. `tests/docs.test.ts` gates size and version.
 
-Last updated: 9 November 2026 (v11 deployed; review fixes committed on main, not deployed).
+Last updated: 10 November 2026 (v11 deployed; review fixes + B14-B25 committed on main, not deployed: docs/REVIEW-v11.md).
 
 ## Version
 
