@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 10 Nov 2026 (F27 feed live on the Bauhaus wall).
+Last reviewed: 10 Nov 2026 (v13 shipped; F27 live).
 
 ---
 
@@ -33,7 +33,7 @@ Each price answer replaces an estimate in `src/data/scenarios.ts` â†’ golde
 ## Requested / planned (features)
 
 ### F27. Plan on the Bauhaus wall -- M
-Released in v13: `/api/feed/plan` + service-token auth (docs/FEED.md); wall side = bauhaus-dashboard v80 Wedding page. Live 10 Nov 2026: Setup done (token `bauhaus-wall`, expires 11 Nov 2027; Access policy "Bauhaus wall feed (service token)"; `FEED_CLIENT_IDS` secret); from the Pi feed 200, `/api/data` 403; wall shows live tasks. Left: renew the token before 11 Nov 2027.
+Released in v13: `/api/feed/plan` + service-token auth (docs/FEED.md); wall side = bauhaus-dashboard v80 Wedding page. Live 10 Nov 2026 (FEED.md Setup done; Pi: feed 200, `/api/data` 403). Left: renew token `bauhaus-wall` before 11 Nov 2027.
 
 ### P1. Angela's first sign-in â€” XS
 Angela opens the link and enters her email for the PIN. Not yet confirmed.
