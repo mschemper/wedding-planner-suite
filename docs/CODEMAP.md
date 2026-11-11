@@ -57,6 +57,8 @@ Organised by the thing you're changing, not by folder.
 | Quote form checks (vendor, $0 reason) | `src/ui/venues/model.ts` `quoteIssue`, `QuoteForm.tsx` | `tests/venues-ui.test.ts` |
 | Day tab shell, sections (v11) | `src/ui/day/DayScreen.tsx` (lead), `OurVenue.tsx`, `Vendors.tsx`, `Timeline.tsx` + sheets/models | `tests/day-*-ui.test.ts`; docs/DESIGN-v11.md |
 | Wedding venue, countdown, milestones, sunset, timeline rules, vendor summary, room + bar minimum | `src/plan/day.ts` | `tests/day.test.ts` |
+| Joinery preferred vendors (v17) | `src/data/preferredVendors.ts`; `src/ui/day/PreferredVendors.tsx`, `preferredModel.ts` | `tests/preferred-vendors.test.ts` |
+| People To review deck (v17) | `src/ui/people/ReviewDeck.tsx`, `reviewModel.ts` | `tests/review-deck.test.ts` |
 | Venue facts (hours, rules, vendors, photos) | `src/data/venueFacts.ts`; photos `public/venues/<venue>/` (hosted only; offline build has no publicDir) | `tests/day.test.ts` |
 | Wedding venue priced at expected guests on the held date | `src/ui/compare.ts` `useWeddingSummary` | — |
 | Live data fixes run once at deploy | `scripts/v11-live-data.sql` | docs/DEPLOY.md |

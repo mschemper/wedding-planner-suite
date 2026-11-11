@@ -3,7 +3,7 @@ import { useState } from "react";
 import { PREFERRED_NOTES, PREFERRED_SOURCE, type PreferredCategory, type PreferredVendor } from "../../data/preferredVendors";
 import { useData } from "../data";
 import { Button, Card, Chip, EmptyState, FilterChip, Segmented } from "../kit/kit";
-import { PREFERRED_TABS, preferredIn, shortlistCount, shortlistOp, trackedAs } from "./preferredModel";
+import { offersDayOf, PREFERRED_TABS, preferredIn, shortlistCount, shortlistOp, trackedAs } from "./preferredModel";
 import { STATUS_LABEL, STATUS_MARK } from "./vendorsModel";
 
 const CONF: Record<PreferredVendor["confidence"], string> = { high: "Checked", medium: "Partly checked", low: "Unconfirmed" };
@@ -23,6 +23,7 @@ function Row({ p, venueId, onOpen }: { p: PreferredVendor; venueId: number; onOp
     <li className="pv-row">
       <div className="pv-head">
         <span className="pv-name">{p.name}</span>
+        {p.category === "planner" && offersDayOf(p) && <Chip tone="gold"><span aria-hidden="true">✓ </span>Day-of offered</Chip>}
         {p.marked && <Chip tone="peony"><span aria-hidden="true">✎ </span>Marked on your list</Chip>}
         {tracked && <Chip tone="sage"><span aria-hidden="true">{STATUS_MARK[tracked.status]} </span>{STATUS_LABEL[tracked.status]}</Chip>}
       </div>

@@ -1,7 +1,7 @@
 // v17 Joinery preferred list: data shape + pure helpers (src/ui/day/preferredModel.ts). Business info only.
 import { describe, expect, it } from "vitest";
 import { PREFERRED } from "../src/data/preferredVendors";
-import { preferredIn, shortlistCount, shortlistOp, trackedAs } from "../src/ui/day/preferredModel";
+import { offersDayOf, preferredIn, shortlistCount, shortlistOp, trackedAs } from "../src/ui/day/preferredModel";
 import type { Vendor } from "../src/plan/types";
 
 describe("preferred vendors", () => {
@@ -19,6 +19,12 @@ describe("preferred vendors", () => {
     expect(cat.slice(0, 8).every((p) => p.marked)).toBe(true);
     expect(preferredIn("catering", { markedOnly: true })).toHaveLength(8);
     expect(preferredIn("music", { query: "toast" }).map((p) => p.name)).toEqual(["Toast and Jam"]);
+  });
+  it("planners offering day-of come first", () => {
+    const pl = preferredIn("planner");
+    const firstNo = pl.findIndex((p) => !offersDayOf(p));
+    expect(firstNo).toBeGreaterThan(5);
+    expect(pl.slice(firstNo).some((p) => offersDayOf(p))).toBe(false);
   });
   it("tracks a shortlisted vendor by loose name match and builds an idea row", () => {
     const p = PREFERRED.find((x) => x.name === "Toast and Jam")!;

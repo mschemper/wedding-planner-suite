@@ -26,7 +26,7 @@ export const PREFERRED_SOURCE = "From The Joinery's preferred vendors list (your
 /** Handwritten notes on the paper list, per category. */
 export const PREFERRED_NOTES: Partial<Record<PreferredCategory, string>> = {
   catering: "You marked 8 caterers on the paper list; they are shown first.",
-  planner: "You wrote \"Day of\" beside Planner: look for day-of / month-of coordination.",
+  planner: "You wrote \"Day of\" beside Planner: planners that offer day-of / month-of coordination are shown first.",
 };
 
 export const PREFERRED: PreferredVendor[] = [

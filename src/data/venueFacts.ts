@@ -51,7 +51,7 @@ export const VENUE_FACTS: Record<number, VenueFacts> = {
       "Bar minimum $4,000; guests under 21 $5 pp; sparkling toast $4 pp; dinner wine $5 pp",
       "Pay by check (The Joinery Studios LLC) or Zelle; card or other methods +3.1%; state and federal tax included in the rental",
       "Booked May 29, 2027 at the Friday rate ($7,000; Shay, 4 Nov 2026). Long weekends normally cost more: confirm the contract shows $7,000",
-      "160 seated with dance floor; catering, florals and planner are ours to bring (recommended list below)",
+      "160 seated with dance floor; catering, florals and planner are ours to bring (Joinery preferred list: Day → Vendors)",
       "Park in front of the driveway; loading dock straight to the kitchen",
     ],
     included: [
@@ -67,13 +67,7 @@ export const VENUE_FACTS: Record<number, VenueFacts> = {
       "The Hideout: 2-bed / 1.5-bath apartment upstairs, included with the rental",
       "The Mill House next door: 4-bed / 2.5-bath, sleeps 10, add-on (2-night minimum)",
     ],
-    recommended: {
-      catering: ["Cocina Fusion", "Hearty Boys", "Lula Cafe", "Wooden Paddle", "Jordan's Food of Distinction", "Food for Thought", "CMB Catering", "Viola's Kitchen", "Tamale Spaceship", "Maison Cuisine", "Boka", "Kuma's", "One Off Hospitality", "Amazing Edibles", "The Caterist", "Entertaining Company", "Paramount", "Beyond Catering", "Green Spoon Kitchen", "Butter + Vine", "True Cuisine"],
-      photo: ["Madi Ellis", "King + Opal", "Cassie Anna Photo", "Emma Peterson", "Ed + Aileen", "Zach Caddy", "Tawny Ballard", "Kate Scott Photo", "Emily Williams", "Wren and Rose", "Alisha Tova", "Battiest Photo", "Fuller Photo Co", "Victoria St Martin", "Audrey Simper", "Allie Idrac", "Sally O'Donnell", "Moguel Photo", "Ryan Moore", "Gene Yoon", "Replogle Studios", "Melodierose"],
-      planner: ["Lo Fi Events", "Burst Events", "Saint + Social", "Cygnet Events", "Glowing Moments", "Blue Moon Events", "Nora Events", "Ohana", "Melodierose", "Wedding Day Chicago", "Jeannie Gentile", "Vrinspirations", "The Final Touch", "An Event Less Ordinary", "Grayter Events", "Lola Event Pros", "Bridget Mary Weddings", "BW Studio", "Sustainable Soirees", "Olive Fine Weddings", "Marryment", "Reverie + Co", "Shh Events", "Heirloom Event Co"],
-      florals: ["XO Design Co", "Romee Willow", "The Jade Vine", "Flowerchild", "Studio Poppy", "Flowers by Stem", "Flower Girl Company", "The Flower Hutch", "Flowers for Dreams", "Lee Lee's Garden", "Hedonia", "Fleurish Atelier", "Eco Wilde", "Vrinspirations"],
-      music: ["Toast and Jam", "Total Harmony Ent", "DJ Tess", "Gold Noise DJ", "Modern Love DJ", "Cage and Aquarium", "Okyne Media Lab", "Dart Collective", "Fiesta Pros", "Groove Is in the Heart", "Luniks", "The DJ Firm", "Green Line Talent"],
-    },
+    recommended: {}, // v17: superseded by src/data/preferredVendors.ts (the paper list)
     contacts: [
       "Shay Schultz, Venue Director: shay@thejoinerychicago.com · 219-308-1926",
       "General: info@thejoinerychicago.com · payments (Zelle): Management@TheJoineryChicago.com",

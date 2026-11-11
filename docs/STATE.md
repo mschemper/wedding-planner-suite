@@ -3,14 +3,14 @@
 Read after AGENTS.md. Only what is true now. Open work -> BACKLOG.md. Past releases, old backups, seed-time numbers -> HISTORY.md "Release log". Files per subject -> CODEMAP.md.
 Keep: current + previous release rows only, latest backup only, no history. `tests/docs.test.ts` gates size and version.
 
-Last updated: 10 November 2026 (v16).
+Last updated: 11 November 2026 (v17).
 
 ## Version
 
 | | |
 |---|---|
-| Current | **v16** (tag `v16`, package.json 16.0.0): layout picks from the v15 review (docs/archive/REVIEW-v15.md): Today order, phone Filter button, unblock toast, Budget = one home for money. No migration. Deployed 10 Nov 2026 (night): Worker version 946a1e79-28de-4297-8b64-c86a7e33e441. Unauthenticated `/`, `/api/version` redirect to Access (verified); signed-in app not checked. |
-| Previous | **v15** (tag `v15`, 15.0.0), deployed 10 Nov 2026, Worker version b9c705fe; no migration. Rollback: docs/DEPLOY.md |
+| Current | **v17** (tag `v17`, package.json 17.0.0): add-task fix, quick-add task list, People swipe review deck, Joinery preferred vendors (`src/data/preferredVendors.ts`), plain Budget wording. No migration; `scripts/v17-live-data.sql`. Not deployed yet. |
+| Previous | **v16** (tag `v16`, 16.0.0), deployed 10 Nov 2026, Worker version 946a1e79; no migration. Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Look | Jungalow Lounge (docs/DESIGN-v9.md); Day tab docs/DESIGN-v11.md; Budget/Plan/Addresses docs/DESIGN-v14.md. Older: docs/archive/ |
 

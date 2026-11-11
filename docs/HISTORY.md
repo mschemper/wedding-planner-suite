@@ -82,6 +82,12 @@ Newest first. Each entry: what changed and why.
 - Firehouse Chicago kids' room capacity 20 (Bunk Room), adults seated 82. Source: Mark, 22 Oct 2026 (chat). `capacity.kids` added to Scenario; capacity checks adults and kids separately. Kids stay priced as adults (Mark's choice).
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
 
+## v17 rationale (11 Nov 2026)
+- Add-task bug: B23 (v12) deduped every task create on `source`, so all "manual" adds after the first were skipped while the UI reported success. Dedupe now only on key sources (`template:`, `milestone:`); regression test in tests/worker.test.ts.
+- Mark's picks (one question round): swipe deck covers everything outstanding; task list = quick-add + tidy; plain Budget wording; Today venue = one line; close stale venue tasks (none open on live; only T009's title fixed). Hotfix deferred to the release (Mark).
+- Preferred vendors: Mark's photographed paper list (Drive) supersedes venueFacts.recommended (planner list differed: no Saint + Social / Wedding Day Chicago / Vrinspirations). Bracketed caterers + "Day of" note = Mark & Angela's marks. Research by 2 Sonnet agents from Zola/Knot/WeddingWire listings: prices are published figures only, confidence shown per vendor. Shortlist = vendor row status "idea" (no new table).
+- Release log v16: tag v16, deployed 10 Nov 2026, Worker 946a1e79-28de-4297-8b64-c86a7e33e441, no migration.
+
 ## v16 rationale (10 Nov 2026)
 - Mark delegated the 5 REVIEW-v15 layout picks ("choose the best options"). Chosen: Ready now beside the countdown (the action list is what Mark/Angela open Today for); one TaskRow style so tasks can be ticked off from Today; phone filters behind a toggle (two rows of chips pushed the list below the fold at 360px); Budget as the single money home, Today keeps one headline total as a pointer, Day drops the total (it duplicated Budget and drifted when quotes changed); unblock count in the done toast instead of a new screen.
 - Release log v15: tag v15, deployed 10 Nov 2026, Worker b9c705fe-e413-4a13-94a7-0550027ca5a9, no migration.

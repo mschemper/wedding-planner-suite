@@ -80,7 +80,7 @@ export function Tasks({ highlight, mode, setMode, view, setView }: {
       {!offline && (
         <form className="pl-quick" onSubmit={(e) => { e.preventDefault(); void add(); }}>
           <div className="pl-quick-row">
-            <input ref={inputRef} className="pl-quick-input" value={draft.title} maxLength={200} placeholder="Add a task…" aria-label="Add a task"
+            <input ref={inputRef} className="k-input pl-quick-input" value={draft.title} maxLength={200} placeholder="Add a task…" aria-label="Add a task"
               onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} />
             <Button type="submit" kind="primary" disabled={busy || !!bad}>Add</Button>
             <Button onClick={() => setDetails((d) => !d)} aria-expanded={details}>{details ? "Fewer details" : "More details"}</Button>
