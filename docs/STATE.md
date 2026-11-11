@@ -9,7 +9,7 @@ Last updated: 10 November 2026 (v12).
 
 | | |
 |---|---|
-| Current | **v13** (tag `v13`, package.json 13.0.0): Plan feed `/api/feed/plan` for the Bauhaus wall (docs/FEED.md), service token on `/api/feed/*` only; no migration. Deployed 9 Nov 2026: Worker version 2976f4fd, backup `data/private/d1-backup-v12.sql`; unauthenticated `/`, `/api/version`, `/api/feed/plan` redirect to Access (verified); signed-in app not checked; feed live only after FEED.md "Setup" (BACKLOG F27). |
+| Current | **v13** (tag `v13`, package.json 13.0.0): Plan feed `/api/feed/plan` for the Bauhaus wall (docs/FEED.md), service token on `/api/feed/*` only; no migration. Deployed 9 Nov 2026: Worker version 2976f4fd, backup `data/private/d1-backup-v12.sql`; unauthenticated `/`, `/api/version`, `/api/feed/plan` redirect to Access (verified); signed-in app not checked. Feed live 10 Nov 2026 (FEED.md "Setup" done; BACKLOG F27). |
 | Previous | **v12** (tag `v12`, 12.0.0), deployed 10 Nov 2026, Worker version 017f384b-e98d-4cbd-a564-c7d2afefc5d6; migration 0007. Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Look | Jungalow Lounge (docs/DESIGN-v9.md); Day tab layout docs/DESIGN-v11.md. Older looks and designs: HISTORY.md |
