@@ -41,10 +41,10 @@ export function BudgetScreen() {
       <Card title="Pricing at" className="vn-bar">
         <div className="vn-bar-grid">
           <Segmented<GuestBasis> label="Guest count basis" value={prefs.guestBasis} onChange={(v) => set({ guestBasis: v })} options={[
-            { value: "considered", label: `Incl. undecided (≈${Math.round(hc.invited.expected + hc.ifroom.expected + hc.undecided.expected)})` },
-            { value: "expected", label: expected > 0 ? `Expected (≈${expected})` : "Expected" },
-            { value: "ceiling", label: hc.invited.heads > 0 ? `Everyone invited (${hc.invited.heads})` : "Everyone invited" },
-            { value: "custom", label: "Custom" },
+            { value: "considered", label: `If we invite the maybes (≈${Math.round(hc.invited.expected + hc.ifroom.expected + hc.undecided.expected)})` },
+            { value: "expected", label: expected > 0 ? `Likely to come (≈${expected})` : "Likely to come" },
+            { value: "ceiling", label: hc.invited.heads > 0 ? `Every invited guest (${hc.invited.heads})` : "Every invited guest" },
+            { value: "custom", label: "Pick a number" },
           ]} />
           <label className="vn-inline">Contingency
             <select className="k-input" value={prefs.contingency} onChange={(e) => set({ contingency: Number(e.target.value) })}>
@@ -55,6 +55,7 @@ export function BudgetScreen() {
             <div className="vn-gap"><GuestPicker stops={HOME_STOPS} value={prefs.guests} onChange={(g) => set({ guests: g })} min={20} max={300} /></div>
           )}
         </div>
+        <p className="vn-meta">"Likely to come" counts each invited household by how likely they are to attend; "maybes" adds the undecided and if-room households; "every invited guest" assumes everyone says yes.</p>
         <p className="vn-meta">Pricing {cmp.guestsLabel} on {fmtDay(date, true)}. Kids are priced as adults.{note ? ` ${note}.` : ""}</p>
       </Card>
 

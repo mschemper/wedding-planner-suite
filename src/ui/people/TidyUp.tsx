@@ -1,6 +1,5 @@
-// One Tidy-up list (v9): name fixes, unplaced relatives, unknown locality, talk-about households, friends without a last name. Sheet from the top row.
+// Name fixes sheet (v17, from More): name fixes, unplaced relatives, friends without a last name. Locality, talk-about, addresses and last names are cards in the To review deck.
 import { useMemo, useState } from "react";
-import { namesLine } from "../../people/rings";
 import type { PeopleData } from "../../people/types";
 import { useData, type SaveResult } from "../data";
 import { Button, Sheet } from "../kit/kit";
@@ -31,14 +30,14 @@ function LastNames({ people }: { people: PeopleData }) {
   );
 }
 
-export function TidySheet({ tidy, people, act, onClose, onFamily, onHousehold }: {
-  tidy: Tidy; people: PeopleData; act: Actions; onClose(): void; onFamily(): void; onHousehold(id: string): void;
+export function TidySheet({ tidy, people, act, onClose, onFamily }: {
+  tidy: Tidy; people: PeopleData; act: Actions; onClose(): void; onFamily(): void;
 }) {
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
   return (
-    <Sheet title={tidy.total ? `Tidy up · ${tidy.total}` : "Tidy up"} open onClose={onClose}>
+    <Sheet title="Name fixes and tree" open onClose={onClose}>
       <SaveError result={act.error} onDismiss={act.clearError} />
-      {tidy.total === 0 && <p className="pp-hint" role="status">All tidy. Nothing needs a look.</p>}
+      {tidy.names.length + tidy.unplaced + tidy.lastNames === 0 && <p className="pp-hint" role="status">All tidy. Nothing needs a look.</p>}
       {tidy.names.length > 0 && (
         <section className="pp-tidy-sec" aria-label="Name fixes"><h3>{tidy.names.length} name fix{tidy.names.length === 1 ? "" : "es"}</h3><NameTidy fixes={tidy.names} /></section>
       )}
@@ -47,36 +46,6 @@ export function TidySheet({ tidy, people, act, onClose, onFamily, onHousehold }:
           <h3>{plural(tidy.unplaced, "relative")} not placed in the tree</h3>
           <p className="pp-hint">Each family branch lists them in a tray at the bottom, with a guess.</p>
           <Button onClick={() => { onClose(); onFamily(); }}>Open Family</Button>
-        </section>
-      )}
-      {tidy.unknownLocal.length > 0 && (
-        <section className="pp-tidy-sec" aria-label="Locality unknown">
-          <h3>{plural(tidy.unknownLocal.length, "household")} with local / away not set</h3>
-          <ul className="pp-tidy-list">
-            {tidy.unknownLocal.map((r) => (
-              <li key={r.party.id}>
-                <span className="pp-tidy-name">{namesLine(r)}</span>
-                <span className="pp-tidy-acts">
-                  <button type="button" className="k-btn" onClick={() => void act.bulk([r.party], { kind: "local", value: "local" })}>Local</button>
-                  <button type="button" className="k-btn" onClick={() => void act.bulk([r.party], { kind: "local", value: "away" })}>Away</button>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {tidy.talk.length > 0 && (
-        <section className="pp-tidy-sec" aria-label="Talk about">
-          <h3>{plural(tidy.talk.length, "household")} to talk about</h3>
-          <ul className="pp-tidy-list">
-            {tidy.talk.map((r) => (
-              <li key={r.party.id}>
-                <button type="button" className="pp-hname" onClick={() => { onClose(); onHousehold(r.party.id); }} aria-label={`Open household: ${r.party.name}`}>
-                  <b>{namesLine(r)}</b>{r.party.talk_note && <small>{r.party.talk_note}</small>}
-                </button>
-              </li>
-            ))}
-          </ul>
         </section>
       )}
       <LastNames people={people} />

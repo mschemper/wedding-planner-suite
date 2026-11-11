@@ -1,8 +1,14 @@
 /* Plan + shared task rows (DESIGN-v4 §2). Tokens only; classes prefixed pl-. */
 .pl-switch { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-bottom: 14px; }
 .pl-filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 12px; }
-.pl-filter-toggle { display: none; margin: 4px 0 8px; }
-@media (max-width: 639px) { .pl-filter-toggle { display: inline-flex; } .pl-filters:not(.is-open) { display: none; } }
+.pl-controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 4px 0 10px; }
+.pl-filter-toggle { display: inline-flex; }
+.pl-filters:not(.is-open) { display: none; }
+.pl-quick-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pl-quick-input { flex: 1 1 180px; min-width: 0; min-height: 44px; }
+.pl-group-toggle { min-height: 44px; border: 0; background: none; color: var(--euc-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; padding: 0 4px; }
+.pl-dep-search { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pl-dep-search input { flex: 1 1 160px; min-width: 0; }
 .pl-sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
 .pl-group { margin-top: 12px; }
 .pl-group-h { font-size: 20px; margin-bottom: 2px; }
@@ -30,7 +36,7 @@
 .pl-fields { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); margin-bottom: 12px; }
 @media (min-width: 560px) { .pl-fields { grid-template-columns: 1fr 1fr; } }
 .pl-fieldset { border: 0; display: grid; gap: 12px; }
-.pl-quick { display: grid; gap: 12px; margin: 4px 0 14px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--ground); }
+.pl-quick { display: grid; gap: 10px; margin: 4px 0 10px; }
 .pl-quick-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .pl-paste { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; width: 100%; }
 .pl-sum { margin: 10px 0 6px; }

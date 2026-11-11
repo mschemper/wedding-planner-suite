@@ -68,17 +68,15 @@ export function TodayScreen() {
 
       {heldSc && (
         <Card title="The venue" className="span-4">
-          <div className="td-venue-name">{heldSc.name}</div>
-          <p className="td-chips"><Chip tone={chip.tone}>{chip.text}</Chip></p>
-          {ws && wb && <>
-            <p className="td-price">{wb.rows.some((r) => r.extrapolated) ? "≈ " : ""}{money(wb.total)}</p>
-            <p className="td-venue-meta">{ws.guestsLabel} · confidence {heldSc.confidence}% · estimate, ±10–15%</p>
-          </>}
-          {room && !offline && <p className="td-muted">Room {roomLine(room.expected, room.cap)}{room.over ? " · ⚠ over if everyone invited comes" : ""}</p>}
-          {!offline && <p className="td-muted">Vendors booked {vs.booked} / {vs.coreTotal}</p>}
+          <p className="td-venue-line"><strong>{heldSc.name}</strong> <Chip tone={chip.tone}>{chip.text}</Chip></p>
+          <p className="td-muted">
+            {ws && wb ? <>{wb.rows.some((r) => r.extrapolated) ? "≈ " : ""}{money(wb.total)} estimate (±10–15%)</> : "Not priced yet"}
+            {room && !offline ? ` · room ${roomLine(room.expected, room.cap)}${room.over ? " ⚠ over if all invited come" : ""}` : ""}
+            {!offline ? ` · ${vs.booked} of ${vs.coreTotal} vendors booked` : ""}
+          </p>
           <p className="td-actions">
-            <Button onClick={() => setTab("budget")}>Budget</Button>
-            {!offline && <Button kind="quiet" onClick={() => openDay("venue")}>Open Day</Button>}
+            {!offline && <Button onClick={() => openDay("venue")}>Venue details</Button>}
+            <Button kind="quiet" onClick={() => setTab("budget")}>Budget</Button>
           </p>
         </Card>
       )}

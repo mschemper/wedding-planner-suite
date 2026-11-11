@@ -6,7 +6,7 @@ import { chicagoToday } from "../../plan/tasks";
 import { unblockedBy } from "../../plan/deps";
 import { useData } from "../data";
 import { Chip, OwnerChip } from "../kit/kit";
-import { completePatch, doneLabel, dueLabel, isDecision, reopenPatch, sourceUrl, stateChip, type RowInfo } from "./model";
+import { completePatch, doneLabel, dueLabel, isDecision, lateLabel, reopenPatch, sourceUrl, stateChip, type RowInfo } from "./model";
 import "./plan.css";
 
 export function TaskRow({ task, today, onOpen, highlight, info, warn }: {
@@ -39,7 +39,7 @@ export function TaskRow({ task, today, onOpen, highlight, info, warn }: {
           {chip && <Chip tone={chip.tone}>{chip.text}</Chip>}
           <OwnerChip owner={task.owner} />
           <span>{task.category}</span>
-          {!done && <span className={due.overdue ? "pl-overdue" : ""}>{due.text}</span>}
+          {!done && <span className={due.overdue ? "pl-overdue" : ""}>{due.overdue && chip?.text === "Overdue" && task.due ? lateLabel(task.due, today) : due.text}</span>}
           {done && task.done_at && <span>done {chicagoToday(new Date(task.done_at))}</span>}
           {url && <a href={url} target="_blank" rel="noopener noreferrer" className="pl-src">email ↗</a>}
           {!url && task.source === "email" && <Chip>from email</Chip>}

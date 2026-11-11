@@ -2,13 +2,12 @@
 // v7: ring headers split adults and kids; "Select several" bulk mode. v9: Friends ring has tier sub-headings, progress bars, "Decide one by one".
 import { useMemo, useState, type ReactNode } from "react";
 import type { Ring, RingRow } from "../../people/rings";
-import { Button, FilterChip, Segmented, Card, EmptyState } from "../kit/kit";
+import { FilterChip, Segmented, Card, EmptyState } from "../kit/kit";
 import { useData } from "../data";
 import { SaveError } from "../SaveError";
 import type { Actions } from "./actions";
 import { HouseholdRow } from "./HouseholdRow";
-import { decideQueue, DECISION_LABEL, KIDS_RULE_TEXT, matchesRow, NO_FILTER, ringProgress, type RowFilter, type SideFilter } from "./model";
-import { OneByOne } from "./OneByOne";
+import { DECISION_LABEL, KIDS_RULE_TEXT, matchesRow, NO_FILTER, ringProgress, type RowFilter, type SideFilter } from "./model";
 import { DECISIONS, KIDS_RULES, LOCALS, type Decision, type KidsRule, type Local, type Party } from "../../people/types";
 import { FAMILY_TIER_LABEL, FRIEND_TIER_LABEL } from "../../people/tier";
 import type { Room } from "./RoomCheck";
@@ -26,8 +25,6 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
   const parties = useMemo(() => new Map(rings.flatMap((r) => r.friend
     ? [1, 2, 3].map((t) => [`${r.key}:${t}`, r.rows.filter((x) => x.tier === t).map((x) => x.party)] as [string, Party[]])
     : [[r.key, r.rows.map((x) => x.party)] as [string, Party[]]])), [rings]);
-  const [walk, setWalk] = useState(false);
-  const queued = useMemo(() => decideQueue(rings, f.side).length, [rings, f.side]);
   const undecidedAll = useMemo(() => rings.reduce((n, r) => n + r.undecidedRows, 0), [rings]);
   const shown = useMemo(() => rings.map((r) => ({ ring: r, rows: r.rows.filter((x) => matchesRow(x, f)) })).filter((x) => x.rows.length), [rings, f]);
   const cap = room.check?.cap;
@@ -55,8 +52,6 @@ export function Decide({ rings, room, rel, act, onHousehold, onPerson }: {
   return (
     <div className="pp-stack">
       <SaveError result={act.error} onDismiss={act.clearError} />
-      {queued > 0 && <div className="pp-walk"><Button kind="primary" onClick={() => setWalk(true)}>Decide one by one ({queued} undecided)</Button></div>}
-      {walk && <OneByOne rings={rings} side={f.side} room={room} rel={rel} act={act} onClose={() => setWalk(false)} />}
       <div className="pp-filters" role="group" aria-label="Filters">
         <FilterChip on={f.undecidedOnly} onClick={() => setF((x) => ({ ...x, undecidedOnly: !x.undecidedOnly }))} count={undecidedAll}>Undecided only</FilterChip>
         <Segmented<SideFilter> label="Side" size="sm" options={SIDES.map((s) => ({ ...s, tone: "euc" as const }))} value={f.side} onChange={(v) => setF((x) => ({ ...x, side: v }))} />

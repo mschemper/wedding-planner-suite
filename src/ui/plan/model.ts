@@ -2,6 +2,7 @@
 import type { Op } from "../../api/types";
 import type { Patch } from "../data";
 import { isDay } from "../../data/params";
+import { groupTasks, type TaskGroup } from "../../plan/tasks";
 import { monthAgenda, taskState, waitingOn, wouldCycle, type AgendaMonth, type TaskState } from "../../plan/deps";
 import { CATEGORIES, OWNERS, type Category, type Owner, type Task, type TaskKind } from "../../plan/types";
 
@@ -193,4 +194,35 @@ export function calendarMonths(tasks: Task[], today: string, keep: (t: Task) => 
   return out.filter((m) => m.items.length > 0 || m.key === wm)
     .concat(wm && !out.some((m) => m.key === wm) ? [{ key: wm, label: monthAgenda([{ id: "_", title: "", owner: "Both", category: "admin", status: "open", due: wedding }], "0000-01-01")[0].label, items: [], total: 0, done: 0 }] : [])
     .sort((a, b) => (a.key === "none" ? 1 : b.key === "none" ? -1 : a.key.localeCompare(b.key)));
+}
+
+// ---- quick add + list groups ----
+/** Quick-add defaults: owner Both, category admin, no date. */
+export const quickDraft = (): TaskDraft => ({ ...emptyDraft(), owner: "Both", category: "admin" });
+
+/** Would a just-added draft be hidden by the current filters/view? */
+export function hiddenByFilters(d: Pick<TaskDraft, "owner" | "category">, f: TaskFilter, view: PlanFilter): boolean {
+  return !!(f.owner && d.owner !== f.owner) || !!(f.category && d.category !== f.category) || view === "decisions";
+}
+
+/** "13 days late" (shown once when the state chip already says Overdue). */
+export function lateLabel(due: string, today: string): string {
+  const n = dayDiff(due, today);
+  return `${n} day${n === 1 ? "" : "s"} late`;
+}
+
+export interface ListGroup { key: string; label: string; tasks: Task[]; overdue: boolean; collapsed: boolean }
+const MONTH_FMT = (key: string) => new Date(`${key}-01T12:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+const GROUP_NAME: Record<TaskGroup, string> = { overdue: "Overdue", week: "This week", later: "Later", nodate: "No date", done: "Done" };
+
+/** Overdue, This week, one group per calendar month, No date, Done. Months after today's month + `openMonths` start collapsed. */
+export function listGroups(tasks: Task[], today: string, openMonths = 2): ListGroup[] {
+  const [y, mo] = today.slice(0, 7).split("-").map(Number);
+  const last = new Date(Date.UTC(y, mo - 1 + openMonths, 1)).toISOString().slice(0, 7);
+  return groupTasks(tasks, today).flatMap((g): ListGroup[] => {
+    if (g.group !== "later") return [{ key: g.group, label: GROUP_NAME[g.group], tasks: g.tasks, overdue: g.group === "overdue", collapsed: false }];
+    const by = new Map<string, Task[]>();
+    for (const t of g.tasks) { const k = (t.due as string).slice(0, 7); by.set(k, [...(by.get(k) ?? []), t]); }
+    return [...by.keys()].sort().map((k) => ({ key: k, label: MONTH_FMT(k), tasks: by.get(k) as Task[], overdue: false, collapsed: k > last }));
+  });
 }

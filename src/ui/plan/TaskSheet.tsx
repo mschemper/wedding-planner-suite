@@ -8,10 +8,10 @@ import { SaveError } from "../SaveError";
 import { blockerChoices, depChanges, draftError, draftOf, fmtDay, taskChanges, type TaskDraft } from "./model";
 
 
-export function TaskFields({ draft, set }: { draft: TaskDraft; set(p: Partial<TaskDraft>): void }) {
+export function TaskFields({ draft, set, hideTitle }: { draft: TaskDraft; set(p: Partial<TaskDraft>): void; hideTitle?: boolean }) {
   return (
     <div className="pl-fields">
-      <Field label="Title" wide><input value={draft.title} onChange={(e) => set({ title: e.target.value })} maxLength={200} /></Field>
+      {!hideTitle && <Field label="Title" wide><input value={draft.title} onChange={(e) => set({ title: e.target.value })} maxLength={200} /></Field>}
       <Field label="Owner">
         <Segmented<Owner> label="Owner" value={draft.owner} onChange={(owner) => set({ owner })}
           options={[{ value: "Mark", label: "Mark" }, { value: "Angela", label: "Angela" }, { value: "Both", label: "Both" }]} />
@@ -28,8 +28,10 @@ export function TaskFields({ draft, set }: { draft: TaskDraft; set(p: Partial<Ta
 
 function WaitsOn({ task, tasks, deps, setDeps }: { task: Task; tasks: Task[]; deps: string[]; setDeps(d: string[]): void }) {
   const [q, setQ] = useState("");
+  const [list, setList] = useState(false);
   const byId = useMemo(() => byIdMap(tasks), [tasks]);
-  const choices = useMemo(() => blockerChoices(tasks, task.id, deps, q), [tasks, task.id, deps, q]);
+  const show = q.trim() !== "" || list;
+  const choices = useMemo(() => (show ? blockerChoices(tasks, task.id, deps, q) : []), [show, tasks, task.id, deps, q]);
   return (
     <div className="pl-waits">
       <ul className="pl-dep-picked" aria-label="Waits on">
@@ -38,15 +40,18 @@ function WaitsOn({ task, tasks, deps, setDeps }: { task: Task; tasks: Task[]; de
             <button type="button" aria-label={`Stop waiting on ${byId.get(id)?.title ?? id}`} onClick={() => setDeps(deps.filter((x) => x !== id))}>✕</button></li>
         ))}
       </ul>
-      <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tasks to wait on" aria-label="Search tasks to wait on" />
-      {(q.trim() !== "" || deps.length === 0) && choices.length > 0 && (
+      <div className="pl-dep-search">
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tasks to wait on" aria-label="Search tasks to wait on" />
+        <Button onClick={() => setList((l) => !l)}>{list ? "Hide list" : "Pick from list"}</Button>
+      </div>
+      {show && (choices.length > 0 ? (
         <ul className="pl-dep-choices">
           {choices.map((c) => (
             <li key={c.id}><button type="button" onClick={() => { setDeps([...deps, c.id]); setQ(""); }}>
               {c.title}{c.due ? ` · ${fmtDay(c.due)}` : ""}</button></li>
           ))}
         </ul>
-      )}
+      ) : <p className="pl-hint">No matching open tasks.</p>)}
     </div>
   );
 }

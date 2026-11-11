@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS } from "../src/data/params";
 import type { Task } from "../src/plan/types";
 import {
   completePatch, createTaskOp, draftError, dueLabel, duplicateFlags, emptyDraft, filterTasks,
-  NO_FILTER, blockerChoices, calendarMonths, depChanges, matchesView, rowInfo, stateChip, weddingMarker, pasteOps, pasteSummary, reopenPatch, shortVenueName, sourceUrl, taskChanges, draftOf, dayDiff,
+  NO_FILTER, blockerChoices, calendarMonths, hiddenByFilters, lateLabel, listGroups, quickDraft, depChanges, matchesView, rowInfo, stateChip, weddingMarker, pasteOps, pasteSummary, reopenPatch, shortVenueName, sourceUrl, taskChanges, draftOf, dayDiff,
 } from "../src/ui/plan/model";
 import { byIdMap, unblockedBy } from "../src/plan/deps";
 import { doneLabel } from "../src/ui/plan/model";
@@ -154,5 +154,31 @@ describe("v16 unblock toast", () => {
     expect(doneLabel(A)).toBe("Done: Pick caterer");
     expect(doneLabel(A, 1)).toBe("Done: Pick caterer · 1 task now ready");
     expect(doneLabel(A, 3)).toBe("Done: Pick caterer · 3 tasks now ready");
+  });
+});
+
+describe("v17 list groups, quick add, late label", () => {
+  const mk = (id: string, due: string | null, o: Partial<Task> = {}) => task({ id, title: id, due, ...o });
+  const list = [
+    mk("old", "2026-10-01"), mk("wk", "2026-10-30"), mk("nov", "2026-11-20"), mk("dec", "2026-12-05"), mk("jan", "2027-01-15"),
+    mk("feb", "2027-02-02"), mk("may", "2027-05-01"), mk("may2", "2027-05-09"), mk("none", null), mk("dn", "2027-05-01", { status: "done" }),
+  ];
+  it("Overdue, This week, months, No date, Done; far months collapse", () => {
+    const g = listGroups(list, T0);
+    expect(g.map((x) => x.label)).toEqual(["Overdue", "This week", "November 2026", "December 2026", "January 2027", "February 2027", "May 2027", "No date", "Done"]);
+    expect(g.map((x) => x.collapsed)).toEqual([false, false, false, false, true, true, true, false, false]);
+    expect(g.find((x) => x.key === "2027-05")?.tasks.map((t) => t.id)).toEqual(["may", "may2"]);
+    expect(g[0].overdue).toBe(true);
+  });
+  it("quick add defaults and hidden-by-filters", () => {
+    expect(quickDraft()).toMatchObject({ owner: "Both", category: "admin", due: "", title: "" });
+    expect(createTaskOp({ ...quickDraft(), title: "x" }, "manual", T0)).toMatchObject({ row: { owner: "Both", category: "admin", due: null } });
+    expect(hiddenByFilters(quickDraft(), NO_FILTER, "all")).toBe(false);
+    expect(hiddenByFilters(quickDraft(), { ...NO_FILTER, owner: "Mark" }, "all")).toBe(true);
+    expect(hiddenByFilters(quickDraft(), NO_FILTER, "decisions")).toBe(true);
+  });
+  it("late label", () => {
+    expect(lateLabel("2026-10-13", "2026-10-26")).toBe("13 days late");
+    expect(lateLabel("2026-10-25", T0)).toBe("1 day late");
   });
 });

@@ -1,9 +1,11 @@
-// Day > Vendors (DESIGN-v11): summary strip, grouped list, payments, add/edit sheet.
+// Day > Vendors (DESIGN-v11): summary strip, grouped list, payments, Joinery preferred list (v17), add/edit sheet.
 import { useState } from "react";
 import { VENDOR_LABEL, vendorSummary, type Payment } from "../../plan/day";
 import { chicagoToday } from "../../plan/tasks";
 import type { Vendor, VendorCategory, VendorStatus } from "../../plan/types";
-import { VENUE_FACTS } from "../../data/venueFacts";
+import { preferredIn } from "./preferredModel";
+import { PreferredVendors } from "./PreferredVendors";
+import type { PreferredCategory } from "../../data/preferredVendors";
 import { useData } from "../data";
 import { money } from "../format";
 import { Button, Card, Chip, EmptyState, type ChipTone } from "../kit/kit";
@@ -24,8 +26,8 @@ export function Vendors({ venueId }: VendorsProps) {
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const today = chicagoToday();
   const sum = vendorSummary(vendors, today);
-  const recommended = VENUE_FACTS[venueId]?.recommended ?? {};
-  const hasSuggestions = Object.values(recommended).some((l) => l && l.length > 0);
+  const suggest = (c: VendorCategory): string[] => (["catering", "photo", "planner", "florals", "music"].includes(c) ? preferredIn(c as PreferredCategory).slice(0, 3).map((p) => p.name) : []);
+  const hasSuggestions = true;
   const addNew = (category?: VendorCategory, name?: string) => setSheet({ vendor: null, initial: emptyDraft(category, name, venueId) });
   const markPaid = (p: Payment) => void edit([markPaidPatch(p, today)], markPaidLabel(p));
   const nextDue = sum.next ? dueLabel(sum.next.due, today) : null;
@@ -45,7 +47,7 @@ export function Vendors({ venueId }: VendorsProps) {
       </Card>
 
       <Card title="By category">
-        {!vendors.length && <EmptyState>{hasSuggestions ? "No vendors yet. Add the first one, like your photographer, or tap a suggestion below." : "No vendors yet. Add the first one, like your photographer."}</EmptyState>}
+        {!vendors.length && <EmptyState>{hasSuggestions ? "No vendors yet. Add the first one, or shortlist from the Joinery preferred list below." : "No vendors yet. Add the first one, like your photographer."}</EmptyState>}
         <ul className="vd-list">
           {sum.byCategory.map(({ category, best, count }) => (
             <li key={category} className="vd-row">
@@ -65,7 +67,7 @@ export function Vendors({ venueId }: VendorsProps) {
                   {!offline && <Button onClick={() => addNew(category)}>Add</Button>}
                   {!offline && (
                     <span className="vd-sugg">
-                      {(recommended[category] ?? []).slice(0, 3).map((n) => <Button key={n} kind="quiet" onClick={() => addNew(category, n)}>{n}</Button>)}
+                      {suggest(category).map((n) => <Button key={n} kind="quiet" onClick={() => addNew(category, n)}>{n}</Button>)}
                     </span>
                   )}
                 </div>
@@ -91,6 +93,8 @@ export function Vendors({ venueId }: VendorsProps) {
           })}
         </Card>
       )}
+
+      <PreferredVendors venueId={venueId} onOpen={(id) => { const v = vendors.find((x) => x.id === id); if (v) setSheet({ vendor: v, initial: draftOf(v) }); }} />
 
       {sheet && (!sheet.vendor || liveVendor) && <VendorSheet key={liveVendor ? `${liveVendor.id}-${version("vendors", liveVendor.id) ?? 0}` : `new-${sheet.initial.category}-${sheet.initial.name}`} vendor={liveVendor} initial={liveVendor ? draftOf(liveVendor) : sheet.initial} onClose={() => setSheet(null)} />}
     </div>

@@ -23,3 +23,20 @@
 .vd-warn { color: var(--gold-ink); font-size: 14px; }
 .vd-confirm { flex: 1 1 auto; }
 .vd-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* v17 Joinery preferred list. Prefix pv-. */
+.pv-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.pv-row { padding: 10px 0; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+.pv-head { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.pv-name { font-weight: 700; font-size: 17px; }
+.pv-blurb { margin: 0; }
+.pv-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0; }
+.pv-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; margin: 0; font-size: 14px; }
+.pv-facts dt { color: var(--muted); font-weight: 600; }
+.pv-facts dd { margin: 0; overflow-wrap: anywhere; }
+.pv-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.pv-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: var(--euc-ink); }
+.pv-muted { color: var(--muted); font-size: 13px; }
+.pv-note { color: var(--peony-ink); font-weight: 600; margin: 8px 0 0; }
+.pv-tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 0; }
+.pv-search { flex: 1 1 200px; min-height: 44px; }
+.pv-err { color: var(--peony-ink); font-size: 14px; margin: 0; }

@@ -1,6 +1,5 @@
 // Plan tab (DESIGN-v14 §4): List | Calendar (remembered in prefs), filters All | Ready now | Decisions.
 import { useEffect, useState } from "react";
-import { Segmented } from "../kit/kit";
 import { useNav } from "../nav";
 import { usePrefs } from "../usePrefs";
 import { Tasks } from "./Tasks";
@@ -38,13 +37,7 @@ export function PlanScreen() {
 
   return (
     <div className="pl-screen">
-      <div className="pl-switch">
-        <Segmented<PlanMode> label="Plan view" value={mode} onChange={setMode}
-          options={[{ value: "list", label: "List" }, { value: "calendar", label: "Calendar" }]} />
-        <Segmented<PlanFilter> label="Show" value={view} onChange={setView}
-          options={[{ value: "all", label: "All" }, { value: "ready", label: "Ready now" }, { value: "decisions", label: "Decisions" }]} />
-      </div>
-      <Tasks mode={mode} view={view} highlight={highlight} />
+      <Tasks mode={mode} setMode={setMode} view={view} setView={setView} highlight={highlight} />
     </div>
   );
 }

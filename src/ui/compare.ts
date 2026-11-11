@@ -30,7 +30,7 @@ export function useCompare(): Compare {
   const split = splitText(guestSplit(hc, prefs.guestBasis, g));
   const guestsLabel = guests <= 0 ? `${g} guests (nothing decided yet)`
     : prefs.guestBasis === "custom" ? `${g} guests` : prefs.guestBasis === "ceiling" ? `${g} if everyone invited comes${split}`
-    : prefs.guestBasis === "considered" ? `≈ ${g} expected if the undecided are invited${split}` : `≈ ${g} expected${split}`;
+    : prefs.guestBasis === "considered" ? `≈ ${g} if we invite the maybes${split}` : `≈ ${g} expected${split}`;
   const s = useMemo(
     () => summarizeAll({ scenarios, venues, musthaves, fit, quotes, headcount: hc, guests: g, date, windows: settings.dateWindows, contingency: prefs.contingency }),
     [scenarios, venues, musthaves, fit, quotes, hc, g, date, settings.dateWindows, prefs.contingency],
@@ -67,7 +67,7 @@ export function useWeddingSummary(): WeddingSummary | null {
     const expected = Math.round(hc.invited.expected);
     const considered = Math.round(hc.invited.expected + hc.ifroom.expected + hc.undecided.expected);
     const guests = expected > 0 ? expected : considered > 0 ? considered : prefs.guests;
-    const guestsLabel = expected > 0 ? `≈ ${guests} expected` : considered > 0 ? `≈ ${guests} if the undecided are invited` : `${guests} guests (nothing decided yet)`;
+    const guestsLabel = expected > 0 ? `≈ ${guests} expected` : considered > 0 ? `≈ ${guests} if we invite the maybes` : `${guests} guests (nothing decided yet)`;
     const summary = summarize(s, { scenarios, venues, musthaves, fit, quotes, headcount: hc, guests, date: settings.heldDate, windows: settings.dateWindows, contingency: prefs.contingency });
     const b = summary.budget;
     // the total is priced at summary.guests (snapped into the venue's modelled range); say so, and report that count
