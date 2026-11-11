@@ -1,11 +1,11 @@
 // Household sheet "Mailing address" section (DESIGN-v14 §5). Draft state; its own Save (one save()). Private data: no logging.
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { Address } from "../../people/types";
 import { useData, type SaveResult } from "../data";
 import { Button, Chip, Field } from "../kit/kit";
 import { blankForm, createOp, failText, formDirty, formFrom, formIssue, formRow, todayIso, type AddrForm } from "./addressModel";
 
-export function AddressSection({ partyId }: { partyId: string }) {
+export function AddressSection({ partyId, onDirty }: { partyId: string; onDirty?(dirty: boolean): void }) {
   const { addresses, save, edit, version } = useData();
   const saved: Address | undefined = addresses.find((a) => a.id === partyId);
   const base = saved ? formFrom(saved) : blankForm(todayIso());
@@ -19,6 +19,8 @@ export function AddressSection({ partyId }: { partyId: string }) {
   const id = useId();
   const set = <K extends keyof AddrForm>(k: K, v: AddrForm[K]) => { setForm((f) => ({ ...f, [k]: v })); setIssue(null); setFail(null); setOk(false); };
   const dirty = formDirty(form, ref);
+  useEffect(() => { onDirty?.(dirty); }, [dirty, onDirty]);
+  useEffect(() => () => onDirty?.(false), [onDirty]);
 
   const finish = (r: SaveResult, next: AddrForm | null) => {
     setBusy(false);

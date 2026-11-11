@@ -25,7 +25,7 @@ import type { RelKind } from "../../people/relatives";
 import { RoomCheck, useRoom } from "./RoomCheck";
 import "./people.css";
 
-const VIEWS: { value: PeopleView | "addresses"; label: string }[] = [
+const VIEWS: { value: PeopleView; label: string }[] = [
   { value: "decide", label: "Decide" }, { value: "family", label: "Family" }, { value: "addresses", label: "Addresses" },
 ];
 
@@ -42,8 +42,6 @@ export function PeopleScreen() {
   const [quick, setQuick] = useState(false);
   const [tidyOpen, setTidyOpen] = useState(false);
   const [note, setNote] = useState("");
-  // v14: Addresses section is local (PeopleView in prefs.ts is lead-owned)
-  const [addrView, setAddrView] = useState(false);
   const seq = useRef(0);
   const open = useCallback((t: SheetRequest) => setTarget({ ...t, key: String(++seq.current) } as SheetTarget), []);
   // v8: one household card for households and their people
@@ -59,7 +57,7 @@ export function PeopleScreen() {
   const tidy = useMemo(() => tidyItems(people, rings), [people, rings]);
   const room = useRoom(rings);
   const view: PeopleView = prefs.peopleView ?? "decide";
-  const section: PeopleView | "addresses" = addrView ? "addresses" : view;
+  const section = view;
   // row versions in the sheet keys: a reload / other-device change / Undo resets the drafts
   const vsum = (ids: (string | undefined)[], table: "people" | "parties") => ids.map((i) => (i ? version(table, i) ?? 0 : 0)).join(".");
   const hhVer = hh?.partyId ? `${vsum([hh.partyId], "parties")}:${vsum(people.people.filter((p) => p.party_id === hh.partyId).map((p) => p.id), "people")}` : "";
@@ -85,7 +83,7 @@ export function PeopleScreen() {
   return (
     <div className="pp-screen">
       <div className="pp-top">
-        <div className="pp-views"><Segmented<PeopleView | "addresses"> label="People view" options={VIEWS.map((v) => ({ ...v, tone: "euc" as const }))} value={section} onChange={(v) => { if (v === "addresses") setAddrView(true); else { setAddrView(false); set({ peopleView: v }); } }} /></div>
+        <div className="pp-views"><Segmented<PeopleView> label="People view" options={VIEWS.map((v) => ({ ...v, tone: "euc" as const }))} value={section} onChange={(v) => set({ peopleView: v })} /></div>
         <div className="pp-adds">
           <Menu label="Add" trigger={<>Add <span aria-hidden="true">▾</span></>} align="right" items={[
             { key: "h", label: "New household (family)…", onSelect: () => openCard({ partyId: null, kind: "family", side: "Mark" }) },
@@ -110,7 +108,7 @@ export function PeopleScreen() {
       {section === "addresses" && <AddressesView onHousehold={openHousehold} />}
       {section === "family" && <Family rel={rel} act={act} onHousehold={openHousehold} onPerson={editPerson} onRelative={openRelative} />}
       {quick && <QuickAddFriend rings={rings} onClose={() => setQuick(false)} />}
-      {tidyOpen && <TidySheet tidy={tidy} people={people} act={act} onClose={() => setTidyOpen(false)} onFamily={() => { setAddrView(false); set({ peopleView: "family" }); }} onHousehold={openHousehold} />}
+      {tidyOpen && <TidySheet tidy={tidy} people={people} act={act} onClose={() => setTidyOpen(false)} onFamily={() => set({ peopleView: "family" })} onHousehold={openHousehold} />}
       {hh && <HouseholdCard key={`h${hh.key}:${hhVer}`} target={hh} tc={tc} relation={relOfId} onClose={() => setHh(null)} onOpen={(id, f) => openCard({ partyId: id, focus: f })} onRelative={openRelative} />}
       {picking && <HouseholdPicker onClose={() => setPicking(false)} onPick={(id) => { setPicking(false); openCard({ partyId: id, addNew: true }); }} onNew={() => { setPicking(false); openCard({ partyId: null }); }} />}
       <PersonSheet key={`${target?.key ?? "none"}:${personVer}`} target={target} onClose={() => setTarget(null)} rel={rel} onRelative={openRelative} />

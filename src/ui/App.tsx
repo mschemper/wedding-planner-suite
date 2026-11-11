@@ -40,7 +40,6 @@ export function App() {
   const nav = useMemo<Nav>(() => ({
     tab: prefs.tab,
     setTab: (tab) => { set({ tab }); window.scrollTo({ top: 0 }); },
-    openVenue: (id) => { set({ tab: "budget", selected: id }); setFocus({ venue: id }); window.scrollTo({ top: 0 }); },
     openPerson: (id) => { set({ tab: "people" }); setFocus({ person: id }); },
     openTask: (id) => { set({ tab: "plan" }); setFocus({ task: id }); },
     openPlan: (view) => { set({ tab: "plan" }); setFocus({ plan: view ?? {} }); window.scrollTo({ top: 0 }); },

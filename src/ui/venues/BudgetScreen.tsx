@@ -1,12 +1,10 @@
 // Budget tab (DESIGN-v14 §3): the booked venue priced on the held date. Guest basis + contingency, budget, quotes, prices.
-import { useEffect } from "react";
 import { snapGuests } from "../../engine/compute";
 import { weddingVenue } from "../../plan/day";
 import { fmtDay } from "../plan/model";
 import { Card, EmptyState, Segmented } from "../kit/kit";
 import { useCompare } from "../compare";
 import { useData } from "../data";
-import { useNav } from "../nav";
 import type { GuestBasis } from "../prefs";
 import { usePrefs } from "../usePrefs";
 import { CONTINGENCIES, DetailView, GuestPicker, HOME_STOPS } from "./BudgetDetail";
@@ -17,13 +15,8 @@ import "./venues.css";
 
 export function BudgetScreen() {
   const { prefs, set } = usePrefs();
-  const { focus, clearFocus } = useNav();
   const { status, scenarios, venues, settings, quotes, headcount: hc, offline } = useData();
   const cmp = useCompare();
-
-  useEffect(() => {
-    if (focus.venue != null) clearFocus();
-  }, [focus.venue, clearFocus]);
 
   if (status === "loading") return <Card title="Budget"><EmptyState>Loading budget…</EmptyState></Card>;
 

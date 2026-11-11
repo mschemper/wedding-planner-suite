@@ -9,8 +9,6 @@ export interface PlanView { mode?: "list" | "calendar"; filter?: "all" | "ready"
 export interface Nav {
   tab: Tab;
   setTab(t: Tab): void;
-  /** Venues tab, open this venue's detail */
-  openVenue(scenarioId: number): void;
   /** People tab, open this person's Edit details sheet */
   openPerson(personId: string): void;
   /** Plan tab, scroll to / highlight this task */
@@ -21,8 +19,8 @@ export interface Nav {
   openDay(section?: DaySection): void;
   /** Venues tab, compare every venue at this guest count */
   priceAt(guests: number): void;
-  /** target set by openVenue/openPerson/openTask; the screen clears it once handled */
-  focus: { venue?: number; person?: string; task?: string; plan?: PlanView };
+  /** target set by openPerson/openTask/openPlan; the screen clears it once handled */
+  focus: { person?: string; task?: string; plan?: PlanView };
   clearFocus(): void;
 }
 

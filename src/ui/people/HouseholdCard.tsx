@@ -62,6 +62,8 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
   const [err, setErr] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDrop, setConfirmDrop] = useState<string | null>(null);
+  // B14: an unsaved address draft counts as unsaved changes (✕/Esc ask first; household Save waits for it)
+  const [addrDirty, setAddrDirty] = useState(false);
   const byId = useMemo(() => new Map(people.people.map((p) => [p.id, p])), [people.people]);
   const circles = useMemo(() => [...new Set(people.parties.map((p) => p.circle).filter((c): c is string => !!c))].sort(), [people.parties]);
   const otherParties = useMemo(() => people.parties.filter((x) => x.id !== party?.id).sort((a, b) => a.name.localeCompare(b.name)), [people.parties, party?.id]);
@@ -81,7 +83,7 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
 
   const onSave = async () => {
     if (!card) return;
-    const issues = cardIssues(card);
+    const issues = [...cardIssues(card), ...(addrDirty ? ["The mailing address has unsaved changes: Save address (or undo them) first."] : [])];
     setProblems(issues);
     if (issues.length) return;
     const pv = party ? version("parties", party.id) : undefined;
@@ -118,7 +120,7 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
 
   const title = isNew ? "New household" : party ? (card?.customName ? card.household.name || party.name : auto || party.name) : "Household";
   return (
-    <Sheet title={title} open onClose={onClose} dirty={dirty}
+    <Sheet title={title} open onClose={onClose} dirty={dirty || addrDirty}
       footer={<><Button onClick={onClose}>Cancel</Button><Button kind="primary" disabled={busy || !card || (!party && !isNew)} onClick={() => void onSave()}>{busy ? "Saving…" : "Save"}</Button></>}>
       <SaveError result={err} onDismiss={() => setErr(null)} />
       {askRel && <DiscardAsk name={title} onDiscard={() => { const a = askRel; setAskRel(null); onRelative(a.of, a.kind); }} onKeep={() => setAskRel(null)} />}
@@ -261,7 +263,7 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
             </div>
           )}
 
-          {party && <AddressSection key={`${party.id}:${version("addresses", party.id) ?? 0}`} partyId={party.id} />}
+          {party && <AddressSection key={`${party.id}:${version("addresses", party.id) ?? 0}`} partyId={party.id} onDirty={setAddrDirty} />}
 
           {/* household extras */}
           <details className="pp-more wide">
