@@ -7,6 +7,7 @@ import { unblockedBy } from "../../plan/deps";
 import { useData } from "../data";
 import { Chip, OwnerChip } from "../kit/kit";
 import { completePatch, doneLabel, dueLabel, isDecision, lateLabel, reopenPatch, sourceUrl, stateChip, type RowInfo } from "./model";
+import { TaskVendorLink } from "./TaskVendors";
 import "./plan.css";
 
 export function TaskRow({ task, today, onOpen, highlight, info, warn }: {
@@ -44,6 +45,7 @@ export function TaskRow({ task, today, onOpen, highlight, info, warn }: {
           {url && <a href={url} target="_blank" rel="noopener noreferrer" className="pl-src">email ↗</a>}
           {!url && task.source === "email" && <Chip>from email</Chip>}
         </div>
+        <TaskVendorLink task={task} />
         {warn?.map((w) => <div key={w} className="pl-warn"><span aria-hidden="true">⚠</span> {w}</div>)}
         {err && <div className="pl-err" role="alert">Not saved: {err}</div>}
       </div>

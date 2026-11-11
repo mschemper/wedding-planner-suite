@@ -4,6 +4,7 @@ One row per release, newest first (RELEASE.md rule 10). **New rows <= 200 charac
 
 | Version | Size / setup | Lead | Subagents (model: tokens) | Rework | Verdict and next time |
 |---|---|---|---|---|---|
+| v18 Vendors on tasks (11 Nov 2026) | Small: Opus lead, no subagents | Opus | none | Low | Fitted; Sonnet could build it |
 | v17 Tasks, swipe deck, vendors (11 Nov 2026) | Medium: Opus lead; 2 Sonnet builders; 2 Sonnet research | Opus | Sonnet 0.11,0.14,0.14,0.17M | Low | Fitted |
 | v16 Layout picks (10 Nov 2026) | Small: Opus lead, no subagents, browser check | Opus | none | Low | Fitted; Sonnet could build it |
 | v15 Review fixes (10 Nov 2026) | Small: Opus lead, browser QA/UAT, no subagents | Opus | none | Low | Fitted; Sonnet could run the fixes |

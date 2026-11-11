@@ -82,6 +82,10 @@ Newest first. Each entry: what changed and why.
 - Firehouse Chicago kids' room capacity 20 (Bunk Room), adults seated 82. Source: Mark, 22 Oct 2026 (chat). `capacity.kids` added to Scenario; capacity checks adults and kids separately. Kids stay priced as adults (Mark's choice).
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
 
+## v18 rationale (11 Nov 2026)
+- Mark: preferred vendors must show by function in the task list, calendar and plan. Task → vendor type via checklist key (`template:`/`milestone:`), else title words on category "vendor" tasks (src/ui/day/preferredModel.ts `taskVendorType`). One shared TaskRow link covers Plan list, Calendar, Today and Our venue; nav `openPreferred(type)` + `focus.preferred` deep-links Day → Vendors.
+- Release log v17: tag v17, deployed 11 Nov 2026, Worker 892166d5-fe51-4295-8806-fc4982cb526f, no migration; v17-live-data applied.
+
 ## v17 rationale (11 Nov 2026)
 - Add-task bug: B23 (v12) deduped every task create on `source`, so all "manual" adds after the first were skipped while the UI reported success. Dedupe now only on key sources (`template:`, `milestone:`); regression test in tests/worker.test.ts.
 - Mark's picks (one question round): swipe deck covers everything outstanding; task list = quick-add + tidy; plain Budget wording; Today venue = one line; close stale venue tasks (none open on live; only T009's title fixed). Hotfix deferred to the release (Mark).

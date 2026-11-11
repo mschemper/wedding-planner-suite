@@ -58,3 +58,9 @@
 .pl-dep-choices { list-style: none; display: grid; gap: 4px; margin-top: 6px; }
 .pl-dep-choices button { width: 100%; min-height: 44px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 6px 10px; }
 .pl-unblocks { font-size: 14px; color: var(--muted); margin: 6px 0; }
+/* v18 Joinery preferred vendors on tasks */
+.pl-pref { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--euc-ink); text-align: left; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; cursor: pointer; }
+.pl-vendors { display: grid; gap: 6px; }
+.pl-vendor-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pl-vendor-list li { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+.pl-vendor-blurb { flex: 1 1 100%; color: var(--muted); font-size: 14px; }

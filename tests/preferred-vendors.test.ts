@@ -1,7 +1,7 @@
 // v17 Joinery preferred list: data shape + pure helpers (src/ui/day/preferredModel.ts). Business info only.
 import { describe, expect, it } from "vitest";
 import { PREFERRED } from "../src/data/preferredVendors";
-import { offersDayOf, preferredIn, shortlistCount, shortlistOp, trackedAs } from "../src/ui/day/preferredModel";
+import { offersDayOf, preferredIn, preferredLine, taskVendorType, shortlistCount, shortlistOp, trackedAs } from "../src/ui/day/preferredModel";
 import type { Vendor } from "../src/plan/types";
 
 describe("preferred vendors", () => {
@@ -33,5 +33,17 @@ describe("preferred vendors", () => {
     expect(trackedAs(p, [{ ...v, category: "photo" }])).toBeUndefined();
     expect(shortlistCount("music", [v])).toEqual({ total: 13, tracked: 1 });
     expect(shortlistOp(p, 5)).toMatchObject({ table: "vendors", op: "create", row: { category: "music", name: "Toast and Jam", status: "idea", scenario_id: 5 } });
+  });
+  it("maps tasks to a vendor type: checklist key first, then words on vendor tasks", () => {
+    const t = (source: string | null, title: string, category = "vendor") => ({ source, title, category }) as never;
+    expect(taskVendorType(t("template:caterer", "Choose the caterer"))).toBe("catering");
+    expect(taskVendorType(t("template:planner-book", "Book the planner"))).toBe("planner");
+    expect(taskVendorType(t("milestone:photo", "x", "admin"))).toBe("photo");
+    expect(taskVendorType(t("template:music", "Decide music"))).toBe("music");
+    expect(taskVendorType(t("template:florist-book", "Book the florist"))).toBe("florals");
+    expect(taskVendorType(t("template:cake", "Choose cake"))).toBeNull();
+    expect(taskVendorType(t("manual", "Call two DJs"))).toBe("music");
+    expect(taskVendorType(t("manual", "Ask about flowers", "design"))).toBeNull();
+    expect(preferredLine("catering", [])).toBe("21 Joinery caterers");
   });
 });

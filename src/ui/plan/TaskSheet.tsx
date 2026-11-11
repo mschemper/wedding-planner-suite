@@ -5,6 +5,7 @@ import { CATEGORIES, type Category, type Owner, type Task, type TaskKind } from 
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Segmented, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
+import { TaskVendorSection } from "./TaskVendors";
 import { blockerChoices, depChanges, draftError, draftOf, fmtDay, taskChanges, type TaskDraft } from "./model";
 
 
@@ -103,6 +104,7 @@ export function TaskSheet({ task, tasks, onClose }: { task: Task; tasks: Task[];
         </div>
         {earliest && draft.due < earliest && <p className="pl-hint" role="status">Earliest sensible due: {fmtDay(earliest, true)}</p>}
         {unblocks.length > 0 && <p className="pl-unblocks">Unblocks: {unblocks.map((t) => t.title).join("; ")}</p>}
+        <TaskVendorSection task={task} onLeave={onClose} />
         <Field label="Details" wide><textarea value={detailOnly} onChange={(e) => setDetail(e.target.value)} /></Field>
       </fieldset>
       {bad && <p className="pl-err" role="alert">{bad}</p>}

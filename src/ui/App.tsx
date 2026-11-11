@@ -43,6 +43,7 @@ export function App() {
     openPerson: (id) => { set({ tab: "people" }); setFocus({ person: id }); },
     openTask: (id) => { set({ tab: "plan" }); setFocus({ task: id }); },
     openPlan: (view) => { set({ tab: "plan" }); setFocus({ plan: view ?? {} }); window.scrollTo({ top: 0 }); },
+    openPreferred: (type) => { set({ tab: "day", daySection: "vendors" }); setFocus({ preferred: type }); },
     openDay: (section) => { set({ tab: "day", ...(section ? { daySection: section } : {}) }); window.scrollTo({ top: 0 }); },
     priceAt: (g) => { set({ tab: "budget", guestBasis: "custom", guests: clamp(Math.round(g), 20, 300), selected: null }); window.scrollTo({ top: 0 }); },
     focus,

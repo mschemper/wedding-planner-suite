@@ -1,5 +1,6 @@
 // Day → Vendors → Joinery preferred list (v17): browse the venue's list by category with researched descriptions; one tap adds a vendor to the shortlist (vendor row, status "idea").
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNav } from "../nav";
 import { PREFERRED_NOTES, PREFERRED_SOURCE, type PreferredCategory, type PreferredVendor } from "../../data/preferredVendors";
 import { useData } from "../data";
 import { Button, Card, Chip, EmptyState, FilterChip, Segmented } from "../kit/kit";
@@ -50,7 +51,16 @@ function Row({ p, venueId, onOpen }: { p: PreferredVendor; venueId: number; onOp
 
 export function PreferredVendors({ venueId, onOpen }: { venueId: number; onOpen(vendorId: string): void }) {
   const { vendors } = useData();
-  const [cat, setCat] = useState<PreferredCategory>("catering");
+  const { focus, clearFocus } = useNav();
+  const [cat, setCat] = useState<PreferredCategory>(focus.preferred ?? "catering");
+  // v18: opened from a task ("★ 21 Joinery caterers"): show that type and scroll to the list
+  useEffect(() => {
+    if (!focus.preferred) return;
+    setCat(focus.preferred); setMarked(false); setQuery("");
+    // clear after scrolling: clearing first would re-run this effect and cancel the timer
+    const t = setTimeout(() => { document.getElementById("preferred")?.scrollIntoView({ block: "start" }); clearFocus(); }, 60);
+    return () => clearTimeout(t);
+  }, [focus.preferred, clearFocus]);
   const [marked, setMarked] = useState(false);
   const [query, setQuery] = useState("");
   const list = preferredIn(cat, { markedOnly: marked, query });
