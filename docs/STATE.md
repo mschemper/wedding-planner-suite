@@ -9,7 +9,7 @@ Last updated: 11 November 2026 (v17).
 
 | | |
 |---|---|
-| Current | **v17** (tag `v17`, package.json 17.0.0): add-task fix, quick-add task list, People swipe review deck, Joinery preferred vendors (`src/data/preferredVendors.ts`), plain Budget wording. No migration; `scripts/v17-live-data.sql`. Not deployed yet. |
+| Current | **v17** (tag `v17`, package.json 17.0.0): add-task fix, quick-add task list, People swipe review deck, Joinery preferred vendors (`src/data/preferredVendors.ts`), plain Budget wording. No migration; `scripts/v17-live-data.sql` applied (1 row). Deployed 11 Nov 2026: Worker version 892166d5-fe51-4295-8806-fc4982cb526f. Unauthenticated `/`, `/api/version` redirect to Access (verified); signed-in app not checked. |
 | Previous | **v16** (tag `v16`, 16.0.0), deployed 10 Nov 2026, Worker version 946a1e79; no migration. Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
 | Look | Jungalow Lounge (docs/DESIGN-v9.md); Day tab docs/DESIGN-v11.md; Budget/Plan/Addresses docs/DESIGN-v14.md. Older: docs/archive/ |
@@ -54,7 +54,7 @@ In `src/data/venueFacts.ts` [5].questions (Day → Our venue) and the checklist 
 
 - Cloudflare Workers + Static Assets + D1 + Access, account `mschemper@gmail.com` (ID 57b28195dc1564bee550b665117db76c). Access team `sukursschemper.cloudflareaccess.com`, one-time PIN, allowed: Mark + Angela. D1 `wedding-planner` id 87b1c95c-7e87-4307-98a3-cac03d0a3937 (ENAM).
 - Migrations applied (remote): 0001–0005 (0005 on 23 Oct 2026); 0006 (vendors, timeline) on 9 Nov 2026. 0007 (quotes.date) + `scripts/v12-live-data.sql` on 10 Nov 2026. 0008 (tasks.depends_on/kind, addresses) + v14 live data on 10 Nov 2026. v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
-- Latest backup (before v16): `data/private/d1-backup-v15.sql` (10 Nov 2026, 712 INSERT rows). Older: HISTORY.md.
+- Latest backup (before v17): `data/private/d1-backup-v16.sql` (11 Nov 2026, 712 INSERT rows). Older: HISTORY.md.
 - Deploy, rollback, re-seed: docs/DEPLOY.md.
 
 ## Standing preferences (Mark)
