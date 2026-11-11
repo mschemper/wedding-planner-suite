@@ -10,6 +10,9 @@ import { cycleIds } from "../src/plan/deps";
 import { deleteStmt, guardStmt, insertStmt, isTable, loadState, normalize, SPECS, updateStmt, type Rec, type State } from "./db";
 import type { D1Database, D1PreparedStatement } from "./env";
 
+/** Task sources that are dedupe keys (checklist template, legacy milestones). */
+const isKeySource = (v: unknown): v is string => typeof v === "string" && /^(template|milestone):/.test(v);
+
 export const AUDIT_KEEP = 1000;
 const MAX_OPS = 500;
 
@@ -68,14 +71,15 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
   const ids: Record<string, string> = {};
   const createIds = new Map<Op, string>();
   const taken: Partial<Record<TableName, Set<string>>> = {};
-  // B23: a task create whose non-null `source` already exists (stored, or earlier in this batch) is skipped; its tmp id maps to the existing row.
+  // B23: a task create whose dedupe key `source` (template:/milestone:) already exists (stored, or earlier in this batch) is skipped; its tmp id maps to the existing row.
+  // Plain sources ("manual", "email", URLs) are shared by many tasks and never dedupe.
   const skipped = new Set<Op>();
   const sources = new Map<string, string>();
-  for (const r of st.tasks.values()) if (typeof r.source === "string" && r.source) sources.set(r.source, String(r.id));
+  for (const r of st.tasks.values()) if (isKeySource(r.source)) sources.set(r.source, String(r.id));
   for (const o of ops as Op[]) {
     if (o.op !== "create") continue;
     const row = (o.row ?? {}) as Rec;
-    if (o.table === "tasks" && typeof row.source === "string" && row.source) {
+    if (o.table === "tasks" && isKeySource(row.source)) {
       const have = sources.get(row.source);
       if (have !== undefined) {
         if (isTmp(row.id)) {
@@ -121,7 +125,7 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
       ids[row[spec.pk] as string] = id;
     }
     createIds.set(o, id);
-    if (o.table === "tasks" && typeof row.source === "string" && row.source) sources.set(row.source, id);
+    if (o.table === "tasks" && isKeySource(row.source)) sources.set(row.source, id);
   }
   const resolve = (v: unknown): unknown => (Array.isArray(v) ? v.map(resolve) : isTmp(v) ? (ids[v] ?? v) : v);
   const hasTmp = (v: unknown): boolean => (Array.isArray(v) ? v.some(hasTmp) : isTmp(v));

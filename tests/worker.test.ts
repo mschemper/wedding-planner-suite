@@ -274,6 +274,13 @@ describe("writes", () => {
     expect(again.data.tasks.filter((t) => t.source === "milestone:test").length).toBe(1);
   });
 
+  it("manual and email tasks never dedupe on source (v17 add-task bug)", async () => {
+    const mk = (title: string, source: string) => ({ table: "tasks", op: "create", row: { title, source } }) as Op;
+    await ok([mk("First", "manual")]);
+    const r = await ok([mk("Second", "manual"), mk("Third", "email"), mk("Fourth", "email")]);
+    for (const t of ["First", "Second", "Third", "Fourth"]) expect(r.data.tasks.some((x) => x.title === t)).toBe(true);
+  });
+
   it("audit records before/after; trimmed to AUDIT_KEEP", async () => {
     await ok([{ table: "parties", op: "update", id: "H-M4", version: 1, row: { talk: true, talk_note: "ask Angela" } }]);
     const a = (await (await call("/api/audit?limit=5")).json()) as { tbl: string; before: { talk: number }; after: { talk: boolean } }[];
