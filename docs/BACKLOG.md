@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 10 Nov 2026 (v18 shipped, not deployed).
+Last reviewed: 10 Nov 2026 (v18 shipped, deployed).
 
 ---
 

@@ -104,7 +104,7 @@ Newest first. Each entry: what changed and why.
 - Docs: superseded DESIGN/REVIEW docs + mockups moved to docs/archive/ to shrink what agents scan.
 
 ## Release log (moved from STATE.md, 23 Oct 2026)
-- Backup before v17: `data/private/d1-backup-v16.sql`; before v16: `d1-backup-v15.sql`; before v15: `d1-backup-v14.sql`; before v14: `d1-backup-v13.sql` (706 rows), Time Travel bookmark before 0008: 0000004a-00000000-00005120-6de4cc6a93b752803ea1b4deaeae6c77.
+- Backup before v18: `data/private/d1-backup-v17.sql`; before v17: `d1-backup-v16.sql`; before v16: `d1-backup-v15.sql`; before v15: `d1-backup-v14.sql`; before v14: `d1-backup-v13.sql` (706 rows), Time Travel bookmark before 0008: 0000004a-00000000-00005120-6de4cc6a93b752803ea1b4deaeae6c77.
 - **v13** (tag `v13`, 13.0.0), deployed 9 Nov 2026, Worker version 2976f4fd; Plan feed (F27), no migration.
 - **v12** (tag `v12`, 12.0.0), deployed 10 Nov 2026, Worker version 017f384b-e98d-4cbd-a564-c7d2afefc5d6; migration 0007. Backup before v12: `data/private/d1-backup-v11.sql`; bookmark before 0007: 0000003e-00000000-0000511f-91d6ac82b1bd508412f58788bd44a34a.
 - **v11** (tag `v11`, 11.0.0), deployed 9 Nov 2026, Worker version 5dcf0c0a-a7af-461d-b9af-8962abca2129; migration 0006. Rollback: docs/DEPLOY.md
