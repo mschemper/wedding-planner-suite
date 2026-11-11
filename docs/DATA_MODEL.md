@@ -21,7 +21,7 @@
 - Headcount (`src/people/headcount.ts`): invited / if room / undecided / no tallies (heads, adults, kids' room, expected at §2.3 rates: local 0.85, away 0.55, unknown 0.78; accepted 1, declined 0). Capacity cutoff per venue: main room = adults (+ kids when no kids' room) at full acceptance; ranked if-room households added until the cap.
 - Relationships (`src/people/kin.ts`): derived from parent/partner links (core set + "-in-law" via one partner hop); a stored gendered label wins when it names the same relation. Label words match whole words; only the first "/" alternative counts; a possessive ("Aunt's stepson") or "great-" = unknown.
 - Import (`npm run import:v4`, `src/people/fromWorkbook.ts`): workbook households → parties, individuals → people, friend groups → a party + 1–2 people; status precedence and inference rules in DESIGN-v4 §5. Output `data/private/garden.json` + `import-review.json` (both gitignored).
-- Mailing addresses, phones and guest emails: not stored (no plan yet).
+- **addresses** (v14, 0008; DESIGN-v14 §5): one per household, id = party id; line1, line2, city, region (US 2-letter), postal, country (ISO-2, default US), source, gathered (date), verified, notes. Private: D1 (+ audit) and `data/private/` only; never in the feed, git, docs, tests or chat. Household delete deletes it; a merge carries it over. `src/people/address.ts` (format, checks, progress). Phones and guest emails: not stored.
 
 ## Added venues (v7)
 - **custom_venues** (0004): scenario_id (>= 1000, chosen by the client, = the shortlist row's id), name, location, kind, description, capacity_seated / capacity_kids / capacity_cocktail, confidence, items JSON (`CustomItem`: cat, desc, type fixed | perGuest | percent, amount | rate, taxable, source_url, note), sources JSON, notes, researched_at. No delete (archive via venues.active). `customScenario` (src/data/custom.ts) → Scenario; useData() merges them into `scenarios`.
@@ -32,7 +32,7 @@
 ## Planning (v4)
 - **venues**: one row per scenario (seeded; update only): active (shortlist), status (researching | tour booked | toured | held | quoted | booked | passed), hold_date, tour_date, contacts, next_step, notes.
 - **musthaves**: id, text, detail, sort, archived (no delete). **fit**: id `{scenario_id}:{musthave_id}`, verdict (yes | partly | no | unknown), note. Fit score = (yes + ½ partly) / answered.
-- **tasks**: id, title, detail, due, owner (Mark | Angela | Both), category, status (open | done), done_at, source (Gmail URL | email | manual), source_date, scenario_id, sort.
+- **tasks**: id, title, detail, due, owner (Mark | Angela | Both), category, status (open | done), done_at, source (Gmail URL | email | manual | template:<key> | milestone:<key>), source_date, scenario_id, sort, depends_on (task ids, v14; no loops), kind (task | decision, v14). Checklist: `src/plan/template.ts`; states + agenda: `src/plan/deps.ts`.
 - **params** also holds settings: dateWindows, heldDate, kidsPolicy, branchNames (`src/data/params.ts` `Settings`).
 
 ## Stored (D1)

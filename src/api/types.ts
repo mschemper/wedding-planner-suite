@@ -1,7 +1,7 @@
 // API contract shared by worker/ and the client (DESIGN-v3 §3; v4 tables DESIGN-v4 §3). Pure types.
 import type { CustomVenue } from "../data/custom";
 import type { Quote } from "../engine/types";
-import type { Party, Person } from "../people/types";
+import type { Address, Party, Person } from "../people/types";
 import type { Fit, MustHave, Task, TimelineRow, Vendor, VenueRow } from "../plan/types";
 
 export interface RowMeta {
@@ -13,7 +13,7 @@ export interface RowMeta {
 }
 export type Versioned<T> = T & RowMeta;
 
-export type TableName = "people" | "parties" | "venues" | "musthaves" | "fit" | "tasks" | "quotes" | "params" | "custom_venues" | "vendors" | "timeline";
+export type TableName = "people" | "parties" | "venues" | "musthaves" | "fit" | "tasks" | "quotes" | "params" | "custom_venues" | "vendors" | "timeline" | "addresses";
 
 export interface ParamRow extends RowMeta {
   key: string;
@@ -34,6 +34,8 @@ export interface ApiData {
   vendors: Versioned<Vendor>[];
   /** v11 (0006): day-of run of show */
   timeline: Versioned<TimelineRow>[];
+  /** v14 (0008): one mailing address per household (id = party id). Private: never in the feed. */
+  addresses: Versioned<Address>[];
   params: ParamRow[];
   /** the signed-in email */
   me: string;
@@ -71,7 +73,8 @@ export interface Issue {
  * musthaves: no delete (archive). parties: delete only when empty.
  * params: create/update with id = key and row = { value }; delete = back to the doc value.
  * people.partner_id: set it on ONE side; the server mirrors it and clears previous partners.
- * Order inside a batch matters: create a party before its people, a must-have before its fit rows.
+ * Order inside a batch matters: create a party before its people (and before its address), a must-have before its fit rows.
+ * addresses (v14): id = the household id (or its tmp id); create via save(), not edit(). tasks.depends_on may carry tmp ids.
  */
 export type Op =
   | { table: TableName; op: "create"; row: Record<string, unknown> }

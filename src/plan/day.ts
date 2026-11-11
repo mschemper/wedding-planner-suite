@@ -277,7 +277,7 @@ export function vendorSummary(vendors: Vendor[], today: string): VendorSummary {
 }
 
 export const VENDOR_LABEL: Record<VendorCategory, string> = {
-  catering: "Catering", bar: "Bar", photo: "Photography", video: "Video", music: "Music", florals: "Florals", planner: "Planner / coordinator",
+  venue: "Venue", catering: "Catering", bar: "Bar", photo: "Photography", video: "Video", music: "Music", florals: "Florals", planner: "Planner / coordinator",
   cake: "Cake", beauty: "Hair & makeup", attire: "Attire", stationery: "Stationery", rentals: "Rentals", transport: "Transport",
   officiant: "Officiant", lodging: "Lodging", other: "Other",
 };

@@ -10,7 +10,7 @@ import { SEED_FIT, SEED_MUSTHAVES, SEED_VENUES } from "../data/seed-v4";
 import type { Quote, Scenario } from "../engine/types";
 import { headcount, type Headcount } from "../people/headcount";
 import { inviteCtx, type InviteCtx } from "../people/invite";
-import type { PeopleData } from "../people/types";
+import type { Address, PeopleData } from "../people/types";
 import type { Fit, MustHave, Task, TimelineRow, Vendor, VenueRow } from "../plan/types";
 
 export const OFFLINE = import.meta.env.MODE === "offline";
@@ -56,6 +56,8 @@ export interface DataCtx {
   /** v11 Day tab */
   vendors: Vendor[];
   timeline: TimelineRow[];
+  /** v14: mailing addresses by household (id = party id); empty offline */
+  addresses: Address[];
   paramRows: ParamRow[];
   /** price params: doc values + stored overrides */
   params: Params;
@@ -192,6 +194,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       quotes: raw?.quotes ?? [],
       vendors: raw?.vendors ?? [],
       timeline: raw?.timeline ?? [],
+      addresses: raw?.addresses ?? [],
       paramRows, params, settings, scenarios: [...buildScenarios(params), ...(raw?.custom_venues ?? []).map(customScenario)],
       invite, headcount: headcount(people, settings.kidsPolicy, invite),
       version, save, edit, undoState, undo, dismissUndo: () => setUndo(null), failure, notifyFailure: setFailure, reload,

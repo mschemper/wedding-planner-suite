@@ -20,6 +20,12 @@ if (errors.length) {
   process.exit(1);
 }
 const rows = seedRows({ parties: data.parties, people: data.people, venues: SEED_VENUES, musthaves: SEED_MUSTHAVES, fit: SEED_FIT, tasks: SEED_TASKS }, "seed");
+// v14: addresses are keyed by party id; a --replace re-seed would re-number households under them.
+if (replace) {
+  console.error("Refusing --replace: D1 addresses are keyed by household id and would attach to the wrong households. Export, then clear addresses first (docs/DEPLOY.md).");
+  console.error("If D1 has no addresses yet, re-run with --replace --no-addresses.");
+  if (!args.includes("--no-addresses")) process.exit(1);
+}
 const wipe = replace ? ["fit", "musthaves", "tasks", "venues", "people", "parties"].map((t) => `DELETE FROM ${t};`).join("\n") + "\n" : "";
 mkdirSync(resolve("data/private"), { recursive: true });
 const out = resolve("data/private/seed-v4.sql");

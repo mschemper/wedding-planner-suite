@@ -6,6 +6,7 @@ import { mergeSettings } from "../src/data/params";
 import { householdEnvelope } from "../src/people/names";
 import type { PeopleData, Person } from "../src/people/types";
 import { validatePeople } from "../src/people/validate";
+import { cycleIds } from "../src/plan/deps";
 import { deleteStmt, guardStmt, insertStmt, isTable, loadState, normalize, SPECS, updateStmt, type Rec, type State } from "./db";
 import type { D1Database, D1PreparedStatement } from "./env";
 
@@ -44,7 +45,7 @@ function nextSeq(ids: Iterable<string>, prefix: string): number {
 }
 
 /** Ref columns that may carry tmp ids, per table. */
-const REFS: Partial<Record<TableName, string[]>> = { people: ["party_id", "partner_id", "parent_ids"], fit: ["musthave_id"] };
+const REFS: Partial<Record<TableName, string[]>> = { people: ["party_id", "partner_id", "parent_ids"], fit: ["musthave_id"], tasks: ["depends_on"] };
 
 export async function applyWrite(db: D1Database, ops: unknown, who: string, now = new Date().toISOString()): Promise<WriteOutcome> {
   if (!Array.isArray(ops) || ops.length === 0 || ops.length > MAX_OPS) return fail(400, "bad_request", `ops must be a list of 1–${MAX_OPS}`);
@@ -87,6 +88,16 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     }
     const spec = SPECS[o.table];
     let id: string;
+    if (o.table === "addresses") {
+      // v14: id = the household's id (or a tmp id of a household created earlier in this batch)
+      const v = row.id;
+      id = isTmp(v) ? (ids[v] ?? "") : typeof v === "string" ? v : "";
+      if (!id) return fail(400, "bad_request", "an address needs its household id");
+      if (st.addresses.has(id) || [...createIds].some(([x, v]) => x.table === "addresses" && v === id))
+        return fail(409, "conflict", `${id} already has an address — reload`, { row: { table: "addresses", id } });
+      createIds.set(o, id);
+      continue;
+    }
     if (spec.prefix) {
       const used = (taken[o.table] ??= new Set(st[o.table].keys()));
       id = `${spec.prefix}${String(nextSeq(used, spec.prefix)).padStart(spec.width ?? 3, "0")}`;
@@ -226,6 +237,52 @@ export async function applyWrite(db: D1Database, ops: unknown, who: string, now 
     if (!party || party.name_custom) continue;
     const auto = householdEnvelope([...st.people.values()].filter((p) => p.party_id === id) as unknown as Person[]);
     if (auto && auto !== party.name) sideEdit("parties", id, (r) => { r.name = auto; });
+  }
+
+  // 4c. v14: task deleted → drop it from other tasks' depends_on; household deleted → its address goes too
+  const goneTasks = new Set([...touches.values()].filter((t) => t.table === "tasks" && t.op === "delete").map((t) => t.id));
+  if (goneTasks.size) {
+    for (const [id, tk] of st.tasks) {
+      const deps = (tk.depends_on as string[] | undefined) ?? [];
+      if (deps.some((d) => goneTasks.has(d))) sideEdit("tasks", id, (r) => { r.depends_on = deps.filter((d) => !goneTasks.has(d)); });
+    }
+  }
+  for (const t of [...touches.values()]) {
+    if (t.table !== "parties" || t.op !== "delete") continue;
+    const a = st.addresses.get(t.id);
+    const k = key("addresses", t.id);
+    if (!a || touches.has(k)) continue;
+    st.addresses.delete(t.id);
+    touches.set(k, { table: "addresses", id: t.id, op: "delete", read: orig.addresses.get(t.id) ?? a, after: null });
+    // a merge (all its people moved to one other household this save) carries the address over when that household has none
+    const dest = new Set([...touches.values()].filter((p) => p.table === "people" && p.read?.party_id === t.id && p.after?.party_id)
+      .map((p) => String(p.after!.party_id)));
+    const to = dest.size === 1 ? [...dest][0] : null;
+    if (to && st.parties.has(to) && !st.addresses.has(to) && !touches.has(key("addresses", to))) {
+      const moved: Rec = { ...a, id: to, version: 1, updated_at: now, updated_by: who };
+      st.addresses.set(to, moved);
+      touches.set(key("addresses", to), { table: "addresses", id: to, op: "create", read: null, after: moved });
+    }
+  }
+  for (const a of st.addresses.keys()) {
+    if (!st.parties.has(a)) return fail(422, "invalid", `address ${a}: no such household`);
+  }
+  // task deps: reject only problems this save introduces (an old bad row never blocks other task edits)
+  if ([...touches.values()].some((t) => t.table === "tasks")) {
+    const problems = (s: State) => {
+      const out: string[] = [];
+      for (const tk of s.tasks.values()) {
+        const deps = (tk.depends_on as string[] | undefined) ?? [];
+        const bad = deps.find((d) => d === tk.id || !s.tasks.has(d));
+        if (bad) out.push(`${tk.id} waits on ${bad === tk.id ? "itself" : `a missing task (${bad})`}`);
+      }
+      const loop = cycleIds([...s.tasks.values()] as unknown as { id: string; depends_on?: string[] }[]);
+      if (loop.length) out.push(`These tasks wait on each other in a loop: ${loop.join(", ")}`);
+      return out;
+    };
+    const before = new Set(problems(orig));
+    const introduced = problems(st).filter((p) => !before.has(p));
+    if (introduced.length) return fail(422, "invalid", introduced.join("; "));
   }
 
   for (const t of touches.values()) {

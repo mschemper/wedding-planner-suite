@@ -4,7 +4,7 @@ import { isDay, parseParamValue } from "../src/data/params";
 import { CUSTOM_ID_MIN } from "../src/data/custom";
 import { SCENARIOS } from "../src/data/scenarios";
 import { AGES, KIDS_RULES, KINDS, KNOWN_BY, DECISIONS, LOCALS, OVERRIDES, RSVPS, SIDES } from "../src/people/types";
-import { CATEGORIES, OWNERS, TASK_STATUSES, VENDOR_CATEGORIES, VENDOR_STATUSES, VENUE_STATUSES, VERDICTS } from "../src/plan/types";
+import { CATEGORIES, OWNERS, TASK_KINDS, TASK_STATUSES, VENDOR_CATEGORIES, VENDOR_STATUSES, VENUE_STATUSES, VERDICTS } from "../src/plan/types";
 import type { D1Database, D1PreparedStatement } from "./env";
 
 export type Rec = Record<string, unknown>;
@@ -69,7 +69,7 @@ export const SPECS: Record<TableName, Spec> = {
     pk: "id", prefix: "T", width: 3, create: true, del: true,
     cols: [t("id"), t("title", { required: true }), t("detail"), t("due", { date: true }), e("owner", OWNERS, "Both"),
       e("category", CATEGORIES, "admin"), e("status", TASK_STATUSES, "open"), t("done_at"), t("source"), t("source_date", { date: true }),
-      i("scenario_id"), i("sort")],
+      i("scenario_id"), i("sort"), { name: "depends_on", type: "ids", def: [] }, e("kind", TASK_KINDS, "task")],
   },
   quotes: {
     pk: "id", create: true, del: true,
@@ -97,6 +97,12 @@ export const SPECS: Record<TableName, Spec> = {
     pk: "id", prefix: "TL", width: 2, create: true, del: true,
     cols: [t("id"), t("start", { required: true, time: true }), i("minutes", { def: 30, required: true }), t("title", { required: true }),
       t("place"), t("who"), t("notes")],
+  },
+  // v14 (0008): id = party id (client-given; write.ts checks the party exists). Private data.
+  addresses: {
+    pk: "id", create: true, del: true,
+    cols: [t("id"), t("line1", { required: true }), t("line2"), t("city", { required: true }), t("region"), t("postal"),
+      t("country", { def: "US", required: true }), t("source"), t("gathered", { date: true }), b("verified"), t("notes")],
   },
 };
 
@@ -170,6 +176,7 @@ export const stateToApi = (st: State, me: string): ApiData => ({
   custom_venues: [...st.custom_venues.values()],
   vendors: [...st.vendors.values()],
   timeline: [...st.timeline.values()],
+  addresses: [...st.addresses.values()],
   params: [...st.params.values()] as unknown as ParamRow[],
   me,
 }) as unknown as ApiData;

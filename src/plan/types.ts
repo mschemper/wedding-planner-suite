@@ -5,12 +5,14 @@ export const VERDICTS = ["yes", "partly", "no", "unknown"] as const;
 export const OWNERS = ["Mark", "Angela", "Both"] as const;
 export const CATEGORIES = ["venue", "vendor", "guests", "budget", "admin", "design"] as const;
 export const TASK_STATUSES = ["open", "done"] as const;
+export const TASK_KINDS = ["task", "decision"] as const;
 
 export type VenueStatus = (typeof VENUE_STATUSES)[number];
 export type Verdict = (typeof VERDICTS)[number];
 export type Owner = (typeof OWNERS)[number];
 export type Category = (typeof CATEGORIES)[number];
 export type TaskStatus = (typeof TASK_STATUSES)[number];
+export type TaskKind = (typeof TASK_KINDS)[number];
 
 /** One row per scenario (seeded). `active` = on the shortlist; everything else is Archive. */
 export interface VenueRow {
@@ -58,12 +60,16 @@ export interface Task {
   source_date?: string | null;
   scenario_id?: number | null;
   sort?: number | null;
+  /** v14 (0008): task ids that must be done first (no loops; the Worker checks) */
+  depends_on?: string[];
+  /** v14: a decision gates other tasks (shown with ◆ + "Decision") */
+  kind?: TaskKind;
 }
 
 export const fitId = (scenarioId: number, musthaveId: string) => `${scenarioId}:${musthaveId}`;
 
 // v11 Day tab (migration 0006): vendor bookings + day-of timeline.
-export const VENDOR_CATEGORIES = ["catering", "bar", "photo", "video", "music", "florals", "planner", "cake", "beauty", "attire", "stationery", "rentals", "transport", "officiant", "lodging", "other"] as const;
+export const VENDOR_CATEGORIES = ["venue", "catering", "bar", "photo", "video", "music", "florals", "planner", "cake", "beauty", "attire", "stationery", "rentals", "transport", "officiant", "lodging", "other"] as const;
 export const VENDOR_STATUSES = ["idea", "contacted", "quoted", "booked", "passed"] as const;
 export type VendorCategory = (typeof VENDOR_CATEGORIES)[number];
 export type VendorStatus = (typeof VENDOR_STATUSES)[number];

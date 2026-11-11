@@ -42,6 +42,7 @@ export function App() {
     openVenue: (id) => { set({ tab: "venues", selected: id }); setFocus({ venue: id }); window.scrollTo({ top: 0 }); },
     openPerson: (id) => { set({ tab: "people" }); setFocus({ person: id }); },
     openTask: (id) => { set({ tab: "plan" }); setFocus({ task: id }); },
+    openPlan: (view) => { set({ tab: "plan" }); setFocus({ plan: view ?? {} }); window.scrollTo({ top: 0 }); },
     openDay: (section) => { set({ tab: "day", ...(section ? { daySection: section } : {}) }); window.scrollTo({ top: 0 }); },
     priceAt: (g) => { set({ tab: "venues", guestBasis: "custom", guests: clamp(Math.round(g), 20, 300), selected: null }); window.scrollTo({ top: 0 }); },
     focus,

@@ -77,6 +77,26 @@ export interface Party {
   name_custom?: boolean;
 }
 
+/** v14 (0008): one mailing address per household; id = party id. Private data: D1 only (AGENTS "Private data"). */
+export interface Address {
+  id: string;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  /** US: 2-letter state */
+  region?: string | null;
+  postal?: string | null;
+  /** ISO-2, default US */
+  country: string;
+  /** where it came from: "Guest Addresses screenshot", "text from Mom", ... */
+  source?: string | null;
+  /** YYYY-MM-DD gathered */
+  gathered?: string | null;
+  /** confirmed with the household */
+  verified: boolean;
+  notes?: string | null;
+}
+
 export interface PeopleData {
   people: Person[];
   parties: Party[];
