@@ -1,14 +1,17 @@
-// Plan tab (DESIGN-v14 §4): List | Calendar, filters All | Ready now | Decisions. Must-haves live in Venues and Today.
+// Plan tab (DESIGN-v14 §4): List | Calendar (remembered in prefs), filters All | Ready now | Decisions.
 import { useEffect, useState } from "react";
 import { Segmented } from "../kit/kit";
 import { useNav } from "../nav";
+import { usePrefs } from "../usePrefs";
 import { Tasks } from "./Tasks";
 import type { PlanFilter, PlanMode } from "./model";
 import "./plan.css";
 
 export function PlanScreen() {
   const { focus, clearFocus } = useNav();
-  const [mode, setMode] = useState<PlanMode>("list");
+  const { prefs, set } = usePrefs();
+  const mode = prefs.planMode;
+  const setMode = (m: PlanMode) => set({ planMode: m });
   const [view, setView] = useState<PlanFilter>("all");
   const [highlight, setHighlight] = useState<string | null>(null);
   const focusTask = focus.task;

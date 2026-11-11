@@ -127,7 +127,7 @@ export function filterTasks(tasks: Task[], f: TaskFilter): Task[] {
 }
 
 // ---- v14 states, views, dependencies ----
-export type PlanMode = "list" | "calendar";
+export type { PlanMode } from "../prefs";
 export type PlanFilter = "all" | "ready" | "decisions";
 
 export interface RowInfo { state: TaskState; waitingOn: Task[] }

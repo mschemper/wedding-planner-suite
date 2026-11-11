@@ -21,7 +21,7 @@
 .pl-task-meta { display: flex; flex-wrap: wrap; gap: 0 12px; align-items: center; line-height: 1.2; font-size: 13px; color: var(--muted); }
 .pl-overdue { color: var(--peony-ink); font-weight: 700; }
 .pl-task-meta > * { align-self: center; }
-.pl-src { display: inline-flex; align-items: center; min-height: 44px; color: var(--euc-ink); }
+.pl-src { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: var(--euc-ink); }
 .pl-err { color: var(--peony-ink); font-size: 14px; }
 .pl-hint { color: var(--muted); font-size: 13px; }
 .pl-confirm { align-self: center; color: var(--peony-ink); font-weight: 600; }

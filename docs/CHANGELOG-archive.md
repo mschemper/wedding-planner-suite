@@ -2,6 +2,12 @@
 
 Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.md.
 
+## v13 - Plan feed for the Bauhaus wall (9 Nov 2026)
+
+**New route** `GET /api/feed/plan` (docs/FEED.md): wedding countdown, task progress, overdue / this-week / no-date counts and the next 6 open tasks, for the Bauhaus wall's new Wedding page. Only titles, dates, owners and categories leave; no task detail, guests, money or contacts.
+
+**Access**: a Cloudflare Access service token passes only on `/api/feed/*`, and only if its Client ID is in `FEED_CLIENT_IDS`; everywhere else it gets 403. No D1 migration.
+
 ## v12 - Whole-app review fixes (10 Nov 2026)
 
 **Deployed** 10 Nov 2026. D1 migration 0007 (`quotes.date`) + `scripts/v12-live-data.sql` (dates the May 29 $7,000 Joinery quote). Findings and fixes: docs/archive/REVIEW-v11.md.

@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 10 Nov 2026 (v14 shipped, deployed).
+Last reviewed: 10 Nov 2026 (v15 shipped, not deployed).
 
 ---
 
@@ -70,17 +70,13 @@ Cron Worker export; needs Mark's OK for a bucket. Custom domain optional.
 ### F30. Plan: Google Calendar (.ics) feed / sheet export of the checklist -- S
 Not chosen for v14.
 
+### F31. Layout picks from REVIEW-v15 -- S
+Needs Mark's pick first (docs/REVIEW-v15.md "Needs Mark's design pick"): Today order, Plan phone filter button, leaf motif overlap, one home for money, done toast names what it unblocked.
+
 ## Bugs / debt
 
-### B14. Address draft not guarded on Cancel/X -- XS
-Household card Cancel discards an unsaved address draft without asking. People "Addresses" view resets to Decide on reload (not in prefs).
-
-### B15. Dead venue code -- XS
-`nav.openVenue`, unused `vn-*` CSS in venues.css, D1 musthaves/fit/custom_venues tables (drop with B5).
-
-
 ### B5. Drop v3 tables (migration 0003) â€” XS
-households / individuals / friends are unused since v4. Drop in a later release once rollback to v3 is no longer wanted.
+households / individuals / friends are unused since v4; musthaves / fit / custom_venues unused since v14. Drop in a later release once rollback to v3 is no longer wanted.
 
 ### B6. Date settings: concurrent edit overwrites (integration review #9) â€” XS
 `src/ui/venues/Assumptions.tsx` reads `version()` at save time. Capture versions when the sheet opens so a parallel change returns 409.

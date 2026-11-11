@@ -8,7 +8,7 @@ import { money } from "../format";
 import { Button, Card, Chip, EmptyState, OwnerChip } from "../kit/kit";
 import { useNav } from "../nav";
 import { TaskRow } from "../plan/TaskRow";
-import { dueLabel, fmtDay, shortVenueName } from "../plan/model";
+import { dueLabel } from "../plan/model";
 import { NO_DATE, decisionLabel, paymentText, readyTop, roomLine, venueStatusChip, weddingSub } from "./model";
 import "./today.css";
 
@@ -34,8 +34,7 @@ export function TodayScreen() {
     <div className="g-grid">
       <Card title="When" className="span-4">
         <div className="td-big">{wc ? wc.big : NO_DATE.big}</div>
-        <p className="td-muted">{wc && settings.heldDate ? weddingSub(settings.heldDate, heldName ? shortVenueName(heldName) : "venue not set") : NO_DATE.sub}</p>
-        {settings.heldDate && <p className="td-chips"><Chip tone="peony">{fmtDay(settings.heldDate, true)}</Chip></p>}
+        <p className="td-muted">{wc && settings.heldDate ? weddingSub(settings.heldDate, heldName ?? "venue not set") : NO_DATE.sub}</p>
       </Card>
 
       <Card title="Headcount" className="span-4">
@@ -62,7 +61,7 @@ export function TodayScreen() {
             <p className="td-price">{wb.rows.some((r) => r.extrapolated) ? "≈ " : ""}{money(wb.total)}</p>
             <p className="td-venue-meta">{ws.guestsLabel} · confidence {heldSc.confidence}% · estimate, ±10–15%</p>
           </>}
-          {room && <p className="td-muted">Room {roomLine(room.expected, room.cap)}{room.over ? " · ⚠ over if everyone invited comes" : ""}</p>}
+          {room && !offline && <p className="td-muted">Room {roomLine(room.expected, room.cap)}{room.over ? " · ⚠ over if everyone invited comes" : ""}</p>}
           {!offline && <p className="td-muted">Vendors booked {vs.booked} / {vs.coreTotal}</p>}
           <p className="td-actions">
             <Button onClick={() => setTab("budget")}>Budget</Button>

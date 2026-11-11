@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { byIdMap } from "../../plan/deps";
 import { GROUP_LABEL, chicagoToday, groupTasks } from "../../plan/tasks";
 import { CATEGORIES, OWNERS, type Category, type Owner, type Task } from "../../plan/types";
-import { useCompare } from "../compare";
 import { useData, type SaveResult } from "../data";
 import { Button, Card, EmptyState, FilterChip } from "../kit/kit";
 import { SaveError } from "../SaveError";
@@ -17,7 +16,6 @@ import { NO_FILTER, createTaskOp, draftError, emptyDraft, filterTasks, matchesVi
 
 export function Tasks({ highlight, mode, view }: { highlight: string | null; mode: PlanMode; view: PlanFilter }) {
   const { tasks, save, offline, status, version, settings } = useData();
-  const { active } = useCompare();
   const today = chicagoToday();
   const [filter, setFilter] = useState<TaskFilter>(NO_FILTER);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -28,7 +26,6 @@ export function Tasks({ highlight, mode, view }: { highlight: string | null; mod
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const [note, setNote] = useState("");
-  const venues = useMemo(() => active.map((v) => ({ id: v.scenario.id, name: v.scenario.name })), [active]);
   const byId = useMemo(() => byIdMap(tasks), [tasks]);
   const wedding = settings.heldDate;
   const offerChecklist = !!wedding && !offline && templateDrafts(wedding, today, tasks).length > 0;
@@ -64,7 +61,7 @@ export function Tasks({ highlight, mode, view }: { highlight: string | null; mod
     <Card title="Tasks" actions={!offline && <><Button onClick={() => setAdding((a) => !a)}>{adding ? "Close form" : "Add task"}</Button><Button onClick={() => setPaste(true)}>Paste tasks</Button>{offerChecklist && <Button onClick={() => setChecklist(true)}>Add the wedding checklist</Button>}</>}>
       {adding && !offline && (
         <form className="pl-quick" onSubmit={(e) => { e.preventDefault(); if (!bad) void add(); }}>
-          <TaskFields draft={draft} set={(p) => setDraft((d) => ({ ...d, ...p }))} venues={venues} />
+          <TaskFields draft={draft} set={(p) => setDraft((d) => ({ ...d, ...p }))} />
           <div className="pl-quick-actions">
             <Button type="submit" kind="primary" disabled={busy || !!bad}>Add</Button>
             {bad && draft.title !== "" && <span className="pl-err">{bad}</span>}
@@ -93,7 +90,7 @@ export function Tasks({ highlight, mode, view }: { highlight: string | null; mod
           </ul>
         </section>
       ))}
-      {open && <TaskSheet key={`${open.id}:${version("tasks", open.id) ?? 0}`} task={open} tasks={tasks} venues={venues} onClose={() => setOpenId(null)} />}
+      {open && <TaskSheet key={`${open.id}:${version("tasks", open.id) ?? 0}`} task={open} tasks={tasks} onClose={() => setOpenId(null)} />}
       {checklist && wedding && <ChecklistSheet wedding={wedding} today={today} tasks={tasks} onClose={() => setChecklist(false)} />}
       <PasteTasks open={paste} onClose={() => setPaste(false)} />
     </Card>

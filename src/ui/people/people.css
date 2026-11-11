@@ -127,7 +127,7 @@
 .pp-obo-btns { display: grid; gap: 8px; }
 .pp-obo-btn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; font-size: 17px; }
 .pp-obo-btn[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
-.pp-obo-btn kbd, .k-btn kbd { font: inherit; font-size: 12px; padding: 0 6px; border: 1px solid var(--line); border-radius: 4px; }
+.pp-obo-btn kbd, .k-btn kbd { font: inherit; font-size: 13px; padding: 0 6px; border: 1px solid var(--line); border-radius: 4px; }
 .pp-obo-done { display: grid; gap: 10px; justify-items: start; }
 .pp-tidy-sec { padding: 10px 0 14px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
 .pp-tidy-sec:first-of-type { border-top: 0; }

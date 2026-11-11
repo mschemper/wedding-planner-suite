@@ -4,6 +4,7 @@ import type { DaySection, Tab } from "./nav";
 /** considered = expected if every undecided / if-room household is invited too (default while deciding) */
 export type GuestBasis = "considered" | "expected" | "ceiling" | "custom";
 export type PeopleView = "decide" | "family" | "addresses";
+export type PlanMode = "list" | "calendar";
 
 export interface Prefs {
   tab: Tab;
@@ -23,6 +24,8 @@ export interface Prefs {
   theme: "auto" | "day" | "dusk";
   /** v11 Day tab section */
   daySection: DaySection;
+  /** Plan tab List | Calendar */
+  planMode: PlanMode;
 }
 
 const KEY = "wps.prefs.v2";
@@ -30,7 +33,7 @@ const OLD_KEY = "wps.prefs.v1";
 /** schema version stored beside the prefs; < 2: capacityVenue 17 (old Firehouse default) resets to the wedding venue */
 export const PREFS_VERSION = 2;
 export const DEFAULT_PREFS: Prefs = {
-  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: null, peopleView: null, theme: "auto", daySection: "venue",
+  tab: "today", guestBasis: "considered", guests: 75, date: null, contingency: 0, selected: null, capacityVenue: null, peopleView: null, theme: "auto", daySection: "venue", planMode: "list",
 };
 
 /** v4 values: garden → family, envelopes → decide. v9: the Friends view folded into Decide. */
@@ -66,6 +69,7 @@ export function loadPrefs(): Prefs {
       peopleView: migrateView(p.peopleView),
       theme: p.theme === "day" || p.theme === "dusk" ? p.theme : "auto",
       daySection: DAY_SECTIONS.includes(p.daySection as DaySection) ? (p.daySection as DaySection) : DEFAULT_PREFS.daySection,
+      planMode: p.planMode === "calendar" ? "calendar" : "list",
     };
   } catch {
     return DEFAULT_PREFS;

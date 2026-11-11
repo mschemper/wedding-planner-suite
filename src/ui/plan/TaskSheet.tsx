@@ -5,11 +5,10 @@ import { CATEGORIES, type Category, type Owner, type Task, type TaskKind } from 
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Segmented, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
-import { blockerChoices, depChanges, draftError, draftOf, fmtDay, taskChanges, shortVenueName, type TaskDraft } from "./model";
+import { blockerChoices, depChanges, draftError, draftOf, fmtDay, taskChanges, type TaskDraft } from "./model";
 
-export interface VenueOption { id: number; name: string }
 
-export function TaskFields({ draft, set, venues }: { draft: TaskDraft; set(p: Partial<TaskDraft>): void; venues: VenueOption[] }) {
+export function TaskFields({ draft, set }: { draft: TaskDraft; set(p: Partial<TaskDraft>): void }) {
   return (
     <div className="pl-fields">
       <Field label="Title" wide><input value={draft.title} onChange={(e) => set({ title: e.target.value })} maxLength={200} /></Field>
@@ -21,12 +20,6 @@ export function TaskFields({ draft, set, venues }: { draft: TaskDraft; set(p: Pa
       <Field label="Category">
         <select value={draft.category} onChange={(e) => set({ category: e.target.value as Category })}>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </Field>
-      <Field label="Venue (optional)">
-        <select value={draft.scenario_id ?? ""} onChange={(e) => set({ scenario_id: e.target.value === "" ? null : Number(e.target.value) })}>
-          <option value="">None</option>
-          {venues.map((v) => <option key={v.id} value={v.id}>{shortVenueName(v.name)}</option>)}
         </select>
       </Field>
     </div>
@@ -58,7 +51,7 @@ function WaitsOn({ task, tasks, deps, setDeps }: { task: Task; tasks: Task[]; de
   );
 }
 
-export function TaskSheet({ task, tasks, venues, onClose }: { task: Task; tasks: Task[]; venues: VenueOption[]; onClose(): void }) {
+export function TaskSheet({ task, tasks, onClose }: { task: Task; tasks: Task[]; onClose(): void }) {
   const { edit, save, version, offline } = useData();
   const [draft, setDraft] = useState<TaskDraft>(() => draftOf(task));
   const [detailOnly, setDetail] = useState(task.detail ?? "");
@@ -94,7 +87,7 @@ export function TaskSheet({ task, tasks, venues, onClose }: { task: Task; tasks:
         </>
       )}>
       <fieldset className="pl-fieldset" disabled={offline}>
-        <TaskFields draft={draft} set={(p) => setDraft((d) => ({ ...d, ...p }))} venues={venues} />
+        <TaskFields draft={draft} set={(p) => setDraft((d) => ({ ...d, ...p }))} />
         <Field label="Type">
           <Segmented<TaskKind> label="Type" value={kind} onChange={setKind}
             options={[{ value: "task", label: "Task" }, { value: "decision", label: "◆ Decision" }]} />
