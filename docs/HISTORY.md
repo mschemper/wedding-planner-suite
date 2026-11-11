@@ -90,6 +90,7 @@ Newest first. Each entry: what changed and why.
 - Docs: superseded DESIGN/REVIEW docs + mockups moved to docs/archive/ to shrink what agents scan.
 
 ## Release log (moved from STATE.md, 23 Oct 2026)
+- **v12** (tag `v12`, 12.0.0), deployed 10 Nov 2026, Worker version 017f384b-e98d-4cbd-a564-c7d2afefc5d6; migration 0007. Backup before v12: `data/private/d1-backup-v11.sql`; bookmark before 0007: 0000003e-00000000-0000511f-91d6ac82b1bd508412f58788bd44a34a.
 - **v11** (tag `v11`, 11.0.0), deployed 9 Nov 2026, Worker version 5dcf0c0a-a7af-461d-b9af-8962abca2129; migration 0006. Rollback: docs/DEPLOY.md
 - v10 bug sweep (tag v10, 10.0.0, no migration): deployed 25 Oct 2026, Worker version 5904b91d-009e-41dd-9784-85781427ed6c.
 - v9 Jungalow Lounge (tag v9, 9.0.0, no migration): deployed 23 Oct 2026, Worker version 95a4afda-912a-4df1-bdc1-4aa0dcde5659.

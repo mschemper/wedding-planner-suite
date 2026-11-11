@@ -2,14 +2,11 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 10 Nov 2026 (v14 shipped; not deployed).
+Last reviewed: 10 Nov 2026 (v14 shipped, deployed).
 
 ---
 
 ## Mark's actions (data, not code)
-
-### D8. Deploy v14 (say "deploy v14")
-Agent runs docs/DEPLOY.md: backup, migration 0008, v14 live-data, address import, build, deploy.
 
 ### D9. Save the signed Joinery contract (HoneyBook PDF) to the Drive quote folder
 Then an agent fills payment schedule, COI, headcount deadline into venueFacts + vendor row V01.
