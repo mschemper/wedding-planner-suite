@@ -35,6 +35,11 @@ export function readyNow(tasks: Task[], today: string): Task[] {
 
 /** Tasks this one unblocks (direct dependants). */
 export const dependants = (id: string, tasks: Task[]): Task[] => tasks.filter((t) => depsOf(t).includes(id));
+/** Open tasks that stop waiting once `id` is done (every other blocker already done or missing). */
+export function unblockedBy(id: string, tasks: Task[]): Task[] {
+  const byId = byIdMap(tasks);
+  return dependants(id, tasks).filter((t) => t.status !== "done" && depsOf(t).every((d) => d === id || !byId.get(d) || byId.get(d)?.status === "done"));
+}
 
 export interface AgendaItem { task: Task; state: TaskState; waitingOn: Task[] }
 export interface AgendaMonth { key: string; label: string; items: AgendaItem[] }

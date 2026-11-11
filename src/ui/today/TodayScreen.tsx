@@ -1,15 +1,16 @@
-// Today (DESIGN-v14 §3): countdown, headcount, venue card, Ready now, Next up, payments due.
+// Today (DESIGN-v14 §3, v16 order): countdown + Ready now first, then headcount, venue, Next up (not already in Ready now), payments due. One row style (TaskRow).
 import { useMemo } from "react";
 import { roomCheck, vendorSummary, weddingCountdown, weddingVenue } from "../../plan/day";
 import { chicagoToday, nextUp } from "../../plan/tasks";
 import { useWeddingSummary } from "../compare";
 import { useData } from "../data";
 import { money } from "../format";
-import { Button, Card, Chip, EmptyState, OwnerChip } from "../kit/kit";
+import { Button, Card, Chip, EmptyState } from "../kit/kit";
 import { useNav } from "../nav";
 import { TaskRow } from "../plan/TaskRow";
-import { dueLabel } from "../plan/model";
-import { NO_DATE, decisionLabel, paymentText, readyTop, roomLine, venueStatusChip, weddingSub } from "./model";
+import { rowInfo } from "../plan/model";
+import { byIdMap } from "../../plan/deps";
+import { NO_DATE, paymentText, readyTop, roomLine, venueStatusChip, weddingSub } from "./model";
 import "./today.css";
 
 export function TodayScreen() {
@@ -19,6 +20,9 @@ export function TodayScreen() {
   const today = chicagoToday();
   const next = useMemo(() => nextUp(tasks, today, 5), [tasks, today]);
   const ready = useMemo(() => readyTop(tasks, today, 5), [tasks, today]);
+  const byId = useMemo(() => byIdMap(tasks), [tasks]);
+  const readyIds = new Set(ready.map((t) => t.id));
+  const later = next.filter((t) => !readyIds.has(t.id));
   const heldRow = weddingVenue(venues, settings);
   const heldSc = heldRow ? scenarios.find((s) => s.id === heldRow.scenario_id) : undefined;
   const heldName = heldSc?.name;
@@ -35,6 +39,15 @@ export function TodayScreen() {
       <Card title="When" className="span-4">
         <div className="td-big">{wc ? wc.big : NO_DATE.big}</div>
         <p className="td-muted">{wc && settings.heldDate ? weddingSub(settings.heldDate, heldName ?? "venue not set") : NO_DATE.sub}</p>
+      </Card>
+
+      <Card title="Ready now" corner className="span-8">
+        {ready.length === 0 ? (
+          <EmptyState>{status === "loading" ? "Loading…" : offline ? "Tasks live in the online planner." : "Nothing is ready to start. Add the wedding checklist in Plan."}</EmptyState>
+        ) : (
+          <ul className="pl-list">{ready.map((t) => <TaskRow key={t.id} task={t} today={today} onOpen={(x) => openTask(x.id)} info={rowInfo(t, byId, today)} />)}</ul>
+        )}
+        <Button kind="quiet" onClick={() => openPlan({ filter: "ready" })}>See all ready</Button>
       </Card>
 
       <Card title="Headcount" className="span-4">
@@ -70,35 +83,11 @@ export function TodayScreen() {
         </Card>
       )}
 
-      <Card title="Ready now" corner className="span-6">
-        {ready.length === 0 ? (
-          <EmptyState>{status === "loading" ? "Loading…" : offline ? "Tasks live in the online planner." : "Nothing is ready to start. Add the wedding checklist in Plan."}</EmptyState>
+      <Card title="Next up" corner className="span-4">
+        {later.length === 0 ? (
+          <EmptyState>{status === "loading" ? "Loading…" : offline ? "Tasks live in the online planner." : "Nothing else open. Add one in Plan."}</EmptyState>
         ) : (
-          <ul className="td-ready">
-            {ready.map((t) => {
-              const due = dueLabel(t.due, today);
-              const dec = decisionLabel(t);
-              return (
-                <li key={t.id} className="td-ready-row">
-                  <button type="button" className="td-ready-title" onClick={() => openTask(t.id)}>{t.title}</button>
-                  <span className="td-ready-meta">
-                    {dec && <strong className="td-decision">{dec}</strong>}
-                    <OwnerChip owner={t.owner} />
-                    <span className={due.overdue ? "td-overdue" : ""}>{due.text}</span>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        <Button kind="quiet" onClick={() => openPlan({ filter: "ready" })}>See all</Button>
-      </Card>
-
-      <Card title="Next up" corner className="span-6">
-        {next.length === 0 ? (
-          <EmptyState>{status === "loading" ? "Loading…" : offline ? "Tasks live in the online planner." : "No open tasks. Add one in Plan."}</EmptyState>
-        ) : (
-          <ul className="pl-list">{next.map((t) => <TaskRow key={t.id} task={t} today={today} onOpen={(x) => openTask(x.id)} />)}</ul>
+          <ul className="pl-list">{later.map((t) => <TaskRow key={t.id} task={t} today={today} onOpen={(x) => openTask(x.id)} info={rowInfo(t, byId, today)} />)}</ul>
         )}
         <Button kind="quiet" onClick={() => setTab("plan")}>All tasks</Button>
       </Card>

@@ -30,7 +30,7 @@ Code:
 - `src/data/venueFacts.ts` [5]: 2027 sheet (180 chairs, 12 highboys), contacts (Shay Schultz, Venue Director; info@; payments by check to The Joinery Studios LLC or Zelle, other methods +3.1%), address 2533 W Homer St; questions = the open contract items (payment schedule, Memorial Day rate in writing, COI, final headcount date, vendor load-in, music/curfew, decor rules, ceremony + rain plan, kids lounge, bar gratuity). Source line: brochure, 2027 pricing sheet, Shay emails 4 + 10 Nov 2026.
 - UI removed: Shortlist, FitMatrix, TourMode, CompareBar, Archive, AddVenue, Assumptions (date windows), must-haves section (Plan), venue tiles (Today). Tables musthaves/fit/custom_venues stay in D1 (add-only); pure modules may stay if tests use them.
 - Budget tab: Joinery budget on `heldDate` at expected guests (existing BudgetDetail + quotes + prices), guest-count switch (expected / invited / custom) kept.
-- Today: countdown, Joinery card (status booked, total, room check), **Ready now** (open tasks with no open blockers, decisions first), Next up, payments due.
+- Today (v16 order): countdown + **Ready now** (open tasks with no open blockers, decisions first; TaskRow), headcount, Joinery card (status, headline total -> Budget, room check), Next up (minus Ready now), payments due. Budget is the one home of the estimate; Day → Money = bar minimum + link.
 
 ## 4. Checklist + calendar
 Migration 0008: `tasks.depends_on` (ids JSON, default []), `tasks.kind` (task | decision, default task).

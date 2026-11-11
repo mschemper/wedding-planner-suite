@@ -1,6 +1,8 @@
 /* Plan + shared task rows (DESIGN-v4 §2). Tokens only; classes prefixed pl-. */
 .pl-switch { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-bottom: 14px; }
 .pl-filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 12px; }
+.pl-filter-toggle { display: none; margin: 4px 0 8px; }
+@media (max-width: 639px) { .pl-filter-toggle { display: inline-flex; } .pl-filters:not(.is-open) { display: none; } }
 .pl-sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
 .pl-group { margin-top: 12px; }
 .pl-group-h { font-size: 20px; margin-bottom: 2px; }

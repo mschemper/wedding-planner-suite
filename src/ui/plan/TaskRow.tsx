@@ -1,8 +1,9 @@
 // One task line (Plan + Today): 44px checkbox, title (opens the sheet / Plan), owner, category, due, source link.
-// v14: optional `info` adds the state chip (Ready / Waiting on … / Overdue) and the ◆ Decision label; `warn` adds a dependency warning line.
+// Completing names how many tasks it unblocks. v14: optional `info` adds the state chip (Ready / Waiting on … / Overdue) and the ◆ Decision label; `warn` adds a dependency warning line.
 import { useState } from "react";
 import type { Task } from "../../plan/types";
 import { chicagoToday } from "../../plan/tasks";
+import { unblockedBy } from "../../plan/deps";
 import { useData } from "../data";
 import { Chip, OwnerChip } from "../kit/kit";
 import { completePatch, doneLabel, dueLabel, isDecision, reopenPatch, sourceUrl, stateChip, type RowInfo } from "./model";
@@ -11,7 +12,7 @@ import "./plan.css";
 export function TaskRow({ task, today, onOpen, highlight, info, warn }: {
   task: Task; today: string; onOpen(t: Task): void; highlight?: boolean; info?: RowInfo; warn?: string[];
 }) {
-  const { edit, offline } = useData();
+  const { edit, offline, tasks } = useData();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const done = task.status === "done";
@@ -21,7 +22,7 @@ export function TaskRow({ task, today, onOpen, highlight, info, warn }: {
   const toggle = async () => {
     setBusy(true);
     setErr("");
-    const r = await edit([done ? reopenPatch(task) : completePatch(task)], done ? `Reopened: ${task.title}` : doneLabel(task));
+    const r = await edit([done ? reopenPatch(task) : completePatch(task)], done ? `Reopened: ${task.title}` : doneLabel(task, unblockedBy(task.id, tasks).length));
     setBusy(false);
     if (!r.ok) setErr(r.message);
   };

@@ -6,7 +6,8 @@ import {
   completePatch, createTaskOp, draftError, dueLabel, duplicateFlags, emptyDraft, filterTasks,
   NO_FILTER, blockerChoices, calendarMonths, depChanges, matchesView, rowInfo, stateChip, weddingMarker, pasteOps, pasteSummary, reopenPatch, shortVenueName, sourceUrl, taskChanges, draftOf, dayDiff,
 } from "../src/ui/plan/model";
-import { byIdMap } from "../src/plan/deps";
+import { byIdMap, unblockedBy } from "../src/plan/deps";
+import { doneLabel } from "../src/ui/plan/model";
 import { countdown, spanText } from "../src/ui/today/model";
 
 const T0 = "2026-10-26";
@@ -136,5 +137,22 @@ describe("v14 states, views, deps", () => {
     expect(m[3]).toMatchObject({ total: 1, done: 1 });
     expect(calendarMonths(all, T0, (t) => t.id === "A", null).map((x) => x.key)).toEqual(["2026-12"]);
     expect(weddingMarker("2027-05-29")).toBe("Wedding day · Sat 29 May 2027");
+  });
+});
+
+describe("v16 unblock toast", () => {
+  const A = task({ id: "A", title: "Pick caterer", kind: "decision" });
+  const B = task({ id: "B", depends_on: ["A"] });
+  const C = task({ id: "C", depends_on: ["A", "X"] });
+  const X = task({ id: "X" });
+  const D = task({ id: "D", depends_on: ["A"], status: "done" });
+  it("counts open tasks whose only open blocker is the completed one", () => {
+    expect(unblockedBy("A", [A, B, C, X, D]).map((t) => t.id)).toEqual(["B"]);
+    expect(unblockedBy("A", [A, B, C, { ...X, status: "done" }, D]).map((t) => t.id)).toEqual(["B", "C"]);
+  });
+  it("names the count", () => {
+    expect(doneLabel(A)).toBe("Done: Pick caterer");
+    expect(doneLabel(A, 1)).toBe("Done: Pick caterer · 1 task now ready");
+    expect(doneLabel(A, 3)).toBe("Done: Pick caterer · 3 tasks now ready");
   });
 });

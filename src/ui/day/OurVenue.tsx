@@ -1,4 +1,4 @@
-// Day tab "Our venue" (DESIGN-v11): header, money, room, photos, facts, contacts, open questions, link to the wedding checklist.
+// Day tab "Our venue" (DESIGN-v11): header, money (bar minimum + link; Budget is the one home of the estimate), room, photos, facts, contacts, open questions, link to the wedding checklist.
 import { useMemo, useState, type ReactNode } from "react";
 import { VENUE_FACTS, type VenuePhoto } from "../../data/venueFacts";
 import { defaultOpts, seasonOf } from "../../engine/compute";
@@ -7,7 +7,7 @@ import { chicagoToday } from "../../plan/tasks";
 import { useWeddingSummary } from "../compare";
 import { useData } from "../data";
 import { money } from "../format";
-import { Button, Card, Chip, EmptyState, Sheet } from "../kit/kit";
+import { Button, Card, Chip, Sheet } from "../kit/kit";
 import { useNav } from "../nav";
 import { fmtDay } from "../plan/model";
 import { TaskRow } from "../plan/TaskRow";
@@ -35,7 +35,7 @@ function Contact({ text }: { text: string }): ReactNode {
 
 export function OurVenue({ venueId, date }: OurVenueProps) {
   const { tasks, scenarios, headcount: hc, venues, offline } = useData();
-  const { openTask, openPlan } = useNav();
+  const { openTask, openPlan, setTab } = useNav();
   const ws = useWeddingSummary();
   const [photo, setPhoto] = useState<VenuePhoto | null>(null);
   const today = chicagoToday();
@@ -48,10 +48,8 @@ export function OurVenue({ venueId, date }: OurVenueProps) {
   const cd = weddingCountdown(today, date);
   const holiday = memorialWeekend(date);
   const sunset = sunsetLocal(date);
-  const b = ws?.summary.budget;
   const room = roomCheck(hc, sc);
   const bar = ws ? barMinimum(sc, ws.guests, defaultOpts(sc), seasonOf(sc, date)) : null;
-  const approx = !!b?.rows.some((r) => r.extrapolated);
 
   return (
     <div className="ov-screen">
@@ -67,19 +65,9 @@ export function OurVenue({ venueId, date }: OurVenueProps) {
       </Card>
 
       <Card title="Money">
-        {!ws || !b ? <EmptyState>We do not have a price for this venue yet.</EmptyState> : (
-          <>
-            <div className="ov-big">{approx ? "≈ " : ""}{money(b.total)}</div>
-            <p className="ov-muted">{ws.guestsLabel} · {fmtDay(ws.date, true)} · confidence {sc.confidence}%</p>
-            {ws.rentalQuote && <p className="ov-line">Rental quoted {money(ws.rentalQuote.amount)}</p>}
-            {bar && bar.binding && <p className="ov-line">Bar minimum {money(bar.min)} ≈ {money(bar.perHead)} pp at {ws.guests} guests</p>}
-            {ws.unmatched.length > 0 && (
-              <p className="ov-warn" role="alert">
-                <span aria-hidden="true">⚠</span> {ws.unmatched.length} quote{ws.unmatched.length === 1 ? "" : "s"} did not match a line on this date ({ws.unmatched.map((q) => (q.item_desc === "*" ? "all-in" : q.item_desc)).join(", ")}); not in the total.
-              </p>
-            )}
-          </>
-        )}
+        {bar && bar.binding && <p className="ov-line">Bar minimum {money(bar.min)} ≈ {money(bar.perHead)} pp at {ws?.guests} guests</p>}
+        <p className="ov-muted">The estimate, quotes and prices live in Budget.</p>
+        <Button onClick={() => setTab("budget")}>Open Budget</Button>
       </Card>
 
       <Card title="Room">

@@ -35,7 +35,8 @@ export function shortVenueName(name: string): string {
 }
 
 // ---- task ops ----
-export const doneLabel = (t: Pick<Task, "title">) => `Done: ${t.title}`;
+/** Toast after completing: "Done: X · 2 tasks now ready". */
+export const doneLabel = (t: Pick<Task, "title">, unblocked = 0) => `Done: ${t.title}${unblocked ? ` · ${unblocked} task${unblocked === 1 ? "" : "s"} now ready` : ""}`;
 export const completePatch = (t: Pick<Task, "id">, now = new Date()): Patch => ({ table: "tasks", id: t.id, row: { status: "done", done_at: now.toISOString() } });
 export const reopenPatch = (t: Pick<Task, "id">): Patch => ({ table: "tasks", id: t.id, row: { status: "open", done_at: null } });
 

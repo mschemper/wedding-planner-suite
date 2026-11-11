@@ -9,9 +9,4 @@
 .td-price { font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--peony-ink); line-height: 1.1; }
 .td-venue-meta { font-family: var(--sans); font-weight: 400; font-size: 13px; color: var(--muted); }
 .td-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.td-ready { list-style: none; display: grid; gap: 4px; }
-.td-ready-row { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; border-bottom: 1px solid var(--line); }
-.td-ready-title { min-height: 44px; border: 0; background: none; padding: 0; text-align: left; font-size: 16px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--sage); text-underline-offset: 4px; }
-.td-ready-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-.td-decision { color: var(--peony-ink); font-weight: 700; }
 .td-overdue { color: var(--peony-ink); font-weight: 600; }

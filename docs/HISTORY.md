@@ -82,6 +82,10 @@ Newest first. Each entry: what changed and why.
 - Firehouse Chicago kids' room capacity 20 (Bunk Room), adults seated 82. Source: Mark, 22 Oct 2026 (chat). `capacity.kids` added to Scenario; capacity checks adults and kids separately. Kids stay priced as adults (Mark's choice).
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
 
+## v16 rationale (10 Nov 2026)
+- Mark delegated the 5 REVIEW-v15 layout picks ("choose the best options"). Chosen: Ready now beside the countdown (the action list is what Mark/Angela open Today for); one TaskRow style so tasks can be ticked off from Today; phone filters behind a toggle (two rows of chips pushed the list below the fold at 360px); Budget as the single money home, Today keeps one headline total as a pointer, Day drops the total (it duplicated Budget and drifted when quotes changed); unblock count in the done toast instead of a new screen.
+- Release log v15: tag v15, deployed 10 Nov 2026, Worker b9c705fe-e413-4a13-94a7-0550027ca5a9, no migration.
+
 ## v14 rationale (10 Nov 2026)
 - Joinery signed 10 Nov (HoneyBook; $500 + $3,000 deposit by Zelle 10–11 Nov per Angela's email): venue-selection UI retired; Venues tab became Budget (Mark chose over folding into Day).
 - Hosting kept on Cloudflare after review: $0, Access login, Time Travel; additions = CI, CSP/security headers, error boundary. Alternatives: docs/archive/PLATFORMS.md (still rejected). Automated R2 backups and a custom domain deferred (BACKLOG).

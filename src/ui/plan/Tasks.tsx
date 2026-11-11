@@ -1,4 +1,4 @@
-// Plan → Tasks: List or Calendar view, owner/category filters, quick add, paste, checklist sheet, edit sheet.
+// Plan → Tasks: List or Calendar view, owner/category filters (behind a Filter button < 640px), quick add, paste, checklist sheet, edit sheet.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { byIdMap } from "../../plan/deps";
 import { GROUP_LABEL, chicagoToday, groupTasks } from "../../plan/tasks";
@@ -18,6 +18,8 @@ export function Tasks({ highlight, mode, view }: { highlight: string | null; mod
   const { tasks, save, offline, status, version, settings } = useData();
   const today = chicagoToday();
   const [filter, setFilter] = useState<TaskFilter>(NO_FILTER);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = (filter.owner ? 1 : 0) + (filter.category ? 1 : 0) + (filter.showDone ? 1 : 0);
   const [openId, setOpenId] = useState<string | null>(null);
   const [paste, setPaste] = useState(false);
   const [checklist, setChecklist] = useState(false);
@@ -70,7 +72,10 @@ export function Tasks({ highlight, mode, view }: { highlight: string | null; mod
         </form>
       )}
       {note && <p className="pl-hint" role="status">{note}</p>}
-      <div className="pl-filters" role="group" aria-label="Filter tasks">
+      <button type="button" className="k-filter pl-filter-toggle" aria-expanded={filtersOpen} aria-controls="pl-filters" onClick={() => setFiltersOpen((o) => !o)}>
+        Filter{activeFilters ? ` (${activeFilters})` : ""} <span aria-hidden="true">{filtersOpen ? "▴" : "▾"}</span>
+      </button>
+      <div id="pl-filters" className={`pl-filters${filtersOpen ? " is-open" : ""}`} role="group" aria-label="Filter tasks">
         {OWNERS.map((o) => <FilterChip key={o} on={filter.owner === o} onClick={() => toggleOwner(o)}>{o}</FilterChip>)}
         <span className="pl-sep" aria-hidden="true" />
         {CATEGORIES.map((c) => <FilterChip key={c} on={filter.category === c} onClick={() => toggleCat(c)}>{c}</FilterChip>)}

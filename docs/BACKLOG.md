@@ -2,7 +2,7 @@
 
 **Read this before planning a release.** Each item says where it came from, its size (docs/RELEASE.md), where the code is, and a proposed fix. When an item ships, move it to CHANGELOG.md and delete it here.
 
-Last reviewed: 10 Nov 2026 (v15 shipped, deployed).
+Last reviewed: 10 Nov 2026 (v16 shipped, not deployed).
 
 ---
 
@@ -69,9 +69,6 @@ Cron Worker export; needs Mark's OK for a bucket. Custom domain optional.
 
 ### F30. Plan: Google Calendar (.ics) feed / sheet export of the checklist -- S
 Not chosen for v14.
-
-### F31. Layout picks from REVIEW-v15 -- S
-Needs Mark's pick first (docs/REVIEW-v15.md "Needs Mark's design pick"): Today order, Plan phone filter button, leaf motif overlap, one home for money, done toast names what it unblocked.
 
 ## Bugs / debt
 
