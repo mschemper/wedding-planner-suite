@@ -1,5 +1,5 @@
 # DESIGN-v5 -- People tab rebuild. Agent-facing.
-Inputs: docs/REVIEW-v4-people.md (findings P1–P11, D1–D6); options docs/mockups/v5-people-options.html. Mark picked (22 Oct 2026): D room check, A1 rings, B1 outline tree, C1 friend shortlist; data: closeness tiers, friend fields, friendly branch names, unnamed-kids count + gen fix.
+Inputs: docs/archive/REVIEW-v4-people.md (findings P1–P11, D1–D6); options docs/archive/mockups/v5-people-options.html. Mark picked (22 Oct 2026): D room check, A1 rings, B1 outline tree, C1 friend shortlist; data: closeness tiers, friend fields, friendly branch names, unnamed-kids count + gen fix.
 Size: Medium (one surface + one data change). Lead: data layer + pure logic + tests; one Sonnet builder: src/ui/people/*; lead QA + deploy.
 
 ## 1. Data (migration 0003_people_v5.sql, add-only + one generic data fix)

@@ -1,19 +1,23 @@
 // One task line (Plan + Today): 44px checkbox, title (opens the sheet / Plan), owner, category, due, source link.
+// v14: optional `info` adds the state chip (Ready / Waiting on … / Overdue) and the ◆ Decision label; `warn` adds a dependency warning line.
 import { useState } from "react";
 import type { Task } from "../../plan/types";
 import { chicagoToday } from "../../plan/tasks";
 import { useData } from "../data";
 import { Chip, OwnerChip } from "../kit/kit";
-import { completePatch, doneLabel, dueLabel, reopenPatch, sourceUrl } from "./model";
+import { completePatch, doneLabel, dueLabel, isDecision, reopenPatch, sourceUrl, stateChip, type RowInfo } from "./model";
 import "./plan.css";
 
-export function TaskRow({ task, today, onOpen, highlight }: { task: Task; today: string; onOpen(t: Task): void; highlight?: boolean }) {
+export function TaskRow({ task, today, onOpen, highlight, info, warn }: {
+  task: Task; today: string; onOpen(t: Task): void; highlight?: boolean; info?: RowInfo; warn?: string[];
+}) {
   const { edit, offline } = useData();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const done = task.status === "done";
   const due = dueLabel(task.due, today);
   const url = sourceUrl(task.source);
+  const chip = info && !done ? stateChip(info) : null;
   const toggle = async () => {
     setBusy(true);
     setErr("");
@@ -30,6 +34,8 @@ export function TaskRow({ task, today, onOpen, highlight }: { task: Task; today:
       <div className="pl-task-main">
         <button type="button" className="pl-task-title" onClick={() => onOpen(task)}>{task.title}</button>
         <div className="pl-task-meta">
+          {isDecision(task) && <span className="pl-decision">◆ Decision</span>}
+          {chip && <Chip tone={chip.tone}>{chip.text}</Chip>}
           <OwnerChip owner={task.owner} />
           <span>{task.category}</span>
           {!done && <span className={due.overdue ? "pl-overdue" : ""}>{due.text}</span>}
@@ -37,6 +43,7 @@ export function TaskRow({ task, today, onOpen, highlight }: { task: Task; today:
           {url && <a href={url} target="_blank" rel="noopener noreferrer" className="pl-src">email ↗</a>}
           {!url && task.source === "email" && <Chip>from email</Chip>}
         </div>
+        {warn?.map((w) => <div key={w} className="pl-warn"><span aria-hidden="true">⚠</span> {w}</div>)}
         {err && <div className="pl-err" role="alert">Not saved: {err}</div>}
       </div>
     </li>

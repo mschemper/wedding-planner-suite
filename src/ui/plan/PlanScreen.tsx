@@ -1,32 +1,29 @@
-// Plan tab (DESIGN-v4 §2): Tasks + Must-haves. Wide screens show both; phones switch with the Segmented control.
+// Plan tab (DESIGN-v14 §4): List | Calendar, filters All | Ready now | Decisions. Must-haves live in Venues and Today.
 import { useEffect, useState } from "react";
 import { Segmented } from "../kit/kit";
 import { useNav } from "../nav";
-import { MustHaves } from "./MustHaves";
 import { Tasks } from "./Tasks";
+import type { PlanFilter, PlanMode } from "./model";
 import "./plan.css";
-
-type Section = "tasks" | "musthaves";
-export const PLAN_SECTION_KEY = "wps.planSection";
-
-function initialSection(): Section {
-  try {
-    const s = sessionStorage.getItem(PLAN_SECTION_KEY);
-    sessionStorage.removeItem(PLAN_SECTION_KEY);
-    if (s === "musthaves") return "musthaves";
-  } catch { /* storage unavailable */ }
-  return "tasks";
-}
 
 export function PlanScreen() {
   const { focus, clearFocus } = useNav();
-  const [section, setSection] = useState<Section>(initialSection);
+  const [mode, setMode] = useState<PlanMode>("list");
+  const [view, setView] = useState<PlanFilter>("all");
   const [highlight, setHighlight] = useState<string | null>(null);
   const focusTask = focus.task;
+  const focusPlan = focus.plan;
 
   useEffect(() => {
+    if (!focusPlan) return;
+    if (focusPlan.mode) setMode(focusPlan.mode);
+    setView(focusPlan.filter ?? "all");
+    clearFocus();
+  }, [focusPlan, clearFocus]);
+  useEffect(() => {
     if (!focusTask) return;
-    setSection("tasks");
+    setView("all");
+    setMode("list");
     setHighlight(focusTask);
     clearFocus();
   }, [focusTask, clearFocus]);
@@ -37,15 +34,14 @@ export function PlanScreen() {
   }, [highlight]);
 
   return (
-    <div className="pl-screen" data-section={section}>
+    <div className="pl-screen">
       <div className="pl-switch">
-        <Segmented<Section> label="Plan section" value={section} onChange={setSection}
-          options={[{ value: "tasks", label: "Tasks" }, { value: "musthaves", label: "Must-haves" }]} />
+        <Segmented<PlanMode> label="Plan view" value={mode} onChange={setMode}
+          options={[{ value: "list", label: "List" }, { value: "calendar", label: "Calendar" }]} />
+        <Segmented<PlanFilter> label="Show" value={view} onChange={setView}
+          options={[{ value: "all", label: "All" }, { value: "ready", label: "Ready now" }, { value: "decisions", label: "Decisions" }]} />
       </div>
-      <div className="pl-cols">
-        <div className="pl-col pl-col-tasks"><Tasks highlight={highlight} /></div>
-        <div className="pl-col pl-col-mh"><MustHaves /></div>
-      </div>
+      <Tasks mode={mode} view={view} highlight={highlight} />
     </div>
   );
 }

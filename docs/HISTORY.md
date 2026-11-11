@@ -82,19 +82,26 @@ Newest first. Each entry: what changed and why.
 - Firehouse Chicago kids' room capacity 20 (Bunk Room), adults seated 82. Source: Mark, 22 Oct 2026 (chat). `capacity.kids` added to Scenario; capacity checks adults and kids separately. Kids stay priced as adults (Mark's choice).
 - Added venues: D1 `custom_venues` (0004); ids from 1000 so they never collide with code scenarios.
 
+## v14 rationale (10 Nov 2026)
+- Joinery signed 10 Nov (HoneyBook; $500 + $3,000 deposit by Zelle 10–11 Nov per Angela's email): venue-selection UI retired; Venues tab became Budget (Mark chose over folding into Day).
+- Hosting kept on Cloudflare after review: $0, Access login, Time Travel; additions = CI, CSP/security headers, error boundary. Alternatives: docs/archive/PLATFORMS.md (still rejected). Automated R2 backups and a custom domain deferred (BACKLOG).
+- Calendar = month agenda (Mark chose over phase lanes / Gantt: works at 360px). Dependencies stored on tasks (`depends_on`) rather than a separate edge table: one row per task keeps one-tap edits + Undo.
+- Addresses: one per household, keyed by party id (no FK: D1 add-only migrations); re-seed --replace blocked because party ids would shift under them. Audit log keeps address rows (Access-protected D1).
+- Docs: superseded DESIGN/REVIEW docs + mockups moved to docs/archive/ to shrink what agents scan.
+
 ## Release log (moved from STATE.md, 23 Oct 2026)
 - **v11** (tag `v11`, 11.0.0), deployed 9 Nov 2026, Worker version 5dcf0c0a-a7af-461d-b9af-8962abca2129; migration 0006. Rollback: docs/DEPLOY.md
 - v10 bug sweep (tag v10, 10.0.0, no migration): deployed 25 Oct 2026, Worker version 5904b91d-009e-41dd-9784-85781427ed6c.
 - v9 Jungalow Lounge (tag v9, 9.0.0, no migration): deployed 23 Oct 2026, Worker version 95a4afda-912a-4df1-bdc1-4aa0dcde5659.
 - Backup before v10: `data/private/d1-backup-v9.sql` (25 Oct 2026, 651 INSERT rows). Before v9: `d1-backup-v8.sql` (23 Oct 2026, 537 rows).
 - v8 Household card, Prairie & Steel (tag v8, 8.0.0, migration 0005): deployed 23 Oct 2026, Worker version 13029a97-51d7-4ada-b654-15a29db6458a.
-- v10 review: docs/mockups/v10-review.html (design review R1–R7, ideas N1–N12). Mark: yes R1, R2, R4, R5, N2; no R6, R7, N1, N3, N4; R3, N5–N12 unanswered.
+- v10 review: docs/archive/mockups/v10-review.html (design review R1–R7, ideas N1–N12). Mark: yes R1, R2, R4, R5, N2; no R6, R7, N1, N3, N4; R3, N5–N12 unanswered.
 - v6 Easy people + review fixes (tag v6, 6.0.0, no migration): deployed 22 Oct 2026, Worker version 71d3393a-39b8-4e14-8af6-d32005c4755e.
 - v5 People tab (tag v5, 5.0.0): deployed 22 Oct 2026, Worker version 61f32257-13b4-4638-8707-9b4d895e2452. Rollback = check out v5, build, deploy.
 - v4 Garden (tag v4): rollback = check out v4, build, deploy (0003 columns additive; v4 ignores them).
 - v7 Conservatory look (tag v7, 7.0.0): deployed 22 Oct 2026, Worker version 66408ed9-8730-4dc2-9c89-842225e14794.
 - v7 hotfix (research line repair, commit dd4d6f1): Worker version 905d2070-023d-4dae-b1f1-b0c7b2d986d6.
-- Designs/reviews by release: DESIGN-v3/v4/v5/v7/v8/v9, REVIEW-v2/v3/v4-people/v6, v9 review (mockups/v9-review.html); mockups docs/mockups/. Looks: Twinkle garden (v4, DESIGN-v4 §6) -> Conservatory Modern (v7) -> Prairie & Steel (v8) -> Jungalow Lounge (v9, current).
+- Designs/reviews by release: DESIGN-v3/v4/v5/v7/v8/v9, REVIEW-v2/v3/v4-people/v6, v9 review (mockups/v9-review.html); mockups docs/archive/mockups/. Looks: Twinkle garden (v4, DESIGN-v4 §6) -> Conservatory Modern (v7) -> Prairie & Steel (v8) -> Jungalow Lounge (v9, current).
 
 ## Backups (moved from STATE.md)
 - Before v11: data/private/d1-backup-v10.sql (9 Nov 2026, 698 rows; bookmark before 0006 0000003a-00000002-0000511f-e40f45be727f0598a37106786b869db1). Before v10: data/private/d1-backup-v9.sql (25 Oct 2026, 651 rows). Before v9: data/private/d1-backup-v8.sql (23 Oct 2026). Before v8: data/private/d1-backup-v7.sql (23 Oct 2026). Before v7: d1-backup-v6.sql (22 Oct). Before v6: d1-backup-v5.sql (22 Oct). Before v5: d1-backup-v4.sql (7 in-app edits); Time Travel bookmark before 0003: 0000000f-00000000-0000510c-4f239d5944ea229ba0af44ddc16553e8. Before v4: d1-backup-v3.sql; bookmark before 0002: 00000007-00000000-0000510c-d6a1322583093461991a98ead97e221a.

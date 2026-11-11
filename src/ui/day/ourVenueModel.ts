@@ -1,14 +1,5 @@
 // Pure helpers for the Day tab "Our venue" section (DESIGN-v11).
-import type { Op } from "../../api/types";
-import type { MilestoneDraft } from "../../plan/day";
 import { addDays } from "../../plan/tasks";
-import { createTaskOp } from "../plan/model";
-
-/** One save() worth of task creates for milestone drafts: source milestone:<key>, due, owner Both, tied to the venue. */
-export function milestoneOps(drafts: MilestoneDraft[], venueId: number | null, today: string): Op[] {
-  return drafts.map((d) =>
-    createTaskOp({ title: d.title, detail: d.detail ?? "", due: d.due, owner: "Both", category: d.category, scenario_id: venueId }, d.source, today));
-}
 
 /** Memorial Day (last Monday of May) weekend: the Fri, Sat, Sun or Mon of it. Returns the holiday date or null. */
 export function memorialWeekend(date: string): string | null {
@@ -25,5 +16,17 @@ export function capList<T>(items: T[], max: number, all: boolean): { shown: T[];
   return { shown: items.slice(0, max), hidden: items.length - max };
 }
 
-/** Label for the milestone button / done state. */
-export const milestoneButton = (n: number) => (n === 0 ? "All milestones are in Plan" : `Add ${n} milestone${n === 1 ? "" : "s"} to Plan`);
+/** Split contact text into plain text and mailto:/tel: links (emails, phone numbers). */
+export function contactParts(text: string): { text: string; href?: string }[] {
+  const out: { text: string; href?: string }[] = [];
+  const re = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+|(?<!\d)\d{3}[-. ]\d{3}[-. ]\d{4}(?!\d)/g;
+  let last = 0;
+  for (const m of text.matchAll(re)) {
+    const i = m.index ?? 0;
+    if (i > last) out.push({ text: text.slice(last, i) });
+    out.push({ text: m[0], href: m[0].includes("@") ? `mailto:${m[0]}` : `tel:+1${m[0].replace(/\D/g, "")}` });
+    last = i + m[0].length;
+  }
+  if (last < text.length) out.push({ text: text.slice(last) });
+  return out;
+}

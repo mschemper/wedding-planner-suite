@@ -10,6 +10,7 @@ import { DECISIONS, KIDS_RULES, KNOWN_BY, LOCALS, RSVPS, SIDES, displayName, typ
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Segmented, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
+import { AddressSection } from "./AddressSection";
 import { DiscardAsk } from "./DiscardAsk";
 import { Menu, type MenuItem } from "./Menu";
 import {
@@ -259,6 +260,8 @@ export function HouseholdCard({ target, tc, relation, onClose, onOpen, onRelativ
               </div>
             </div>
           )}
+
+          {party && <AddressSection key={`${party.id}:${version("addresses", party.id) ?? 0}`} partyId={party.id} />}
 
           {/* household extras */}
           <details className="pp-more wide">

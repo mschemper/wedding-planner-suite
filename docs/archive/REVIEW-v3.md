@@ -13,7 +13,7 @@ Inputs: a cold code review of v2 (Sonnet subagent, 20 findings, mostly verified 
 | R5 | med | A numeric `ParentPersonIDs` cell crashed the importer, and numeric IDs never matched their references. | ✅ ID columns are always converted to strings. |
 | R6 | med | Header whitespace, or a missing or renamed sheet, gave 0 rows silently. | ✅ Keys are trimmed. A missing required sheet or 0 rows is an error. |
 | R7 | med | The importer wrote guests.json even when validation failed. | ✅ A failed import writes `guests.rejected.json` instead, so the last good file stays. |
-| R8 | med | Real surnames were in `docs/REVIEW-v2.md` and in git history. | ✅ Removed from the docs, and history rewritten (no remote existed). |
+| R8 | med | Real surnames were in `docs/archive/REVIEW-v2.md` and in git history. | ✅ Removed from the docs, and history rewritten (no remote existed). |
 | R9 | med | `.gitignore` didn't catch a workbook outside `data/private/`, and `git add -A -f` was allowed. | ✅ Now ignores `*.xlsx` / `*.csv` / `/data/*` except fixtures; force-add variants are denied. |
 | R10 | med | Several text colours failed WCAG AA on cream. | ✅ Added `--*-ink` text tokens (fills unchanged). Dimmed cards are at 0.8 opacity, and footer and stat text are darker. |
 | R11 | low-med | Toggles had no `aria-pressed`. | ✅ Added, plus role=group labels. |

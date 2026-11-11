@@ -25,7 +25,7 @@ function stripFonts(): Plugin {
 
 /** `npm run dev`: /api runs worker/api.ts in Node against .wrangler/dev/db-v4.sqlite (seeded from the synthetic fixture + seed-v4). */
 function devApi(): Plugin {
-  type Db = { raw: { prepare(sql: string): { run(...v: unknown[]): unknown } }; migrate(): unknown };
+  type Db = { raw: { prepare(sql: string): { run(...v: unknown[]): unknown } }; migrate(): unknown; upgrade(): unknown };
   let ready: Promise<Db> | undefined;
   const body = (req: IncomingMessage) => new Promise<Buffer>((ok) => { const c: Buffer[] = []; req.on("data", (d) => c.push(d)); req.on("end", () => ok(Buffer.concat(c))); });
   return {
@@ -50,7 +50,7 @@ function devApi(): Plugin {
               d.migrate();
               const set = { ...fixture, venues: SEED_VENUES, musthaves: SEED_MUSTHAVES, fit: SEED_FIT, tasks: SEED_TASKS };
               for (const r of seedRows(set, "seed")) d.raw.prepare(r.sql).run(...r.values);
-            }
+            } else d.upgrade();
             return d;
           })();
           const db = await ready;

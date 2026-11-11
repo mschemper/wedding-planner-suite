@@ -7,7 +7,7 @@ import { scenarioById } from "../src/data/scenarios";
 import { VENUE_FACTS } from "../src/data/venueFacts";
 import { computeBudget, seasonOf } from "../src/engine/compute";
 import {
-  MILESTONES, TIMELINE_TEMPLATE, clock, endOf, milestoneDrafts, milestoneSource, sortTimeline, sunsetIndex, sunsetLocal, timelineIssues,
+  TIMELINE_TEMPLATE, clock, endOf, sortTimeline, sunsetIndex, sunsetLocal, timelineIssues,
   toMin, vendorSummary, weddingCountdown, weddingVenue, sunsetUtc, roomCheck, barMinimum,
 } from "../src/plan/day";
 import type { TimelineRow, Vendor, VenueRow } from "../src/plan/types";
@@ -35,24 +35,6 @@ describe("wedding venue + countdown", () => {
     expect(weddingCountdown("2027-05-28", "2027-05-29").big).toBe("1 day");
     expect(weddingCountdown("2027-05-29", "2027-05-29").big).toBe("Today");
     expect(weddingCountdown("2027-06-01", "2027-05-29").past).toBe(true);
-  });
-});
-
-describe("plan-back milestones", () => {
-  it("unique keys; due = wedding minus before; past ideals move to today and say late", () => {
-    expect(new Set(MILESTONES.map((m) => m.key)).size).toBe(MILESTONES.length);
-    const d = milestoneDrafts("2027-05-29", "2026-11-09", []);
-    expect(d).toHaveLength(MILESTONES.length);
-    expect(d.find((m) => m.key === "rsvp")).toMatchObject({ due: "2027-04-24", late: false, source: "milestone:rsvp" });
-    expect(d.find((m) => m.key === "venue-contract")).toMatchObject({ due: "2026-11-10", late: false });
-    expect(d.find((m) => m.key === "attire")).toMatchObject({ due: "2026-11-20", late: false });
-    expect(milestoneDrafts("2027-05-29", "2026-11-15", []).find((m) => m.key === "venue-contract")).toMatchObject({ due: "2026-11-15", late: true });
-    expect(d.map((m) => m.due)).toEqual([...d.map((m) => m.due)].sort());
-  });
-  it("skips milestones already added", () => {
-    const d = milestoneDrafts("2027-05-29", "2026-11-09", [{ source: milestoneSource("rsvp") }, { source: null }]);
-    expect(d.some((m) => m.key === "rsvp")).toBe(false);
-    expect(d).toHaveLength(MILESTONES.length - 1);
   });
 });
 

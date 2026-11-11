@@ -90,7 +90,7 @@ export function RoomCheck({ room, act }: { room: Room; act: Actions }) {
           </li>
         )}
       </ul>
-      <span className="pp-cost" title="Budget at the venue for the guest basis chosen on Venues">
+      <span className="pp-cost" title="Budget at the venue for the guest basis chosen on Budget">
         {room.cost === undefined ? "" : room.cost === null ? "awaiting rates" : <><b>≈ {money(room.cost)}</b><small>at {sel.name}</small></>}
       </span>
       {kidsMenu}

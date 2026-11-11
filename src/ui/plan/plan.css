@@ -1,14 +1,5 @@
 /* Plan + shared task rows (DESIGN-v4 §2). Tokens only; classes prefixed pl-. */
-.pl-switch { margin-bottom: 14px; }
-.pl-cols { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
-.pl-col > .k-card + .k-card { margin-top: 0; }
-@media (max-width: 859px) {
-  .pl-screen[data-section="tasks"] .pl-col-mh, .pl-screen[data-section="musthaves"] .pl-col-tasks { display: none; }
-}
-@media (min-width: 860px) {
-  .pl-switch { display: none; }
-  .pl-cols { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
-}
+.pl-switch { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-bottom: 14px; }
 .pl-filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 12px; }
 .pl-sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
 .pl-group { margin-top: 12px; }
@@ -45,17 +36,17 @@
 .pl-preview { list-style: none; display: grid; gap: 8px; }
 .pl-preview li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; }
 .pl-preview li.is-skip { opacity: .65; }
-.pl-mh-list { list-style: none; margin-bottom: 12px; }
-.pl-mh:last-child { border-bottom: 0; }
-.pl-mh-text { font-weight: 600; }
-.pl-mh-edit { display: grid; gap: 8px; }
-.pl-row { display: flex; gap: 8px; }
-.pl-mh-arch { border-top: 1px solid var(--line); padding-top: 8px; }
-.pl-mh.is-archived .pl-mh-text { color: var(--muted); font-weight: 400; }
-.pl-mh-n { flex: none; width: 22px; text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
-.pl-mh-main { flex: 1 1 160px; min-width: 0; padding: 4px 0; }
-/* one line per must-have: number · text · ⋯ (venue marks moved to the Venues grid in v10) */
-.pl-mh { display: grid; grid-template-columns: 22px minmax(0, 1fr) 44px; grid-template-areas: "n main menu"; column-gap: 8px; align-items: center; padding: 4px 0 6px; border-bottom: 1px dashed var(--line); }
-.pl-mh > .pl-mh-n { grid-area: n; }
-.pl-mh > .pl-mh-main { grid-area: main; padding: 2px 0; }
-.pl-mh > .pp-menu { grid-area: menu; justify-self: end; }
+
+/* v14: state chips, decisions, calendar, Waits-on picker */
+.pl-decision { font-weight: 700; color: var(--euc-ink); }
+.pl-warn { color: var(--peony-ink); font-size: 14px; padding: 2px 0 6px; overflow-wrap: anywhere; }
+.pl-cal { display: block; max-width: 100%; }
+.pl-month { margin-top: 12px; }
+.pl-wedding { padding: 10px 12px; margin: 6px 0; border: 2px solid var(--marigold); border-radius: 12px; font-weight: 700; background: color-mix(in srgb, var(--twinkle) 35%, transparent); }
+.pl-task-meta .k-chip { white-space: normal; }
+.pl-dep-picked { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 4px 0; }
+.pl-dep-picked li { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 12px; padding: 0 0 0 10px; min-height: 44px; }
+.pl-dep-picked button { min-width: 44px; min-height: 44px; border: 0; background: none; font-size: 16px; }
+.pl-dep-choices { list-style: none; display: grid; gap: 4px; margin-top: 6px; }
+.pl-dep-choices button { width: 100%; min-height: 44px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 6px 10px; }
+.pl-unblocks { font-size: 14px; color: var(--muted); margin: 6px 0; }

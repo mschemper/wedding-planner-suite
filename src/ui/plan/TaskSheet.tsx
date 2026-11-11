@@ -1,10 +1,11 @@
 // Task edit sheet + the shared field set (also used by Quick add). Draft + Save via edit(); delete with confirm.
-import { useState } from "react";
-import { CATEGORIES, type Category, type Owner, type Task } from "../../plan/types";
+import { useMemo, useState } from "react";
+import { byIdMap, dependants, earliestDue } from "../../plan/deps";
+import { CATEGORIES, type Category, type Owner, type Task, type TaskKind } from "../../plan/types";
 import { useData, type SaveResult } from "../data";
 import { Button, Field, Segmented, Sheet } from "../kit/kit";
 import { SaveError } from "../SaveError";
-import { draftError, draftOf, taskChanges, shortVenueName, type TaskDraft } from "./model";
+import { blockerChoices, depChanges, draftError, draftOf, fmtDay, taskChanges, shortVenueName, type TaskDraft } from "./model";
 
 export interface VenueOption { id: number; name: string }
 
@@ -32,15 +33,44 @@ export function TaskFields({ draft, set, venues }: { draft: TaskDraft; set(p: Pa
   );
 }
 
-export function TaskSheet({ task, venues, onClose }: { task: Task; venues: VenueOption[]; onClose(): void }) {
+function WaitsOn({ task, tasks, deps, setDeps }: { task: Task; tasks: Task[]; deps: string[]; setDeps(d: string[]): void }) {
+  const [q, setQ] = useState("");
+  const byId = useMemo(() => byIdMap(tasks), [tasks]);
+  const choices = useMemo(() => blockerChoices(tasks, task.id, deps, q), [tasks, task.id, deps, q]);
+  return (
+    <div className="pl-waits">
+      <ul className="pl-dep-picked" aria-label="Waits on">
+        {deps.map((id) => (
+          <li key={id}><span>{byId.get(id)?.title ?? "(deleted task)"}</span>
+            <button type="button" aria-label={`Stop waiting on ${byId.get(id)?.title ?? id}`} onClick={() => setDeps(deps.filter((x) => x !== id))}>✕</button></li>
+        ))}
+      </ul>
+      <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tasks to wait on" aria-label="Search tasks to wait on" />
+      {(q.trim() !== "" || deps.length === 0) && choices.length > 0 && (
+        <ul className="pl-dep-choices">
+          {choices.map((c) => (
+            <li key={c.id}><button type="button" onClick={() => { setDeps([...deps, c.id]); setQ(""); }}>
+              {c.title}{c.due ? ` · ${fmtDay(c.due)}` : ""}</button></li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function TaskSheet({ task, tasks, venues, onClose }: { task: Task; tasks: Task[]; venues: VenueOption[]; onClose(): void }) {
   const { edit, save, version, offline } = useData();
   const [draft, setDraft] = useState<TaskDraft>(() => draftOf(task));
   const [detailOnly, setDetail] = useState(task.detail ?? "");
+  const [kind, setKind] = useState<TaskKind>(task.kind ?? "task");
+  const [deps, setDeps] = useState<string[]>(task.depends_on ?? []);
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState<Extract<SaveResult, { ok: false }> | null>(null);
   const bad = draftError(draft);
-  const changes = taskChanges(task, { ...draft, detail: detailOnly });
+  const changes = { ...taskChanges(task, { ...draft, detail: detailOnly }), ...depChanges(task, kind, deps) };
+  const unblocks = useMemo(() => dependants(task.id, tasks), [task.id, tasks]);
+  const earliest = useMemo(() => (draft.due ? earliestDue({ ...task, depends_on: deps }, byIdMap(tasks)) : null), [draft.due, task, deps, tasks]);
   const run = async (f: () => Promise<SaveResult>) => {
     setBusy(true);
     const r = await f();
@@ -48,7 +78,7 @@ export function TaskSheet({ task, venues, onClose }: { task: Task; venues: Venue
     if (r.ok) onClose(); else setFail(r);
   };
   return (
-    <Sheet title="Task" open onClose={onClose} dirty={!offline && Object.keys(changes).length > 0}
+    <Sheet title={kind === "decision" ? "Decision" : "Task"} open onClose={onClose} dirty={!offline && Object.keys(changes).length > 0}
       footer={offline ? <Button onClick={onClose}>Close</Button> : confirm ? (
         <>
           <span className="pl-confirm">Delete this task for good?</span>
@@ -65,6 +95,16 @@ export function TaskSheet({ task, venues, onClose }: { task: Task; venues: Venue
       )}>
       <fieldset className="pl-fieldset" disabled={offline}>
         <TaskFields draft={draft} set={(p) => setDraft((d) => ({ ...d, ...p }))} venues={venues} />
+        <Field label="Type">
+          <Segmented<TaskKind> label="Type" value={kind} onChange={setKind}
+            options={[{ value: "task", label: "Task" }, { value: "decision", label: "◆ Decision" }]} />
+        </Field>
+        <div className="k-field wide">
+          <span className="k-field-label">Waits on</span>
+          <WaitsOn task={task} tasks={tasks} deps={deps} setDeps={setDeps} />
+        </div>
+        {earliest && draft.due < earliest && <p className="pl-hint" role="status">Earliest sensible due: {fmtDay(earliest, true)}</p>}
+        {unblocks.length > 0 && <p className="pl-unblocks">Unblocks: {unblocks.map((t) => t.title).join("; ")}</p>}
         <Field label="Details" wide><textarea value={detailOnly} onChange={(e) => setDetail(e.target.value)} /></Field>
       </fieldset>
       {bad && <p className="pl-err" role="alert">{bad}</p>}

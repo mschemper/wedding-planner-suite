@@ -9,10 +9,11 @@ Read only for a deploy session. Steps in order; stop on any failure. Cloudflare 
 1. Backup: `npx wrangler d1 export DB --remote --output data/private/d1-backup-v<N-1>.sql` (gitignored). Note the Time Travel bookmark if a migration follows.
 2. Migrations (only if the release adds one): `npx wrangler d1 migrations apply DB --remote`.
 2b. Release data script (only if `scripts/v<N>-live-data.sql` exists; idempotent): `npx wrangler d1 execute DB --remote --file scripts/v<N>-live-data.sql`.
-3. Seed (only on first load or Mark asks; only behind Access): `npm run import:v4`, `npm run seed:v4 -- --replace`, `npx wrangler d1 execute DB --remote --file data/private/seed-v4.sql`, delete the file. `--replace` wipes in-app edits: export first.
+2c. Addresses import (v14, once; only if `data/private/addresses-found.json` holds new rows): `npx tsx scripts/addresses-sql.ts` -> `npx wrangler d1 execute DB --remote --file data/private/addresses.sql` -> check `SELECT COUNT(*) FROM addresses WHERE id NOT IN (SELECT id FROM parties)` = 0 -> delete the .sql. Counts only in chat.
+3. Seed (only on first load or Mark asks; only behind Access; refuses `--replace` while D1 has addresses): `npm run import:v4`, `npm run seed:v4 -- --replace`, `npx wrangler d1 execute DB --remote --file data/private/seed-v4.sql`, delete the file. `--replace` wipes in-app edits: export first.
 4. `npm run build` (hosted `dist/`).
 5. `npx wrangler deploy`.
-6. Verify: unauthenticated `/`, `/api/version` -> Access login redirect. Signed-in `/api/version` = package.json version needs Mark signed in: say "not checked" if he is not.
+6. Verify: unauthenticated `/`, `/api/version` -> Access login redirect. `curl -sI` the site: CSP + nosniff headers present (public/_headers). Signed-in `/api/version` = package.json version needs Mark signed in: say "not checked" if he is not.
 7. Record in docs/STATE.md: Worker version id, migration applied, backup file. Keep only the current and previous release rows (STATE rules).
 
 ## Secrets

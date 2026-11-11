@@ -34,3 +34,6 @@ On the PC: `git fetch <bundle> main:incoming && git merge incoming`.
 ## Never in git
 
 `data/private/`, `dist/`, `node_modules/`, `archive/`. A private repo doesn't change this: guest data stays local.
+
+## Cowork
+Repo = device $HOME/mnt/Documents/Projects/wedding-planner-suite; device_request_delete_permission before first git write (lock files); develop in the cloud container; return work as a git bundle (above); cannot push.

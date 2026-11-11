@@ -4,8 +4,7 @@ import type { Options, Scenario } from "../engine/types";
 import { applies } from "../engine/compute";
 import type { Headcount } from "../people/headcount";
 import type { VenueHours } from "../data/venueFacts";
-import { addDays } from "./tasks";
-import type { Category, Task, TimelineRow, Vendor, VendorCategory, VenueRow } from "./types";
+import type { TimelineRow, Vendor, VendorCategory, VenueRow } from "./types";
 
 // ---------- wedding venue + countdown ----------
 
@@ -63,65 +62,6 @@ export function barMinimum(sc: Scenario, guests: number, opts: Options, season?:
     return { min: it.min, rate: it.rate, perHead: guests > 0 ? Math.round((total / guests) * 100) / 100 : 0, binding: it.min > it.rate * guests, desc: it.desc };
   }
   return null;
-}
-
-// ---------- plan-back milestones ----------
-
-export interface Milestone {
-  key: string;
-  title: string;
-  /** days before the wedding */
-  before: number;
-  category: Category;
-  detail?: string;
-}
-
-/** Planning milestones counted back from the wedding (tuned for ~6 months out). `source` on the task = "milestone:<key>". */
-export const MILESTONES: Milestone[] = [
-  { key: "venue-contract", title: "Sign the venue contract + pay the deposit", before: 200, category: "venue", detail: "Get the date, rate, hours and band permission in writing." },
-  { key: "attire", title: "Order wedding attire", before: 190, category: "design", detail: "Dresses often need 4–6 months plus alterations." },
-  { key: "caterer", title: "Book the caterer (tasting first)", before: 180, category: "vendor" },
-  { key: "photo", title: "Book the photographer", before: 170, category: "vendor" },
-  { key: "music", title: "Confirm the band (or book a DJ)", before: 165, category: "vendor" },
-  { key: "website", title: "Wedding website + RSVP page live", before: 155, category: "guests" },
-  { key: "save-dates", title: "Send save-the-dates", before: 150, category: "guests", detail: "Memorial Day weekend: out-of-town guests need notice." },
-  { key: "lodging", title: "Hotel room block / Mill House for out-of-town guests", before: 150, category: "admin" },
-  { key: "florals", title: "Book the florist", before: 140, category: "vendor" },
-  { key: "officiant", title: "Book the officiant", before: 120, category: "vendor" },
-  { key: "beauty", title: "Book hair & makeup", before: 120, category: "vendor" },
-  { key: "bar", title: "Choose the bar package (or BYOB plan)", before: 120, category: "budget" },
-  { key: "invites-order", title: "Order invitations", before: 100, category: "design" },
-  { key: "invites-mail", title: "Mail invitations", before: 70, category: "guests" },
-  { key: "rsvp", title: "RSVP deadline", before: 35, category: "guests" },
-  { key: "license", title: "Get the marriage license (Cook County)", before: 30, category: "admin", detail: "Valid 60 days; takes effect the day after it is issued." },
-  { key: "final-count", title: "Final headcount to the caterer + venue", before: 14, category: "guests" },
-  { key: "timeline-out", title: "Send the day-of timeline to vendors", before: 14, category: "vendor" },
-  { key: "seating", title: "Finish the seating plan", before: 10, category: "guests" },
-  { key: "final-pay", title: "Final vendor payments", before: 10, category: "budget" },
-  { key: "confirm", title: "Confirm vendor arrival times", before: 7, category: "vendor" },
-];
-
-export const milestoneSource = (key: string) => `milestone:${key}`;
-
-export interface MilestoneDraft {
-  key: string;
-  title: string;
-  due: string;
-  /** the ideal date had already passed: due moved to today */
-  late: boolean;
-  category: Category;
-  detail?: string;
-  source: string;
-}
-
-/** Milestones not yet in `tasks` (matched by source), due = wedding − before, never before today. Sorted by due. */
-export function milestoneDrafts(wedding: string, today: string, tasks: Pick<Task, "source">[]): MilestoneDraft[] {
-  const have = new Set(tasks.map((t) => t.source).filter(Boolean));
-  return MILESTONES.filter((m) => !have.has(milestoneSource(m.key))).map((m) => {
-    const ideal = addDays(wedding, -m.before);
-    const late = ideal < today;
-    return { key: m.key, title: m.title, due: late ? today : ideal, late, category: m.category, detail: m.detail, source: milestoneSource(m.key) };
-  }).sort((a, b) => a.due.localeCompare(b.due) || a.key.localeCompare(b.key));
 }
 
 // ---------- sunset ----------

@@ -1,12 +1,13 @@
 # Wedding Planner Suite
 
-Mark & Angela, 2027. The Budget Studio prices 16 venue scenarios by guest count (from Reconciled Master v2.0), and a guest data layer feeds it the guest count.
+Mark & Angela, The Joinery, Sat 29 May 2027. Private planning app on Cloudflare (Workers + D1 + Access): budget, guest list + addresses, dependency-aware checklist + calendar, day-of plan.
 
 ```powershell
 npm ci
-npm run import:guests -- data\private\guests.xlsx   # optional; stays local
-npm run dev                                         # http://localhost:5173
-npm run check                                       # typecheck + tests + build -> dist\index.html
+npm run dev      # http://localhost:5173 (UI + local API on synthetic data)
+npm run check    # typecheck + tests + hosted and offline builds (CI runs the same)
 ```
 
-Claude Code: double-click `claude-here.cmd` (Windows) or `start-claude.cmd` (WSL). Agents start at `AGENTS.md`; the current state is in `docs/STATE.md`.
+- Agents: start at `AGENTS.md`; what is true now is in `docs/STATE.md`.
+- Deploy: `docs/DEPLOY.md` (Mark's explicit go only).
+- Real guest data lives only in D1 and `data/private/` (gitignored).

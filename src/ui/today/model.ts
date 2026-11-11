@@ -1,6 +1,9 @@
-// Pure helpers for Today (DESIGN-v4 §2): window countdown.
+// Pure helpers for Today (DESIGN-v4 §2, v14 §3): countdown, venue card, Ready now, payments.
 import type { DateWindow } from "../../data/params";
-import { dayDiff, fmtDay } from "../plan/model";
+import type { Payment } from "../../plan/day";
+import { readyNow } from "../../plan/deps";
+import type { Task } from "../../plan/types";
+import { dayDiff, dueLabel, fmtDay } from "../plan/model";
 
 /** "12 days" | "6 weeks" | "7½ months" | "2 years" style span for a day count (>= 0). */
 export function spanText(days: number): string {
@@ -30,3 +33,19 @@ export const weddingSub = (date: string, venueName: string): string => `to ${fmt
 
 /** "Our venue" card room line: "≈ 64 / 160 seats" (cap null = no seated cap). */
 export const roomLine = (expected: number, cap: number | null): string => (cap == null ? `≈ ${expected} expected` : `≈ ${expected} / ${cap} seats`);
+
+/** "When" card when no venue holds a date. */
+export const NO_DATE = { big: "No date", sub: "no venue holds a wedding date yet" } as const;
+
+/** Venue card chip: booked = euc, anything else (held, ...) = peony; text is always the status word. */
+export const venueStatusChip = (status: string | undefined): { tone: "euc" | "peony"; text: string } =>
+  status === "booked" ? { tone: "euc", text: "booked" } : { tone: "peony", text: status ?? "held" };
+
+/** "Ready now" rows: the first `n` of readyNow (decisions first). */
+export const readyTop = (tasks: Task[], today: string, n = 5): Task[] => readyNow(tasks, today).slice(0, n);
+/** Text label for decisions (never colour alone). */
+export const decisionLabel = (t: Pick<Task, "kind">): string => (t.kind === "decision" ? "◆ Decision" : "");
+
+/** Payment row: "Deposit · The Joinery · $3,500 · due Fri Nov 13". */
+export const paymentText = (p: Payment, today: string): string =>
+  `${p.kind === "deposit" ? "Deposit" : "Balance"} · ${p.vendor.name}${p.amount != null ? ` · $${Math.round(p.amount).toLocaleString("en-US")}` : ""} · ${dueLabel(p.due, today).text}`;

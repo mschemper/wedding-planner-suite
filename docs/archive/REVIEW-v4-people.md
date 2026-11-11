@@ -1,5 +1,5 @@
 # REVIEW-v4-people -- People tab design review (22 Oct 2026). Agent-facing.
-Reviewed live v4 with real data (126 people, 55 households) at 1280px; v4 code `src/ui/people/*`. Lens: information design (what question does each screen answer, in how many glances). Options: docs/mockups/v5-people-options.html. Decision -> DESIGN-v5.
+Reviewed live v4 with real data (126 people, 55 households) at 1280px; v4 code `src/ui/people/*`. Lens: information design (what question does each screen answer, in how many glances). Options: docs/archive/mockups/v5-people-options.html. Decision -> DESIGN-v5.
 
 ## The questions the tab must answer (in this order)
 1. Who is still undecided, and who should we decide next?

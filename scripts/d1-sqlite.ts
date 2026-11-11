@@ -1,6 +1,6 @@
 // D1-compatible adapter over node:sqlite (Node ≥22.13). Used by tests/worker.test.ts and the vite dev /api middleware,
 // because workerd (wrangler dev / vitest-pool-workers) crashes on Mark's PC (docs/HISTORY.md v3). Implements only worker/env.ts D1Database.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import type { DatabaseSync as DatabaseSyncT } from "node:sqlite";
 
@@ -35,6 +35,9 @@ class Stmt implements D1PreparedStatement {
   }
 }
 
+/** migrations/*.sql in order */
+export const MIGRATIONS = readdirSync("migrations").filter((f) => /^\d{4}_.*\.sql$/.test(f)).sort().map((f) => `migrations/${f}`);
+
 export class SqliteD1 implements D1Database {
   readonly raw: DatabaseSync;
   constructor(path = ":memory:") {
@@ -56,8 +59,17 @@ export class SqliteD1 implements D1Database {
     }
   }
   /** Applies migrations/*.sql in order. */
-  migrate(files = ["migrations/0001_init.sql", "migrations/0002_garden.sql", "migrations/0003_people_v5.sql", "migrations/0004_custom_venues.sql", "migrations/0005_household_names.sql", "migrations/0006_day.sql", "migrations/0007_quote_date.sql", "migrations/0008_checklist_addresses.sql"]): this {
+  migrate(files = MIGRATIONS): this {
     for (const f of files) this.raw.exec(readFileSync(f, "utf8"));
+    return this;
+  }
+  /** Dev only: re-applies add-only migrations statement by statement, skipping ones already applied (an older local DB). */
+  upgrade(files = MIGRATIONS): this {
+    for (const f of files) {
+      for (const stmt of readFileSync(f, "utf8").replace(/^--.*$/gm, "").split(";").map((x) => x.trim()).filter(Boolean)) {
+        try { this.raw.exec(stmt); } catch (e) { if (!/duplicate column|already exists/i.test(String((e as Error).message))) throw e; }
+      }
+    }
     return this;
   }
   get empty(): boolean {

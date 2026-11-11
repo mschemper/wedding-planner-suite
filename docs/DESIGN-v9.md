@@ -1,5 +1,5 @@
 # DESIGN-v9 -- Jungalow Lounge theme. Agent-facing.
-Mark picked option B (docs/mockups/v9-review.html, "B · Jungalow Lounge"): mid-century modern jungle, hunter green, brass, monstera + hydrangea. Supersedes DESIGN-v8 look. Token NAMES kept (v8 art tokens --lead/--window/--skyline/--skyline-far dropped), values changed, new tokens below.
+Mark picked option B (docs/archive/mockups/v9-review.html, "B · Jungalow Lounge"): mid-century modern jungle, hunter green, brass, monstera + hydrangea. Supersedes DESIGN-v8 look. Token NAMES kept (v8 art tokens --lead/--window/--skyline/--skyline-far dropped), values changed, new tokens below.
 
 ## Palette (src/ui/styles.css; tests/contrast.test.ts gates AA)
 | token | day | dusk |

@@ -2,6 +2,16 @@
 
 Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.md.
 
+## v12 - Whole-app review fixes (10 Nov 2026)
+
+**Deployed** 10 Nov 2026. D1 migration 0007 (`quotes.date`) + `scripts/v12-live-data.sql` (dates the May 29 $7,000 Joinery quote). Findings and fixes: docs/archive/REVIEW-v11.md.
+
+**Budget**: a quote can be tied to one date ("Only for this date"); the May 29 $7,000 no longer prices every summer Saturday. The Joinery prices up to 160 guests (≈ past 100). A per-guest bar quote keeps the $4,000 minimum; quote choice is deterministic.
+
+**Safer edits**: sheets ask "Discard your changes?"; failed saves show a toast; One by one moves on only after saving; merge/move confirm first; Undo no longer fakes restoring deletes or overwrites a newer edit; sheets always show the latest values.
+
+**Screens**: Today grid, ≈ + confidence on the Joinery price, over-capacity warning; phone padding above the tab bar; print shows only content; wedding venue first on the shortlist; Venues notes when it prices differently from Today; keyboard menus that stay on screen; People room check defaults to the wedding venue; plainer Day copy; timeline 00:00–02:59 counts as after midnight; no duplicate milestones.
+
 ## v11 - The Joinery on Sat May 29 2027, Day tab (9 Nov 2026)
 
 **Deployed** 9 Nov 2026 (Worker version 5dcf0c0a). D1 migration 0006 (`vendors`, `timeline`) + `scripts/v11-live-data.sql` (held date May 29, Joinery held, Firehouse backup, Ravenswood + River Room archived, Mark's 5 Nov Joinery quotes moved to the new line names). Design: docs/DESIGN-v11.md (Mark picked a new Day tab).
@@ -14,7 +24,7 @@ Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.m
 
 ## v10 - Bug sweep, window price ranges, tour mode (25 Oct 2026)
 
-**Deployed** 25 Oct 2026 (Worker version 5904b91d). No D1 migration. Review page (design review + ideas): docs/mockups/v10-review.html; Mark said yes to R1, R2, R4, R5, N2.
+**Deployed** 25 Oct 2026 (Worker version 5904b91d). No D1 migration. Review page (design review + ideas): docs/archive/mockups/v10-review.html; Mark said yes to R1, R2, R4, R5, N2.
 
 **Fixes** (two code reviews, logic + UI): clearing the held date no longer fails the save; impossible dates (2027-13-45) are refused; a replaced quote is no longer flagged "didn't match any line"; a household's cost is priced at the same count as the venue total and says "nothing extra (flat quote)" when an all-in quote covers it; an added venue with only percent lines stays "awaiting rates"; named kids follow the kids rule before their household is decided; Escape on a ⋯ menu no longer closes the household card; a failed save stays on screen; holding a key in one-by-one Decide no longer decides a run of households; bulk edits and "Invite all undecided" touch only the households shown; the household card saves after Reload; the note sheet closes only when saved; a status change keeps unsaved venue details; "done" dates are Chicago dates; negative amounts read "−$…"; small controls are 44px.
 
@@ -26,7 +36,7 @@ Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.m
 
 ## v9 - Jungalow Lounge look, one-by-one Decide, Tidy up; Claude API features removed (23 Oct 2026)
 
-**Deployed** 23 Oct 2026 (Worker version 95a4afda). No D1 migration. `ANTHROPIC_API_KEY` secret deleted. Review page (looks, People fixes, ideas): docs/mockups/v9-review.html; Mark picked B · Jungalow Lounge. Design note: docs/DESIGN-v9.md.
+**Deployed** 23 Oct 2026 (Worker version 95a4afda). No D1 migration. `ANTHROPIC_API_KEY` secret deleted. Review page (looks, People fixes, ideas): docs/archive/mockups/v9-review.html; Mark picked B · Jungalow Lounge. Design note: docs/DESIGN-v9.md.
 
 **Removed**: Ask the planner (v8) and Add venue web research (v7), the `/api/ask` and `/api/research` routes and the `@anthropic-ai/sdk` dependency. Add venue opens straight to the by-hand form; venues researched earlier keep their "Researched" tag.
 
@@ -40,7 +50,7 @@ Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.m
 
 ## v8 - Household card, names that follow the people, Prairie & Steel Chicago look, Ask the planner (23 Oct 2026)
 
-**Deployed** 23 Oct 2026 (Worker version 13029a97). D1 migration 0005 (add-only: `parties.name_custom`). Ask the planner and Add venue research use the Cloudflare secret `ANTHROPIC_API_KEY`. Theme options: docs/mockups/v8-theme-options.html; Mark picked C · Prairie & Steel with more Chicago. Design note: docs/DESIGN-v8.md.
+**Deployed** 23 Oct 2026 (Worker version 13029a97). D1 migration 0005 (add-only: `parties.name_custom`). Ask the planner and Add venue research use the Cloudflare secret `ANTHROPIC_API_KEY`. Theme options: docs/archive/mockups/v8-theme-options.html; Mark picked C · Prairie & Steel with more Chicago. Design note: docs/archive/DESIGN-v8.md.
 
 **Household card** (replaces the separate person and household sheets): tapping any name opens its household — envelope name, invite decision, ring, kids rule at the top; every person below with first / last / age edited in place, "More about…" for relatives, RSVP, local, notes; add someone; move / own household / merge; remove from the guest list. One Save. "Add" now asks: new household (family / friends) or someone to an existing household.
 
@@ -54,7 +64,7 @@ Releases older than the last two. Newest first. Active entries: docs/CHANGELOG.m
 
 ## v7 - Conservatory garden look, hidden ancestors, adults vs kids, Add venue research (22 Oct 2026)
 
-**Deployed** 22 Oct 2026 (Worker version 66408ed9). D1 migration 0004 (add-only: `custom_venues`). Needs the Cloudflare secret `ANTHROPIC_API_KEY` for web research (without it, venues are added by hand). Theme options: docs/mockups/v7-theme-options.html; Mark picked B · Conservatory Modern. Design note: docs/DESIGN-v7.md.
+**Deployed** 22 Oct 2026 (Worker version 66408ed9). D1 migration 0004 (add-only: `custom_venues`). Needs the Cloudflare secret `ANTHROPIC_API_KEY` for web research (without it, venues are added by hand). Theme options: docs/archive/mockups/v7-theme-options.html; Mark picked B · Conservatory Modern. Design note: docs/archive/DESIGN-v7.md.
 
 **Look**: Conservatory Modern — Garfield Park Conservatory + 1950s botanical prints: flat coral / blush / mustard blooms and teal stems in the header and card corners, DM Serif Display + Jost, rounded cards, teal pill tabs; day and dusk.
 
@@ -77,7 +87,7 @@ _Older releases: docs/CHANGELOG-archive.md. Keep only the last two here; move th
 
 ## v6 - Easy people + review fixes (22 Oct 2026)
 
-**Deployed** 22 Oct 2026 (Worker version 71d3393a). No D1 migration. Review: docs/REVIEW-v6.md. Mark picked (22 Oct): ＋ menu on rows and in sheets, placement suggestions in the tray, person sheet "basics + More", calmer + denser visuals, compact Plan must-haves, 2-line phone rows.
+**Deployed** 22 Oct 2026 (Worker version 71d3393a). No D1 migration. Review: docs/archive/REVIEW-v6.md. Mark picked (22 Oct): ＋ menu on rows and in sheets, placement suggestions in the tray, person sheet "basics + More", calmer + denser visuals, compact Plan must-haves, 2-line phone rows.
 
 **People**
   * Add relative: ＋ on every Family row, in the person sheet and on each household member: Partner / Child / Sibling / Parent. Name + age + household; links, side, branch, generation and kids' room are filled in. A sibling of someone with no parents is linked through one "parents" placeholder.
@@ -94,7 +104,7 @@ _Older releases: docs/CHANGELOG-archive.md. Keep only the last two here; move th
 
 ## v5 - People tab rebuild (22 Oct 2026)
 
-**Deployed** 22 Oct 2026. D1 migration 0003 (add-only columns + placeholder kids → counts). Design review: docs/REVIEW-v4-people.md; options docs/mockups/v5-people-options.html; Mark picked rings, outline tree, friend shortlist and all data changes.
+**Deployed** 22 Oct 2026. D1 migration 0003 (add-only columns + placeholder kids → counts). Design review: docs/archive/REVIEW-v4-people.md; options docs/archive/mockups/v5-people-options.html; Mark picked rings, outline tree, friend shortlist and all data changes.
 
 **People tab**: three views instead of four — Decide · Family · Friends; Add and Export menus; History.
   * Room check: one sticky line with the chosen venue's seats as a bar (in / if room / undecided) and its cap, kids upstairs, ≈ cost; kids policy lives here.
@@ -152,9 +162,9 @@ Mark's request, 21 Oct 2026: build DESIGN-v3 (Workers + Static Assets + D1 + Acc
 
 ## v3 (UNRELEASED, part 1 of 2) - Venue seasons, review fixes, mobile (built 21 Oct 2026)
 
-Ships together with part 2 (Cloudflare hosting, login, guest and quotes/prices editors) as ONE release (Mark, 21 Oct 2026). Plan: docs/DESIGN-v3.md.
+Ships together with part 2 (Cloudflare hosting, login, guest and quotes/prices editors) as ONE release (Mark, 21 Oct 2026). Plan: docs/archive/DESIGN-v3.md.
 
-Mark's request, 20–21 Oct 2026: another refinement pass (hardening, seasons, a fresh code review, mobile) plus an evaluation of platforms for hosting. Findings: docs/REVIEW-v3.md. Platforms: docs/PLATFORMS.md.
+Mark's request, 20–21 Oct 2026: another refinement pass (hardening, seasons, a fresh code review, mobile) plus an evaluation of platforms for hosting. Findings: docs/archive/REVIEW-v3.md. Platforms: docs/archive/PLATFORMS.md.
 
 **Pricing**
   * Wedding **date** picker (default Sat Apr 24, 2027) replaces the month picker. Venues follow their own season calendars:
@@ -180,7 +190,7 @@ Mark's request, 20–21 Oct 2026: another refinement pass (hardening, seasons, a
 
 ## v2 - Port to a Claude Code repo; review fixes; guest data layer (20 Oct 2026)
 
-Mark's request, 20 Oct 2026: a comprehensive design and solution review, and a move to Claude Code, then aligned with the bauhaus-dashboard practices (AGENTS.md entry point). Findings: docs/REVIEW-v2.md.
+Mark's request, 20 Oct 2026: a comprehensive design and solution review, and a move to Claude Code, then aligned with the bauhaus-dashboard practices (AGENTS.md entry point). Findings: docs/archive/REVIEW-v2.md.
 
 **Budget Studio**
   * Fixed: clicking any venue card crashed the page (F-01).

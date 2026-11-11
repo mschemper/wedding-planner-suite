@@ -10,7 +10,7 @@ const ACTIVE: Record<number, Partial<VenueRow>> = {
   5: {
     status: "held", hold_date: "2027-05-29", tour_date: "2026-10-30", contact_name: "Shay", contact_email: "info@thejoinerychicago.com",
     next_step: "Sign the contract before the free one-week hold ends (offered 3 Nov 2026)",
-    notes: "Likely venue. Sat May 29, 2027 at the Friday rate ($7,000). Capacity 160 seated with dance floor. Recommended (not required) vendor list; in-house bar packages or BYOB.",
+    notes: "Booked (signed 10 Nov 2026). Sat May 29, 2027 at the Friday rate ($7,000). Capacity 160 seated with dance floor. Recommended (not required) vendor list; in-house bar packages or BYOB.",
   },
   17: {
     status: "held", hold_date: "2027-06-12", tour_date: "2026-10-20", contact_name: "Sarah and Teddy (Event Producers)",

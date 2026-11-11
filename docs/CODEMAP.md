@@ -37,12 +37,12 @@ Organised by the thing you're changing, not by folder.
 | Shell, tabs, theme toggle | `src/ui/App.tsx`, `src/ui/nav.tsx`, `src/ui/prefs.ts`, `src/ui/usePrefs.tsx` | `npm run dev` |
 | Colours, type, shared components | `src/ui/styles.css` (tokens), `src/ui/kit/kit.tsx`, `src/ui/garden/motifs.tsx` | `tests/contrast.test.ts`; AGENTS "Design rules" |
 | Today tab | `src/ui/today/*` | `tests/plan-ui.test.ts` |
-| Venues tab (shortlist, fit matrix, detail, quotes, assumptions) | `src/ui/venues/*` | `tests/venues-ui.test.ts` |
+| Budget tab (Joinery budget, quotes, prices; v14) | `src/ui/venues/*` | `tests/venues-ui.test.ts` |
 | People tab (room check, Decide rings, Family outline, Friends shortlist, household + person sheets, export) | `src/ui/people/*` | `tests/people-ui.test.ts` |
 | Closeness tiers, rings, fill line | `src/people/tier.ts`, `src/people/rings.ts` | `tests/people-v5.test.ts` |
 | Family outline tree | `src/people/outline.ts` | `tests/people-v5.test.ts` |
 | Branch display names | `src/data/params.ts` `branchName` / settings `branchNames` | `tests/people-v5.test.ts` |
-| Plan tab (tasks, paste, must-haves) | `src/ui/plan/*` | `tests/plan-ui.test.ts` |
+| Plan tab (list + calendar, checklist sheet, task deps; v14) | `src/ui/plan/*` | `tests/plan-ui.test.ts` |
 | D1 seed | `scripts/seed-v4.ts`, `worker/seed.ts` | DESIGN-v4 §7.5 |
 | Hidden ancestors (junctions), place by relation | `src/people/outline.ts`, `src/people/relatives.ts` `placeOps`; UI `src/ui/people/PlaceRelation.tsx`, `Family.tsx` | `tests/people-v7.test.ts` |
 | Names with different surnames, friends' last names | `src/people/names.ts` | `tests/people-v7.test.ts` |
@@ -60,3 +60,8 @@ Organised by the thing you're changing, not by folder.
 | Venue facts (hours, rules, vendors, photos) | `src/data/venueFacts.ts`; photos `public/venues/<venue>/` (hosted only; offline build has no publicDir) | `tests/day.test.ts` |
 | Wedding venue priced at expected guests on the held date | `src/ui/compare.ts` `useWeddingSummary` | — |
 | Live data fixes run once at deploy | `scripts/v11-live-data.sql` | docs/DEPLOY.md |
+| Task dependencies, states, month agenda (v14) | `src/plan/deps.ts`; Worker loop check `worker/write.ts` | `tests/v14.test.ts` |
+| Wedding checklist template (v14) | `src/plan/template.ts` | `tests/v14.test.ts` |
+| Mailing addresses (v14; private) | `src/people/address.ts`, `worker/write.ts` 4c, UI `src/ui/people/AddressSection.tsx`, `AddressesView.tsx`, `addressModel.ts`; import `scripts/addresses-sql.ts` | `tests/v14.test.ts`, `tests/addresses-ui.test.ts` |
+| Security headers, CI | `public/_headers`, `worker/api.ts` `json()`, `.github/workflows/check.yml` | `npm run check` |
+| Error boundary (v14) | `src/ui/ErrorBoundary.tsx`, `src/ui/App.tsx` | — |

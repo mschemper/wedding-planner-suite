@@ -26,8 +26,8 @@ export function DayScreen() {
   if (!row || !settings.heldDate) {
     return (
       <Card title="Day">
-        <EmptyState>No venue is booked for your wedding date yet. On Venues, mark the one you are booking as held.</EmptyState>
-        <Button onClick={() => setTab("venues")}>Open Venues</Button>
+        <EmptyState>No venue is booked for your wedding date yet. Mark the venue as booked with the wedding date to plan the day.</EmptyState>
+        <Button onClick={() => setTab("budget")}>Open Budget</Button>
       </Card>
     );
   }

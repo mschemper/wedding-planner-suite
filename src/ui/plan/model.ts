@@ -2,7 +2,8 @@
 import type { Op } from "../../api/types";
 import type { Patch } from "../data";
 import { isDay } from "../../data/params";
-import { CATEGORIES, OWNERS, type Category, type MustHave, type Owner, type Task } from "../../plan/types";
+import { monthAgenda, taskState, waitingOn, wouldCycle, type AgendaMonth, type TaskState } from "../../plan/deps";
+import { CATEGORIES, OWNERS, type Category, type Owner, type Task, type TaskKind } from "../../plan/types";
 
 const DAY = { test: (s: string) => isDay(s) };
 
@@ -125,29 +126,70 @@ export function filterTasks(tasks: Task[], f: TaskFilter): Task[] {
   return tasks.filter((t) => (f.showDone || t.status !== "done") && (!f.owner || t.owner === f.owner) && (!f.category || t.category === f.category));
 }
 
-// ---- must-haves ----
-/** Swap `sort` of the item at idx with its neighbour (dir -1 up, +1 down). null at the ends. `list` = displayed order. */
-export function reorderPatches(list: MustHave[], idx: number, dir: -1 | 1): Patch[] | null {
-  const j = idx + dir;
-  if (idx < 0 || j < 0 || idx >= list.length || j >= list.length) return null;
-  const a = list[idx], b = list[j];
-  let sa = b.sort, sb = a.sort;
-  if (sa === sb) { sa = dir < 0 ? b.sort - 1 : b.sort + 1; } // equal sorts: nudge the moved row past its neighbour
-  return [
-    { table: "musthaves", id: a.id, row: { sort: sa } },
-    { table: "musthaves", id: b.id, row: { sort: sb } },
-  ];
+// ---- v14 states, views, dependencies ----
+export type PlanMode = "list" | "calendar";
+export type PlanFilter = "all" | "ready" | "decisions";
+
+export interface RowInfo { state: TaskState; waitingOn: Task[] }
+export interface StateChip { tone: "plain" | "peony" | "gold" | "sage"; text: string }
+
+/** Row state as text + tone; done rows show none. "Waiting on <first blocker> (+N more)". */
+export function stateChip(info: RowInfo): StateChip | null {
+  if (info.state === "ready") return { tone: "sage", text: "Ready" };
+  if (info.state === "overdue") return { tone: "peony", text: "Overdue" };
+  if (info.state === "waiting") {
+    const [first, ...more] = info.waitingOn;
+    return { tone: "gold", text: `Waiting on ${first?.title ?? "another task"}${more.length ? ` (+${more.length} more)` : ""}` };
+  }
+  return null;
 }
 
-/** New must-have goes last: sort = max(all rows incl. archived) + 10. */
-export function addMustHaveOp(text: string, detail: string, all: MustHave[]): Op {
-  const max = all.reduce((m, x) => Math.max(m, x.sort), 0);
-  return { table: "musthaves", op: "create", row: { text: text.trim(), detail: detail.trim() || null, sort: max + 10, archived: false } };
+export function rowInfo(t: Task, byId: Map<string, Task>, today: string): RowInfo {
+  return { state: taskState(t, byId, today), waitingOn: waitingOn(t, byId) };
 }
-export const archivePatch = (m: Pick<MustHave, "id">, archived: boolean): Patch => ({ table: "musthaves", id: m.id, row: { archived } });
-export const musthaveEditPatch = (m: MustHave, text: string, detail: string): Patch | null => {
-  const row: Record<string, unknown> = {};
-  if (text.trim() !== m.text) row.text = text.trim();
-  if ((detail.trim() || null) !== (m.detail ?? null)) row.detail = detail.trim() || null;
-  return Object.keys(row).length && text.trim() ? { table: "musthaves", id: m.id, row } : null;
-};
+
+/** Plan view filter: Ready now = open with no open blocker; Decisions = open decisions. Done tasks only pass "all". */
+export function matchesView(t: Task, view: PlanFilter, byId: Map<string, Task>): boolean {
+  if (view === "all") return true;
+  if (t.status !== "open") return false;
+  if (view === "decisions") return t.kind === "decision";
+  return waitingOn(t, byId).length === 0;
+}
+
+export const isDecision = (t: Pick<Task, "kind">) => t.kind === "decision";
+
+const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+
+/** v14 fields that differ from the stored task (kind, depends_on). */
+export function depChanges(t: Task, kind: TaskKind, deps: string[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (kind !== (t.kind ?? "task")) out.kind = kind;
+  if (!sameIds(deps, t.depends_on ?? [])) out.depends_on = deps;
+  return out;
+}
+
+/** Open tasks that could be a blocker for `id`: not itself, not already picked, no loop; matches the search text. */
+export function blockerChoices(tasks: Task[], id: string, picked: string[], query: string, max = 8): Task[] {
+  const q = query.trim().toLowerCase();
+  return tasks
+    .filter((t) => t.id !== id && t.status === "open" && !picked.includes(t.id) && (!q || t.title.toLowerCase().includes(q)) && !wouldCycle(tasks, id, [...picked, t.id]))
+    .sort((a, b) => (a.due ?? "9999").localeCompare(b.due ?? "9999") || a.title.localeCompare(b.title))
+    .slice(0, max);
+}
+
+/** "Wedding day · Sat 29 May 2027" */
+export function weddingMarker(date: string): string {
+  const s = new Date(`${date}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  return `Wedding day · ${s.replace(",", "")}`;
+}
+
+/** Calendar months for display: agenda over ALL tasks (so blockers resolve), items filtered, empty months dropped, wedding month kept. */
+export interface CalMonth extends AgendaMonth { total: number; done: number }
+export function calendarMonths(tasks: Task[], today: string, keep: (t: Task) => boolean, wedding: string | null): CalMonth[] {
+  const all = monthAgenda(tasks, today);
+  const out: CalMonth[] = all.map((m) => ({ ...m, total: m.items.length, done: m.items.filter((i) => i.state === "done").length, items: m.items.filter((i) => keep(i.task)) }));
+  const wm = wedding?.slice(0, 7);
+  return out.filter((m) => m.items.length > 0 || m.key === wm)
+    .concat(wm && !out.some((m) => m.key === wm) ? [{ key: wm, label: monthAgenda([{ id: "_", title: "", owner: "Both", category: "admin", status: "open", due: wedding }], "0000-01-01")[0].label, items: [], total: 0, done: 0 }] : [])
+    .sort((a, b) => (a.key === "none" ? 1 : b.key === "none" ? -1 : a.key.localeCompare(b.key)));
+}

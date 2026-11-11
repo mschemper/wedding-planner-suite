@@ -27,6 +27,8 @@ export interface VenueFacts {
   included: string[];
   lodging: string[];
   recommended: Partial<Record<VendorCategory, string[]>>;
+  /** business contacts (v14) */
+  contacts?: string[];
   /** known open questions to ask the venue */
   questions: string[];
   source: string;
@@ -47,13 +49,14 @@ export const VENUE_FACTS: Record<number, VenueFacts> = {
       "Rental 2 PM – midnight (Fri/Sat); vendors get 1.5 h after for breakdown",
       "Bar: in-house packages ($34 / $44 / $55 pp, 5 h max, closes 30 min before end) or BYOB (price on request)",
       "Bar minimum $4,000; guests under 21 $5 pp; sparkling toast $4 pp; dinner wine $5 pp",
-      "Card payments +3.1%; state and federal tax included in the rental",
-      "Holidays and long weekends may cost more (May 29, 2027 = Memorial Day weekend)",
-      "160 seated with dance floor",
+      "Pay by check (The Joinery Studios LLC) or Zelle; card or other methods +3.1%; state and federal tax included in the rental",
+      "Booked May 29, 2027 at the Friday rate ($7,000; Shay, 4 Nov 2026). Long weekends normally cost more: confirm the contract shows $7,000",
+      "160 seated with dance floor; catering, florals and planner are ours to bring (recommended list below)",
+      "Park in front of the driveway; loading dock straight to the kitchen",
     ],
     included: [
       "Main space with 800 sq ft skylight; covered/uncovered patio",
-      "22 reclaimed-wood tables (3×8 ft), 170 steel chairs, 11 highboys, 8 barstools",
+      "22 reclaimed-wood tables (3×8 ft), 180 steel chairs, 12 highboys, 8 barstools (2027 sheet)",
       "Upstairs speakeasy bar and lounge",
       "Sound system, projector + screen, dimmable lighting, Wi-Fi",
       "Private wedding suite; 5 bathrooms; numbered coat room",
@@ -71,13 +74,23 @@ export const VENUE_FACTS: Record<number, VenueFacts> = {
       florals: ["XO Design Co", "Romee Willow", "The Jade Vine", "Flowerchild", "Studio Poppy", "Flowers by Stem", "Flower Girl Company", "The Flower Hutch", "Flowers for Dreams", "Lee Lee's Garden", "Hedonia", "Fleurish Atelier", "Eco Wilde", "Vrinspirations"],
       music: ["Toast and Jam", "Total Harmony Ent", "DJ Tess", "Gold Noise DJ", "Modern Love DJ", "Cage and Aquarium", "Okyne Media Lab", "Dart Collective", "Fiesta Pros", "Groove Is in the Heart", "Luniks", "The DJ Firm", "Green Line Talent"],
     },
-    questions: [
-      "Is a live jazz combo (Joel Paterson and Friends) allowed?",
-      "Does Memorial Day weekend change the $7,000 rate? Get it in the contract",
-      "Is the bar package taxed / is gratuity extra?",
-      "Deposit amount and payment schedule",
-      "Can kids use the upstairs lounge for a supervised party?",
+    contacts: [
+      "Shay Schultz, Venue Director: shay@thejoinerychicago.com · 219-308-1926",
+      "General: info@thejoinerychicago.com · payments (Zelle): Management@TheJoineryChicago.com",
+      "2533 W Homer St, Chicago",
     ],
-    source: "The Joinery brochure (2026.10.03, 22 Oct 2026), bar sheet + preferred-vendor photos (30 Oct 2026), Shay's email (3 Nov 2026)",
+    questions: [
+      "Is the contract countersigned and the $3,500 deposit marked paid? Save the HoneyBook PDF to Drive",
+      "Payment schedule: when is the balance due? Cancellation terms?",
+      "Final headcount deadline?",
+      "Is a certificate of insurance (COI) required, from whom?",
+      "Earliest vendor load-in before 2 PM?",
+      "Music: live jazz combo (Joel Paterson and Friends) allowed? Amplification limits, noise curfew?",
+      "Decor rules: candles / open flame, confetti, hanging items?",
+      "Ceremony on site? Rain plan for the patio?",
+      "Can kids use the upstairs lounge for a supervised party?",
+      "Is the bar package taxed / is gratuity extra?",
+    ],
+    source: "The Joinery brochure (2026.10.03), 2027 pricing sheet + bar sheet + preferred-vendor photos (30 Oct 2026), Shay's emails (4 + 10 Nov 2026); contract in HoneyBook (not yet saved)",
   },
 };

@@ -1,5 +1,5 @@
 # DESIGN-v8 -- Prairie & Steel theme. Agent-facing.
-Mark picked option C (docs/mockups/v8-theme-options.html .C): Wright Prairie art glass + Chicago skyline, still garden florals, mid-century. Supersedes DESIGN-v7 look; token NAMES unchanged, values changed, new tokens added.
+Mark picked option C (docs/archive/mockups/v8-theme-options.html .C): Wright Prairie art glass + Chicago skyline, still garden florals, mid-century. Supersedes DESIGN-v7 look; token NAMES unchanged, values changed, new tokens added.
 
 ## Palette (src/ui/styles.css; tests/contrast.test.ts gates AA)
 | token | day | dusk (night skyline) |

@@ -1,5 +1,5 @@
 # DESIGN-v7 -- Conservatory Modern theme. Agent-facing.
-Mark picked option B (22 Oct 2026; mockup docs/mockups/v7-theme-options.html .B): Garfield Park Conservatory + 1950s mid-century botanical prints, garden florals. Supersedes DESIGN-v4 §6 look; token NAMES unchanged (components keep working), values changed.
+Mark picked option B (22 Oct 2026; mockup docs/archive/mockups/v7-theme-options.html .B): Garfield Park Conservatory + 1950s mid-century botanical prints, garden florals. Supersedes DESIGN-v4 §6 look; token NAMES unchanged (components keep working), values changed.
 
 ## Palette (src/ui/styles.css; tests/contrast.test.ts gates AA)
 | token | day | dusk |

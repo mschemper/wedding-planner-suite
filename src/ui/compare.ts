@@ -1,4 +1,4 @@
-// Shared selector for Today + Venues: what guest count and date the venues are priced at, and every venue's summary.
+// Shared selector for Today, Budget, People, Plan: what guest count and date the venues are priced at, and every venue's summary.
 import { useMemo } from "react";
 import type { BudgetRow, Quote } from "../engine/types";
 import { defaultOpts } from "../engine/compute";

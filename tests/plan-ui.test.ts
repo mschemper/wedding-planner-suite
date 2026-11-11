@@ -1,16 +1,16 @@
 // Pure helpers behind Today + Plan (src/ui/plan/model.ts, src/ui/today/model.ts). Dates are passed in; no "today" literal.
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SETTINGS } from "../src/data/params";
-import type { MustHave, Task } from "../src/plan/types";
+import type { Task } from "../src/plan/types";
 import {
-  addMustHaveOp, archivePatch, completePatch, createTaskOp, draftError, dueLabel, duplicateFlags, emptyDraft, filterTasks, musthaveEditPatch,
-  NO_FILTER, pasteOps, pasteSummary, reopenPatch, reorderPatches, shortVenueName, sourceUrl, taskChanges, draftOf, dayDiff,
+  completePatch, createTaskOp, draftError, dueLabel, duplicateFlags, emptyDraft, filterTasks,
+  NO_FILTER, blockerChoices, calendarMonths, depChanges, matchesView, rowInfo, stateChip, weddingMarker, pasteOps, pasteSummary, reopenPatch, shortVenueName, sourceUrl, taskChanges, draftOf, dayDiff,
 } from "../src/ui/plan/model";
+import { byIdMap } from "../src/plan/deps";
 import { countdown, spanText } from "../src/ui/today/model";
 
 const T0 = "2026-10-26";
 const task = (o: Partial<Task> = {}): Task => ({ id: "T001", title: "Call venue", owner: "Mark", category: "venue", status: "open", due: null, ...o });
-const mh = (id: string, sort: number, o: Partial<MustHave> = {}): MustHave => ({ id, text: id, sort, archived: false, ...o });
 
 describe("countdown", () => {
   it("formats spans", () => {
@@ -102,30 +102,39 @@ describe("paste", () => {
   });
 });
 
-describe("must-haves", () => {
-  const list = [mh("A", 10), mh("B", 20), mh("C", 30)];
-  it("reorder swaps sort values; null at the ends", () => {
-    expect(reorderPatches(list, 1, -1)).toEqual([{ table: "musthaves", id: "B", row: { sort: 10 } }, { table: "musthaves", id: "A", row: { sort: 20 } }]);
-    expect(reorderPatches(list, 1, 1)).toEqual([{ table: "musthaves", id: "B", row: { sort: 30 } }, { table: "musthaves", id: "C", row: { sort: 20 } }]);
-    expect(reorderPatches(list, 0, -1)).toBeNull();
-    expect(reorderPatches(list, 2, 1)).toBeNull();
+describe("v14 states, views, deps", () => {
+  const A = task({ id: "A", title: "Pick caterer", due: "2026-12-01", kind: "decision" });
+  const B = task({ id: "B", title: "Book caterer", due: "2026-12-10", depends_on: ["A"] });
+  const C = task({ id: "C", title: "Old", due: "2026-10-01" });
+  const D = task({ id: "D", title: "Done", status: "done" });
+  const all = [A, B, C, D];
+  const by = byIdMap(all);
+  it("state chip text", () => {
+    expect(stateChip(rowInfo(A, by, T0))).toEqual({ tone: "sage", text: "Ready" });
+    expect(stateChip(rowInfo(B, by, T0))).toEqual({ tone: "gold", text: "Waiting on Pick caterer" });
+    expect(stateChip(rowInfo(C, by, T0))).toEqual({ tone: "peony", text: "Overdue" });
+    expect(stateChip(rowInfo(D, by, T0))).toBeNull();
+    const E = task({ id: "E", title: "E", depends_on: ["A", "C"] });
+    expect(stateChip(rowInfo(E, byIdMap([...all, E]), T0))?.text).toBe("Waiting on Pick caterer (+1 more)");
   });
-  it("reorder with equal sorts still changes the order", () => {
-    const eq = [mh("A", 10), mh("B", 10)];
-    const p = reorderPatches(eq, 1, -1)!;
-    expect(p[0].row!.sort).toBe(9);
+  it("view filters", () => {
+    expect(all.filter((t) => matchesView(t, "ready", by)).map((t) => t.id)).toEqual(["A", "C"]);
+    expect(all.filter((t) => matchesView(t, "decisions", by)).map((t) => t.id)).toEqual(["A"]);
+    expect(all.filter((t) => matchesView(t, "all", by))).toHaveLength(4);
   });
-  it("add goes last, counting archived rows", () => {
-    const op = addMustHaveOp(" Photo booth ", "", [...list, mh("D", 90, { archived: true })]);
-    expect(op).toEqual({ table: "musthaves", op: "create", row: { text: "Photo booth", detail: null, sort: 100, archived: false } });
-    expect(addMustHaveOp("x", "", [])).toMatchObject({ row: { sort: 10 } });
+  it("dep changes and blocker choices exclude self and loops", () => {
+    expect(depChanges(B, "task", ["A"])).toEqual({});
+    expect(depChanges(B, "decision", [])).toEqual({ kind: "decision", depends_on: [] });
+    expect(blockerChoices(all, "A", [], "").map((t) => t.id)).toEqual(["C"]);
+    expect(blockerChoices(all, "B", [], "old").map((t) => t.id)).toEqual(["C"]);
+    expect(blockerChoices(all, "B", ["A"], "").map((t) => t.id)).toEqual(["C"]);
   });
-  it("archive, restore, edit patches", () => {
-    expect(archivePatch(list[0], true).row).toEqual({ archived: true });
-    expect(archivePatch(list[0], false).row).toEqual({ archived: false });
-    const m = mh("A", 10, { detail: "old" });
-    expect(musthaveEditPatch(m, "A", "old")).toBeNull();
-    expect(musthaveEditPatch(m, "A2", "")).toEqual({ table: "musthaves", id: "A", row: { text: "A2", detail: null } });
-    expect(musthaveEditPatch(m, "  ", "x")).toBeNull();
+  it("calendar months keep the wedding month, count done, roll overdue forward", () => {
+    const m = calendarMonths(all, T0, () => true, "2027-05-29");
+    expect(m.map((x) => x.key)).toEqual(["2026-10", "2026-12", "2027-05", "none"]);
+    expect(m[0].items.map((i) => i.task.id)).toEqual(["C"]);
+    expect(m[3]).toMatchObject({ total: 1, done: 1 });
+    expect(calendarMonths(all, T0, (t) => t.id === "A", null).map((x) => x.key)).toEqual(["2026-12"]);
+    expect(weddingMarker("2027-05-29")).toBe("Wedding day · Sat 29 May 2027");
   });
 });

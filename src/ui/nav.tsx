@@ -1,7 +1,7 @@
 // Tab navigation shared by the screens (DESIGN-v4 §2). src/ui/App.tsx provides it.
 import { createContext, useContext } from "react";
 
-export type Tab = "today" | "venues" | "people" | "plan" | "day";
+export type Tab = "today" | "budget" | "people" | "plan" | "day";
 export type DaySection = "venue" | "vendors" | "timeline";
 /** v14 Plan tab view (deep link from Today) */
 export interface PlanView { mode?: "list" | "calendar"; filter?: "all" | "ready" | "decisions" }

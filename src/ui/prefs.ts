@@ -11,10 +11,10 @@ export interface Prefs {
   guestBasis: GuestBasis;
   /** used when guestBasis = custom */
   guests: number;
-  /** compare date (YYYY-MM-DD); null = the held date, else the first window's reference date */
+  /** compare date (YYYY-MM-DD); v14: always null = the held date (no UI sets it) */
   date: string | null;
   contingency: number;
-  /** venue detail open on the Venues tab */
+  /** legacy (venue detail removed in v14); kept so stored prefs load */
   selected: number | null;
   /** venue used for the room check on the People tab; null = the wedding venue */
   capacityVenue: number | null;
@@ -41,9 +41,8 @@ function migrateView(v: unknown): PeopleView | null {
   return v === "decide" || v === "family" ? v : null;
 }
 
-const TABS: Tab[] = ["today", "venues", "people", "plan", "day"];
+const TABS: Tab[] = ["today", "budget", "people", "plan", "day"];
 const DAY_SECTIONS: DaySection[] = ["venue", "vendors", "timeline"];
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export function loadPrefs(): Prefs {
   try {
@@ -51,16 +50,16 @@ export function loadPrefs(): Prefs {
     if (!raw) {
       const old = JSON.parse(localStorage.getItem(OLD_KEY) ?? "null") as { tab?: string; guests?: number; contingency?: number } | null;
       if (!old) return DEFAULT_PREFS;
-      const tab: Tab = old.tab === "guests" ? "people" : old.tab === "budget" || old.tab === "quotes" ? "venues" : "today";
+      const tab: Tab = old.tab === "guests" ? "people" : old.tab === "budget" || old.tab === "quotes" ? "budget" : "today";
       return { ...DEFAULT_PREFS, tab, contingency: Number.isFinite(old.contingency) ? Number(old.contingency) : 0 };
     }
     const p = JSON.parse(raw) as Partial<Prefs> & { v?: number };
     const stale = typeof p.v !== "number" || p.v < PREFS_VERSION;
     return {
-      tab: TABS.includes(p.tab as Tab) ? (p.tab as Tab) : DEFAULT_PREFS.tab,
+      tab: (p.tab as string) === "venues" ? "budget" : TABS.includes(p.tab as Tab) ? (p.tab as Tab) : DEFAULT_PREFS.tab,
       guestBasis: p.guestBasis === "ceiling" || p.guestBasis === "custom" || p.guestBasis === "expected" ? p.guestBasis : "considered",
       guests: Number.isFinite(p.guests) ? Number(p.guests) : DEFAULT_PREFS.guests,
-      date: typeof p.date === "string" && DAY.test(p.date) ? p.date : null,
+      date: null, // v14: the budget is always priced on the held date
       contingency: Number.isFinite(p.contingency) ? Number(p.contingency) : 0,
       selected: typeof p.selected === "number" ? p.selected : null,
       capacityVenue: typeof p.capacityVenue === "number" && !(stale && p.capacityVenue === 17) ? p.capacityVenue : null,

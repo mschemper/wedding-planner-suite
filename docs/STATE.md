@@ -3,26 +3,25 @@
 Read after AGENTS.md. Only what is true now. Open work -> BACKLOG.md. Past releases, old backups, seed-time numbers -> HISTORY.md "Release log". Files per subject -> CODEMAP.md.
 Keep: current + previous release rows only, latest backup only, no history. `tests/docs.test.ts` gates size and version.
 
-Last updated: 10 November 2026 (v12).
+Last updated: 10 November 2026 (v14).
 
 ## Version
 
 | | |
 |---|---|
-| Current | **v13** (tag `v13`, package.json 13.0.0): Plan feed `/api/feed/plan` for the Bauhaus wall (docs/FEED.md), service token on `/api/feed/*` only; no migration. Deployed 9 Nov 2026: Worker version 2976f4fd, backup `data/private/d1-backup-v12.sql`; unauthenticated `/`, `/api/version`, `/api/feed/plan` redirect to Access (verified); signed-in app not checked. Feed live 10 Nov 2026 (FEED.md "Setup" done; BACKLOG F27). |
-| Previous | **v12** (tag `v12`, 12.0.0), deployed 10 Nov 2026, Worker version 017f384b-e98d-4cbd-a564-c7d2afefc5d6; migration 0007. Rollback: docs/DEPLOY.md |
+| Current | **v14** (tag `v14`, package.json 14.0.0): Joinery booked — Budget tab, checklist + calendar with dependencies, household addresses, CI + security headers (DESIGN-v14). Migration 0008 + `scripts/v14-live-data.sql` + address import: **not deployed yet** (docs/DEPLOY.md). |
+| Previous | **v13** (tag `v13`, 13.0.0), deployed 9 Nov 2026, Worker version 2976f4fd; Plan feed live (F27). Rollback: docs/DEPLOY.md |
 | Output | Hosted: https://wedding-planner.wedding-planner-suite.workers.dev (Access login). Offline: `dist-offline\index.html` (`npm run build:offline`), read-only budget only. |
-| Look | Jungalow Lounge (docs/DESIGN-v9.md); Day tab layout docs/DESIGN-v11.md. Older looks and designs: HISTORY.md |
+| Look | Jungalow Lounge (docs/DESIGN-v9.md); Day tab docs/DESIGN-v11.md; Budget/Plan/Addresses docs/DESIGN-v14.md. Older: docs/archive/ |
 
 ## The wedding (facts that drive the model)
 
 | | |
 |---|---|
 | Couple | Mark & Angela |
-| Date | **Likely Sat May 29, 2027** (Memorial Day weekend; Mark, 9 Nov). Settings `heldDate` = 2027-05-29; `dateWindows` unchanged (late spring / early fall). |
-| Venue | **The Joinery** (likely): toured 30 Oct; Shay offered May 29 at the Friday rate **$7,000** (tax incl.) and held it free for one week from 3 Nov (ends ≈ 10 Nov 2026). Facts, rules, vendors, photos: `src/data/venueFacts.ts`. |
-| Shortlist (D1 `venues.active`) | The Joinery (held May 29), Firehouse Chicago (backup, held Jun 12). Ravenswood + River Room archived 9 Nov (scripts/v11-live-data.sql). |
-| Firehouse facts | Official 15-hour package: Sat $11,000 Nov–May, $12,000 Jun–Oct; seated 82 adults, cocktail 100; Bunk Room $500, up to 20 kids (Mark, 22 Oct); approved caterers; no valet (lot one block away); fetched 21 Oct 2026. F&B minimum, fees, 2027 availability unknown. |
+| Date | **Sat May 29, 2027** (Memorial Day weekend). Settings `heldDate` = 2027-05-29. |
+| Venue | **The Joinery, booked**: signed via HoneyBook 10 Nov 2026 (Angela; Shay to countersign); $7,000 Friday rate; deposit $500 (10 Nov) + $3,000 (11 Nov, per Angela's email) by Zelle. Balance date, COI, headcount deadline unknown (venueFacts questions). Contract PDF not yet in Drive. Facts: `src/data/venueFacts.ts`. |
+| Other venues | Passed (v14 live-data sets Firehouse + added venue to passed). |
 | Kids | Parallel supervised kids' party upstairs ("Sylvie's party"); kids policy default "our kids only", households can override. |
 | Music | Joel Paterson and Friends $2,000 in the model; no contract in email; Firehouse timeline assumes a DJ (task T009). |
 | Pricing source | Reconciled Master v2.0 (11 Jun 2026) + venue pages (Oct 2026); ±10–15% vs contracts |
@@ -33,17 +32,14 @@ Live, 22 Oct 2026 evening (REVIEW-v6 §2): 121 people, 56 households; decisions 
 
 ## Quotes
 
-- **Firehouse live quotes to delete (Mark, in the app):** Tax + service $0, Event insurance $0, Photography $500 (entered 22 Oct 07:27, no vendor; Mark confirmed test taps). They lower the Firehouse total ≈ $7,600 at 75 guests. Venues → Firehouse → Quotes → delete each.
 - Quote documents: Google Drive folder https://drive.google.com/drive/folders/1HWECgGPfEdzSJ6sazixw2Rp3WB9xG2vn (22 Oct: The Joinery Chicago.pdf). Quotes-from-email plan: REVIEW-v6 §4 (BACKLOG F18–F20).
 - Joinery: brochure (22 Oct), bar sheet + vendor list photos (30 Oct) in the Drive folder; May 29 $7,000 + bar quotes entered by Mark 5 Nov, relabelled to the v11 lines by scripts/v11-live-data.sql. Venue photos: `public/venues/joinery/` (venue's site, downloaded with Mark's OK 9 Nov; hosted build only).
 
-## Open questions to venues (tasks in the app)
+## Open questions to the Joinery
+In `src/data/venueFacts.ts` [5].questions (Day → Our venue) and the checklist task "Ask Shay: …".
 
-1. Firehouse: when does the Jun 12 hold resolve; seated cap with kids upstairs; caterer + DJ rules; valet.
-2. Ravenswood Event Center: rate sheet, F&B minimum, catering/bar policy, 2027 dates (no official site found).
-3. River Room: book a tour (Calendly) or drop; 2026/27 pricing not published.
-4. The Joinery: sign before the hold ends; jazz combo allowed; Memorial Day surcharge; bar tax/gratuity; deposit schedule (`VENUE_FACTS[5].questions`).
-5. Rockwell on the River, Salt Shed: tell them you're passing.
+## Addresses
+4 found (Drive "Guest Addresses" screenshot; Gmail/Drive sweeps found none else): `data/private/addresses-found.json`; import at deploy (DEPLOY 2c).
 
 ## Environment
 
@@ -57,7 +53,7 @@ Live, 22 Oct 2026 evening (REVIEW-v6 §2): 121 people, 56 households; decisions 
 ## Platform
 
 - Cloudflare Workers + Static Assets + D1 + Access, account `mschemper@gmail.com` (ID 57b28195dc1564bee550b665117db76c). Access team `sukursschemper.cloudflareaccess.com`, one-time PIN, allowed: Mark + Angela. D1 `wedding-planner` id 87b1c95c-7e87-4307-98a3-cac03d0a3937 (ENAM).
-- Migrations applied: 0001–0005 (0005 on 23 Oct 2026); 0006 (vendors, timeline) on 9 Nov 2026. 0007 (quotes.date) + `scripts/v12-live-data.sql` on 10 Nov 2026. v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
+- Migrations applied (remote): 0001–0005 (0005 on 23 Oct 2026); 0006 (vendors, timeline) on 9 Nov 2026. 0007 (quotes.date) + `scripts/v12-live-data.sql` on 10 Nov 2026. 0008 (tasks.depends_on/kind, addresses): written, not applied. v3 tables (households, individuals, friends) still present; drop in a later migration (BACKLOG B5).
 - Latest backup (before v12): `data/private/d1-backup-v11.sql` (10 Nov 2026, 703 INSERT rows); Time Travel bookmark before 0007: 0000003e-00000000-0000511f-91d6ac82b1bd508412f58788bd44a34a. Older backups + bookmarks: HISTORY.md.
 - Deploy, rollback, re-seed: docs/DEPLOY.md.
 

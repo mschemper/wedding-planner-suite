@@ -264,3 +264,14 @@
 /* v8: name tidy */
 .nt-list { margin: 8px 0 10px 18px; font-size: 14px; display: grid; gap: 2px; }
 .nt-from { color: var(--muted); text-decoration: line-through; }
+
+/* v14 addresses */
+.pp-addr { border-top: 1px solid var(--line); padding-top: 8px; }
+.pp-addr-msg { margin: 8px 0; }
+.pp-addr-msg .flag { display: block; }
+.pp-bar { height: 12px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.pp-bar-fill { display: block; height: 100%; background: var(--euc-ink); }
+.pp-addr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pp-addr-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); text-align: left; font-size: 15px; }
+.pp-addr-line { display: block; font-size: 15px; }
+.pp-addrs { display: grid; gap: 12px; }

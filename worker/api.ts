@@ -12,7 +12,7 @@ import { applyWrite } from "./write";
 import pkg from "../package.json";
 
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
+  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" } });
 const err = (status: number, error: ApiErrorBody["error"], message: string) => json({ error, message } satisfies ApiErrorBody, status);
 
 export async function handleApi(req: Request, env: Env, jwks?: JWTVerifyGetKey): Promise<Response> {

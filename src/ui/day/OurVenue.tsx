@@ -1,8 +1,8 @@
-// Day tab "Our venue" (DESIGN-v11): header, money, room, photos, facts, open questions, planning milestones.
-import { useMemo, useState } from "react";
+// Day tab "Our venue" (DESIGN-v11): header, money, room, photos, facts, contacts, open questions, link to the wedding checklist.
+import { useMemo, useState, type ReactNode } from "react";
 import { VENUE_FACTS, type VenuePhoto } from "../../data/venueFacts";
 import { defaultOpts, seasonOf } from "../../engine/compute";
-import { barMinimum, clock, milestoneDrafts, roomCheck, sunsetLocal, weddingCountdown } from "../../plan/day";
+import { barMinimum, clock, roomCheck, sunsetLocal, weddingCountdown } from "../../plan/day";
 import { chicagoToday } from "../../plan/tasks";
 import { useWeddingSummary } from "../compare";
 import { useData } from "../data";
@@ -11,7 +11,7 @@ import { Button, Card, Chip, EmptyState, Sheet } from "../kit/kit";
 import { useNav } from "../nav";
 import { fmtDay } from "../plan/model";
 import { TaskRow } from "../plan/TaskRow";
-import { capList, memorialWeekend, milestoneButton, milestoneOps } from "./ourVenueModel";
+import { capList, contactParts, memorialWeekend } from "./ourVenueModel";
 import "./ourVenue.css";
 
 export interface OurVenueProps { venueId: number; date: string }
@@ -29,19 +29,19 @@ function FactList({ title, items }: { title: string; items: string[] }) {
   );
 }
 
+function Contact({ text }: { text: string }): ReactNode {
+  return contactParts(text).map((p, i) => p.href ? <a key={i} href={p.href}>{p.text}</a> : <span key={i}>{p.text}</span>);
+}
+
 export function OurVenue({ venueId, date }: OurVenueProps) {
-  const { tasks, scenarios, headcount: hc, venues, save, offline } = useData();
-  const { openTask } = useNav();
+  const { tasks, scenarios, headcount: hc, venues, offline } = useData();
+  const { openTask, openPlan } = useNav();
   const ws = useWeddingSummary();
   const [photo, setPhoto] = useState<VenuePhoto | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const [allMs, setAllMs] = useState(false);
   const today = chicagoToday();
   const facts = VENUE_FACTS[venueId];
   const sc = scenarios.find((s) => s.id === venueId);
   const row = venues.find((v) => v.scenario_id === venueId);
-  const drafts = useMemo(() => milestoneDrafts(date, today, tasks), [date, today, tasks]);
   const openQs = useMemo(() => tasks.filter((t) => t.status === "open" && t.scenario_id === venueId), [tasks, venueId]);
 
   if (!sc) return null;
@@ -52,15 +52,6 @@ export function OurVenue({ venueId, date }: OurVenueProps) {
   const room = roomCheck(hc, sc);
   const bar = ws ? barMinimum(sc, ws.guests, defaultOpts(sc), seasonOf(sc, date)) : null;
   const approx = !!b?.rows.some((r) => r.extrapolated);
-  const msShown = capList(drafts, 5, allMs);
-
-  const addAll = async () => {
-    setBusy(true);
-    setErr("");
-    const r = await save(milestoneOps(drafts, venueId, today));
-    setBusy(false);
-    if (!r.ok) setErr(r.message);
-  };
 
   return (
     <div className="ov-screen">
@@ -121,6 +112,12 @@ export function OurVenue({ venueId, date }: OurVenueProps) {
         </Card>
       )}
 
+      {facts?.contacts && facts.contacts.length > 0 && (
+        <Card title="Contacts">
+          <ul className="ov-list">{facts.contacts.map((c) => <li key={c}><Contact text={c} /></li>)}</ul>
+        </Card>
+      )}
+
       {(facts?.questions.length || openQs.length) ? (
         <Card title="Open questions">
           {facts && facts.questions.length > 0 && <ul className="ov-list">{facts.questions.map((q) => <li key={q}>{q}</li>)}</ul>}
@@ -128,22 +125,9 @@ export function OurVenue({ venueId, date }: OurVenueProps) {
         </Card>
       ) : null}
 
-      <Card title="Planning milestones">
-        {drafts.length === 0 ? <p className="ov-line"><span aria-hidden="true">✓</span> {milestoneButton(0)}</p> : (
-          <>
-            <ul className="ov-ms">
-              {msShown.shown.map((m) => (
-                <li key={m.key}>
-                  <span>{m.title}</span>
-                  <span className="ov-ms-due">{fmtDay(m.due, true)}{m.late && <> <Chip tone="peony" title="Ideal date passed; due today">late</Chip></>}</span>
-                </li>
-              ))}
-            </ul>
-            {drafts.length > 5 && <Button kind="quiet" onClick={() => setAllMs(!allMs)}>{allMs ? "Show fewer" : `Show all ${drafts.length}`}</Button>}
-            <Button kind="primary" disabled={busy || offline} onClick={() => void addAll()}>{busy ? "Adding…" : milestoneButton(drafts.length)}</Button>
-            {err && <p className="ov-warn" role="alert">Not saved: {err}</p>}
-          </>
-        )}
+      <Card title="Wedding checklist">
+        <p className="ov-line">Tasks and decisions counted back from the wedding, with what waits on what.</p>
+        <Button kind="primary" onClick={() => openPlan({ mode: "calendar" })}>Open the wedding checklist</Button>
       </Card>
 
       <Sheet title={photo?.caption ?? "Photo"} open={!!photo} onClose={() => setPhoto(null)}>

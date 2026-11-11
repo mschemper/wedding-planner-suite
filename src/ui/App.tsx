@@ -1,7 +1,8 @@
-// Shell (DESIGN-v4 §2, §6; v11 Day tab): garden header, five tabs (top pills; bottom bar on phones), prefs + nav contexts, Undo toast.
+// Shell (DESIGN-v4 §2, §6; v11 Day tab): garden header, five tabs (Today, Budget, People, Plan, Day) (top pills; bottom bar on phones), prefs + nav contexts, Undo toast.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useData } from "./data";
 import { DayScreen } from "./day/DayScreen";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { Garland, LeafDivider } from "./garden/motifs";
 import { UndoToast } from "./kit/kit";
 import { NavContext, type Nav, type Tab } from "./nav";
@@ -10,11 +11,11 @@ import { PlanScreen } from "./plan/PlanScreen";
 import { loadPrefs, savePrefs, type Prefs } from "./prefs";
 import { TodayScreen } from "./today/TodayScreen";
 import { PrefsContext } from "./usePrefs";
-import { VenuesScreen } from "./venues/VenuesScreen";
+import { BudgetScreen } from "./venues/BudgetScreen";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "today", label: "Today", icon: "✿" },
-  { id: "venues", label: "Venues", icon: "⌂" },
+  { id: "budget", label: "Budget", icon: "⌂" },
   { id: "people", label: "People", icon: "❦" },
   { id: "plan", label: "Plan", icon: "✓" },
   { id: "day", label: "Day", icon: "❀" },
@@ -39,12 +40,12 @@ export function App() {
   const nav = useMemo<Nav>(() => ({
     tab: prefs.tab,
     setTab: (tab) => { set({ tab }); window.scrollTo({ top: 0 }); },
-    openVenue: (id) => { set({ tab: "venues", selected: id }); setFocus({ venue: id }); window.scrollTo({ top: 0 }); },
+    openVenue: (id) => { set({ tab: "budget", selected: id }); setFocus({ venue: id }); window.scrollTo({ top: 0 }); },
     openPerson: (id) => { set({ tab: "people" }); setFocus({ person: id }); },
     openTask: (id) => { set({ tab: "plan" }); setFocus({ task: id }); },
     openPlan: (view) => { set({ tab: "plan" }); setFocus({ plan: view ?? {} }); window.scrollTo({ top: 0 }); },
     openDay: (section) => { set({ tab: "day", ...(section ? { daySection: section } : {}) }); window.scrollTo({ top: 0 }); },
-    priceAt: (g) => { set({ tab: "venues", guestBasis: "custom", guests: clamp(Math.round(g), 20, 300), selected: null }); window.scrollTo({ top: 0 }); },
+    priceAt: (g) => { set({ tab: "budget", guestBasis: "custom", guests: clamp(Math.round(g), 20, 300), selected: null }); window.scrollTo({ top: 0 }); },
     focus,
     clearFocus: () => setFocus({}),
   }), [prefs.tab, set, focus]);
@@ -92,7 +93,9 @@ export function App() {
             </div>
           )}
           {data.status === "ready" && (
-            prefs.tab === "today" ? <TodayScreen /> : prefs.tab === "venues" ? <VenuesScreen /> : prefs.tab === "people" ? <PeopleScreen /> : prefs.tab === "plan" ? <PlanScreen /> : <DayScreen />
+            <ErrorBoundary resetKey={prefs.tab}>
+              {prefs.tab === "today" ? <TodayScreen /> : prefs.tab === "budget" ? <BudgetScreen /> : prefs.tab === "people" ? <PeopleScreen /> : prefs.tab === "plan" ? <PlanScreen /> : <DayScreen />}
+            </ErrorBoundary>
           )}
         </main>
         <UndoToast />
